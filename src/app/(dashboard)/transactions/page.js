@@ -258,7 +258,7 @@ export default function TransactionsPage() {
           {/* Pagination */}
           <div className="px-6 py-5 bg-white border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-gray-500 font-medium text-center">
-              Showing <span className="text-slate-900 font-bold">1-{filteredTransactions.length}</span> of <span class="text-slate-900 font-bold">{filteredTransactions.length}</span> transactions
+              Showing <span className="text-slate-900 font-bold">1-{filteredTransactions.length}</span> of <span className="text-slate-900 font-bold">{filteredTransactions.length}</span> transactions
             </p>
             <div className="flex items-center gap-2">
               <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold text-gray-300 cursor-not-allowed">&lt; Previous</button>
