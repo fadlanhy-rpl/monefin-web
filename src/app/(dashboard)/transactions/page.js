@@ -444,7 +444,7 @@ export default function TransactionsPage() {
               setIsDateOpen(false);
               setIsAccountOpen(false);
             }}
-            className="flex flex-nowrap gap-2 overflow-x-auto pb-2 -mb-2 flex-1 relative z-30 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            className="flex flex-nowrap gap-1.5 overflow-x-auto pb-2 -mb-2 flex-1 relative z-30 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-1"
           >
             {/* Category Filter */}
             <div className="relative shrink-0">
@@ -455,7 +455,7 @@ export default function TransactionsPage() {
                   setIsDateOpen(false);
                   setIsAccountOpen(false);
                 }}
-                className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[130px]"
+                className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[95px] sm:min-w-[130px]"
               >
                 <span>Category: {categoryFilter === "All" ? "All" : categoryFilter}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isCategoryOpen ? 'rotate-180' : ''}`} />
@@ -497,7 +497,7 @@ export default function TransactionsPage() {
                   setIsCategoryOpen(false);
                   setIsAccountOpen(false);
                 }}
-                className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[140px]"
+                className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[105px] sm:min-w-[140px]"
               >
                 <span>Date: {dateFilter}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isDateOpen ? 'rotate-180' : ''}`} />
@@ -539,7 +539,7 @@ export default function TransactionsPage() {
                   setIsCategoryOpen(false);
                   setIsDateOpen(false);
                 }}
-                className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[160px]"
+                className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[115px] sm:min-w-[160px]"
               >
                 <span>Account: {accountFilter === 'All' ? 'All' : accountFilter}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isAccountOpen ? 'rotate-180' : ''}`} />
