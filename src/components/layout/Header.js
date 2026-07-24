@@ -118,10 +118,10 @@ export default function Header({ setMobileOpen }) {
                 setIsFocused(true);
                 setTimeout(() => searchInputRef.current?.focus(), 50);
               }}
-              className="absolute inset-0 w-full h-full rounded-xl hover:bg-slate-100 transition-colors sm:hidden flex items-center justify-center border border-slate-200/80 bg-white"
+              className="absolute inset-0 w-full h-full flex items-center justify-center rounded-xl p-2 text-slate-600 hover:bg-slate-100 transition-all sm:hidden"
               aria-label="Fokus Cari"
             >
-              <Search className="w-4 h-4 text-slate-600" />
+              <Search className="w-5 h-5" />
             </button>
           )}
 
