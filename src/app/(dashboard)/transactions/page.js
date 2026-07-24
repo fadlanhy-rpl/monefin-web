@@ -78,9 +78,16 @@ export default function TransactionsPage() {
   const [isFormCategoryOpen, setIsFormCategoryOpen] = useState(false);
   const [isFormAccountOpen, setIsFormAccountOpen] = useState(false);
 
-  // Trigger page reveal animations on mount
+  // Trigger page reveal animations on mount & register global scroll close for dropdowns
   useEffect(() => {
     setIsVisible(true);
+    const handleScroll = () => {
+      setIsCategoryOpen(false);
+      setIsDateOpen(false);
+      setIsAccountOpen(false);
+    };
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
   }, []);
 
   // Listen to global header search event
@@ -431,9 +438,16 @@ export default function TransactionsPage() {
         <div className={`bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 transition-all duration-700 delay-400 ease-out transform relative z-20 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Filters</span>
           
-          <div className="flex flex-wrap gap-2 flex-1 relative z-30">
+          <div 
+            onScroll={() => {
+              setIsCategoryOpen(false);
+              setIsDateOpen(false);
+              setIsAccountOpen(false);
+            }}
+            className="flex flex-nowrap gap-2 overflow-x-auto pb-2 -mb-2 flex-1 relative z-30 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          >
             {/* Category Filter */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button 
                 type="button"
                 onClick={() => {
@@ -450,7 +464,7 @@ export default function TransactionsPage() {
               {isCategoryOpen && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setIsCategoryOpen(false)} />
-                  <div className="dropdown-pop absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[180px] overflow-hidden">
+                  <div className="dropdown-pop fixed mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[180px] overflow-hidden">
                     {['All', 'Salary', 'Food & Drink', 'Transport', 'Shopping', 'Investment'].map((cat) => (
                       <button
                         key={cat}
@@ -475,7 +489,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Date Filter */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button 
                 type="button"
                 onClick={() => {
@@ -492,7 +506,7 @@ export default function TransactionsPage() {
               {isDateOpen && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setIsDateOpen(false)} />
-                  <div className="dropdown-pop absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[180px] overflow-hidden">
+                  <div className="dropdown-pop fixed mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[180px] overflow-hidden">
                     {['Last 30 Days', 'This Month', 'Last 7 Days'].map((dateOpt) => (
                       <button
                         key={dateOpt}
@@ -517,7 +531,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Account Filter */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button 
                 type="button"
                 onClick={() => {
@@ -534,7 +548,7 @@ export default function TransactionsPage() {
               {isAccountOpen && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setIsAccountOpen(false)} />
-                  <div className="dropdown-pop absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[200px] overflow-hidden">
+                  <div className="dropdown-pop fixed mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[200px] overflow-hidden">
                     {['All', 'Bank Central Asia', 'GoPay Wallet', 'Mandiri Bank', 'Credit Card', 'Stock Portfolio'].map((acc) => (
                       <button
                         key={acc}
