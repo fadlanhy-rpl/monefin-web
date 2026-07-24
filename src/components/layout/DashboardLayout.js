@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }) {
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 min-w-0 flex flex-col">
         <Header setMobileOpen={setMobileOpen} />
-        <main className="px-4 sm:px-6 lg:px-8 pb-10 space-y-6">
+        <main className="px-4 sm:px-6 lg:px-8 pt-6 pb-10 space-y-6">
           {children}
         </main>
       </div>
