@@ -92,7 +92,7 @@ export default function Header({ setMobileOpen }) {
           <input 
             ref={searchInputRef}
             type="text" 
-            placeholder={isExpanded ? "Search analytics, transactions..." : ""} 
+            placeholder="Search analytics, transactions..." 
             autoComplete="off"
             value={searchQuery}
             onChange={(e) => { handleSearchChange(e.target.value); setSearchOpen(true); }}
@@ -125,10 +125,8 @@ export default function Header({ setMobileOpen }) {
             </button>
           )}
 
-          {/* Shortcut key "/" - hide when collapsed on mobile */}
-          {isExpanded && (
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
-          )}
+          {/* Shortcut key "/" - hide on mobile */}
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
 
           {/* Clear button inside input */}
           {isExpanded && searchQuery && (
