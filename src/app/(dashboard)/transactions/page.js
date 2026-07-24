@@ -20,7 +20,9 @@ import {
   BarChart3, 
   X,
   CreditCard,
-  Building
+  Building,
+  ChevronDown,
+  Check
 } from "lucide-react";
 
 // Formatter Helpers
@@ -65,8 +67,16 @@ function formatDateInput(dateStr) {
 export default function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState("Last 30 Days");
   const [searchQuery, setSearchQuery] = useState("");
   const [isVisible, setIsVisible] = useState(false);
+
+  // Open/Close States for custom dropdowns
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isDateOpen, setIsDateOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isFormCategoryOpen, setIsFormCategoryOpen] = useState(false);
+  const [isFormAccountOpen, setIsFormAccountOpen] = useState(false);
 
   // Trigger page reveal animations on mount
   useEffect(() => {
@@ -421,38 +431,132 @@ export default function TransactionsPage() {
         <div className={`bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 transition-all duration-700 delay-400 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Filters</span>
           
-          <div className="flex flex-wrap gap-2 flex-1">
-            <select 
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F] transition-all cursor-pointer hover:bg-slate-100"
-            >
-              <option value="All">Category: All</option>
-              <option value="Salary">Salary</option>
-              <option value="Food & Drink">Food & Drink</option>
-              <option value="Transport">Transport</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Investment">Investment</option>
-            </select>
-            
-            <select className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F] transition-all cursor-pointer hover:bg-slate-100">
-              <option>Date: Last 30 Days</option>
-              <option>Date: This Month</option>
-              <option>Date: Last 7 Days</option>
-            </select>
-            
-            <select 
-              value={accountFilter}
-              onChange={(e) => setAccountFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F] transition-all cursor-pointer hover:bg-slate-100"
-            >
-              <option value="All">Account: All Accounts</option>
-              <option value="Bank Central Asia">Bank Central Asia</option>
-              <option value="GoPay Wallet">GoPay Wallet</option>
-              <option value="Mandiri Bank">Mandiri Bank</option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Stock Portfolio">Stock Portfolio</option>
-            </select>
+          <div className="flex flex-wrap gap-2 flex-1 relative z-30">
+            {/* Category Filter */}
+            <div className="relative">
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsCategoryOpen(!isCategoryOpen);
+                  setIsDateOpen(false);
+                  setIsAccountOpen(false);
+                }}
+                className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[130px]"
+              >
+                <span>Category: {categoryFilter === "All" ? "All" : categoryFilter}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isCategoryOpen && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setIsCategoryOpen(false)} />
+                  <div className="dropdown-pop absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[180px] overflow-hidden">
+                    {['All', 'Salary', 'Food & Drink', 'Transport', 'Shopping', 'Investment'].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          setCategoryFilter(cat);
+                          setIsCategoryOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
+                          categoryFilter === cat 
+                            ? 'bg-brand-50 text-brand-700' 
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                      >
+                        <span>{cat === 'All' ? 'All Categories' : cat}</span>
+                        {categoryFilter === cat && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Date Filter */}
+            <div className="relative">
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsDateOpen(!isDateOpen);
+                  setIsCategoryOpen(false);
+                  setIsAccountOpen(false);
+                }}
+                className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[140px]"
+              >
+                <span>Date: {dateFilter}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isDateOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isDateOpen && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setIsDateOpen(false)} />
+                  <div className="dropdown-pop absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[180px] overflow-hidden">
+                    {['Last 30 Days', 'This Month', 'Last 7 Days'].map((dateOpt) => (
+                      <button
+                        key={dateOpt}
+                        type="button"
+                        onClick={() => {
+                          setDateFilter(dateOpt);
+                          setIsDateOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
+                          dateFilter === dateOpt 
+                            ? 'bg-brand-50 text-brand-700' 
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                      >
+                        <span>{dateOpt}</span>
+                        {dateFilter === dateOpt && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Account Filter */}
+            <div className="relative">
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsAccountOpen(!isAccountOpen);
+                  setIsCategoryOpen(false);
+                  setIsDateOpen(false);
+                }}
+                className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[160px]"
+              >
+                <span>Account: {accountFilter === 'All' ? 'All' : accountFilter}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isAccountOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isAccountOpen && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setIsAccountOpen(false)} />
+                  <div className="dropdown-pop absolute left-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[200px] overflow-hidden">
+                    {['All', 'Bank Central Asia', 'GoPay Wallet', 'Mandiri Bank', 'Credit Card', 'Stock Portfolio'].map((acc) => (
+                      <button
+                        key={acc}
+                        type="button"
+                        onClick={() => {
+                          setAccountFilter(acc);
+                          setIsAccountOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
+                          accountFilter === acc 
+                            ? 'bg-brand-50 text-brand-700' 
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                      >
+                        <span>{acc === 'All' ? 'All Accounts' : acc}</span>
+                        {accountFilter === acc && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
@@ -621,35 +725,87 @@ export default function TransactionsPage() {
               </div>
 
               {/* Category */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori (Category)</label>
-                <select
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-bold cursor-pointer"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFormCategoryOpen(!isFormCategoryOpen);
+                    setIsFormAccountOpen(false);
+                  }}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none text-left flex items-center justify-between text-sm text-slate-600 font-bold cursor-pointer relative z-30"
                 >
-                  <option value="Salary">Salary</option>
-                  <option value="Food & Drink">Food & Drink</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Shopping">Shopping</option>
-                  <option value="Investment">Investment</option>
-                </select>
+                  <span>{formCategory}</span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isFormCategoryOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isFormCategoryOpen && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setIsFormCategoryOpen(false)} />
+                    <div className="dropdown-pop absolute left-0 right-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 max-h-52 overflow-y-auto">
+                      {['Salary', 'Food & Drink', 'Transport', 'Shopping', 'Investment'].map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            setFormCategory(cat);
+                            setIsFormCategoryOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors flex items-center justify-between ${
+                            formCategory === cat 
+                              ? 'bg-brand-50 text-brand-700' 
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                        >
+                          <span>{cat}</span>
+                          {formCategory === cat && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Account */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rekening (Account)</label>
-                <select
-                  value={formAccount}
-                  onChange={(e) => setFormAccount(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-bold cursor-pointer"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFormAccountOpen(!isFormAccountOpen);
+                    setIsFormCategoryOpen(false);
+                  }}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none text-left flex items-center justify-between text-sm text-slate-600 font-bold cursor-pointer relative z-30"
                 >
-                  <option value="Bank Central Asia">Bank Central Asia</option>
-                  <option value="GoPay Wallet">GoPay Wallet</option>
-                  <option value="Mandiri Bank">Mandiri Bank</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Stock Portfolio">Stock Portfolio</option>
-                </select>
+                  <span>{formAccount}</span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isFormAccountOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isFormAccountOpen && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setIsFormAccountOpen(false)} />
+                    <div className="dropdown-pop absolute left-0 right-0 mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 max-h-52 overflow-y-auto">
+                      {['Bank Central Asia', 'GoPay Wallet', 'Mandiri Bank', 'Credit Card', 'Stock Portfolio'].map((acc) => (
+                        <button
+                          key={acc}
+                          type="button"
+                          onClick={() => {
+                            setFormAccount(acc);
+                            setIsFormAccountOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors flex items-center justify-between ${
+                            formAccount === acc 
+                              ? 'bg-brand-50 text-brand-700' 
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                        >
+                          <span>{acc}</span>
+                          {formAccount === acc && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Date */}
