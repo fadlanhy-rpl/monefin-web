@@ -444,7 +444,7 @@ export default function TransactionsPage() {
               setIsDateOpen(false);
               setIsAccountOpen(false);
             }}
-            className="flex flex-nowrap gap-1.5 overflow-x-auto pb-2 -mb-2 flex-1 relative z-30 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-3.5"
+            className="flex flex-nowrap gap-1.5 overflow-x-auto py-2.5 -my-2.5 flex-1 relative z-30 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-3.5"
           >
             {/* Category Filter */}
             <div className="relative shrink-0">
