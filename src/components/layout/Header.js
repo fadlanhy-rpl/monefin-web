@@ -104,9 +104,9 @@ export default function Header({ setMobileOpen }) {
                 setSearchOpen(false);
               }, 200);
             }}
-            className={`w-full h-full bg-[#eff2f1] border border-transparent rounded-full py-2 text-sm placeholder:text-slate-400 text-slate-700 focus:bg-white focus:border-brand-600/30 focus:outline-none transition-all shadow-sm ${
+            className={`w-full h-full bg-white border border-slate-200/80 rounded-full py-2 text-sm placeholder:text-slate-400 text-slate-700 focus:border-brand-600 focus:outline-none transition-all shadow-sm shadow-slate-100/50 ${
               isExpanded 
-                ? 'pl-10 pr-8 opacity-100 cursor-text shadow-slate-100/50' 
+                ? 'pl-10 pr-8 opacity-100 cursor-text' 
                 : 'pl-0 pr-0 opacity-0 sm:opacity-100 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text'
             }`} 
           />
@@ -118,7 +118,7 @@ export default function Header({ setMobileOpen }) {
                 setIsFocused(true);
                 setTimeout(() => searchInputRef.current?.focus(), 50);
               }}
-              className="absolute inset-0 w-full h-full rounded-full hover:bg-slate-200/50 transition-colors sm:hidden flex items-center justify-center border border-transparent bg-[#eff2f1]"
+              className="absolute inset-0 w-full h-full rounded-full hover:bg-slate-100 transition-colors sm:hidden flex items-center justify-center border border-slate-200/80 bg-white"
               aria-label="Fokus Cari"
             >
               <Search className="w-4 h-4 text-slate-600" />
