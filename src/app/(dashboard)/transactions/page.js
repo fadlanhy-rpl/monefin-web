@@ -665,20 +665,27 @@ export default function TransactionsPage() {
           </div>
           
           {/* Pagination */}
-          <div className="px-6 py-5 bg-white border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-500 font-semibold text-center">
+          <div className="px-4 py-4 sm:px-6 sm:py-5 bg-white border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
+            <p className="text-xs text-gray-500 font-semibold text-center sm:text-left">
               Showing <span className="text-slate-900 font-extrabold">1-{filteredTransactions.length}</span> of <span className="text-slate-900 font-extrabold">{filteredTransactions.length}</span> transactions
             </p>
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold text-gray-300 cursor-not-allowed select-none">&lt; Previous</button>
-              <div className="flex gap-1">
+            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
+              <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold text-gray-300 cursor-not-allowed flex items-center gap-1 select-none">
+                &lt; <span className="hidden sm:inline">Previous</span>
+              </button>
+              <div className="hidden sm:flex items-center gap-1">
                 <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#00685F] text-white text-xs font-bold shadow-sm shadow-[#00685F]/20">1</button>
                 <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-50 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">2</button>
                 <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-50 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">3</button>
                 <span className="text-gray-300 px-1 select-none">...</span>
                 <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-50 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">13</button>
               </div>
-              <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold hover:bg-slate-50 text-slate-600 transition-all active:scale-95">Next &gt;</button>
+              <div className="sm:hidden text-xs font-bold text-slate-700">
+                Page 1 of 13
+              </div>
+              <button className="px-3 py-2 text-xs border border-gray-200 rounded-xl font-bold hover:bg-slate-50 text-slate-600 transition-all active:scale-95 flex items-center gap-1 cursor-pointer">
+                <span className="hidden sm:inline">Next</span> &gt;
+              </button>
             </div>
           </div>
         </div>
