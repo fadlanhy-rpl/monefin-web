@@ -162,16 +162,6 @@ export default function Header({ setMobileOpen }) {
             </div>
           )}
         </div>
-
-        {/* Add Transaction Button */}
-        <button className="ripple-container press-scale hidden sm:flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all hover:shadow-lg hover:shadow-brand-600/25">
-          <Plus className="w-4 h-4" />
-          Add Transaction
-        </button>
-        <button className="ripple-container press-scale sm:hidden flex items-center justify-center bg-brand-600 hover:bg-brand-700 text-white p-2.5 rounded-xl transition-all" aria-label="Add Transaction">
-          <Plus className="w-4 h-4" />
-        </button>
-
         {/* Profile */}
         <div className="relative pl-2 border-l border-slate-200/80">
           <button 
