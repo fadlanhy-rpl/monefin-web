@@ -18,12 +18,48 @@ import {
   Wallet, 
   ShoppingCart, 
   BarChart3, 
-  FileSpreadsheet
+  X,
+  CreditCard,
+  Building
 } from "lucide-react";
 
+// Formatter Helpers
 function formatRupiah(n) {
   const abs = Math.abs(n).toLocaleString('id-ID');
   return (n < 0 ? '- ' : '+ ') + 'Rp ' + abs;
+}
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return "";
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) {
+    return dateStr;
+  }
+  const day = d.getDate();
+  const monthName = months[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${monthName} ${year}`;
+}
+
+function formatDateInput(dateStr) {
+  if (!dateStr) return "";
+  const monthsMap = {
+    "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "Mei": 4, "Jun": 5,
+    "Jul": 6, "Agt": 7, "Sep": 8, "Okt": 9, "Nov": 10, "Des": 11
+  };
+  const parts = dateStr.split(" ");
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = monthsMap[parts[1]] !== undefined ? monthsMap[parts[1]] : 0;
+    const year = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return dateStr;
 }
 
 export default function TransactionsPage() {
@@ -32,7 +68,20 @@ export default function TransactionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Initial transactions dataset
+  // Modal States
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
+  const [editingTransaction, setEditingTransaction] = useState(null);
+
+  // Form Field States
+  const [formType, setFormType] = useState("expense");
+  const [formAmount, setFormAmount] = useState("");
+  const [formCategory, setFormCategory] = useState("Food & Drink");
+  const [formAccount, setFormAccount] = useState("Bank Central Asia");
+  const [formDate, setFormDate] = useState("");
+  const [formNote, setFormNote] = useState("");
+
+  // Initial dynamic transactions dataset
   const [transactions, setTransactions] = useState([
     { 
       id: 1, 
@@ -89,7 +138,45 @@ export default function TransactionsPage() {
       icon: <TrendingUp className="w-3 h-3" />, 
       catClass: 'bg-teal-50 text-teal-700' 
     },
+    { 
+      id: 6, 
+      date: '19 Okt 2023', 
+      category: 'Salary', 
+      account: 'Bank Central Asia', 
+      note: 'Freelance Mobile App Dev', 
+      amount: 3000000, 
+      type: 'income', 
+      icon: <Banknote className="w-3 h-3" />, 
+      catClass: 'bg-emerald-50 text-emerald-700' 
+    },
+    { 
+      id: 7, 
+      date: '17 Okt 2023', 
+      category: 'Investment', 
+      account: 'Stock Portfolio', 
+      note: 'Dividend US Tech Stocks', 
+      amount: 1000000, 
+      type: 'income', 
+      icon: <TrendingUp className="w-3 h-3" />, 
+      catClass: 'bg-teal-50 text-teal-700' 
+    },
+    { 
+      id: 8, 
+      date: '16 Okt 2023', 
+      category: 'Shopping', 
+      account: 'Mandiri Bank', 
+      note: 'Rent payment apartment', 
+      amount: -3065000, 
+      type: 'expense', 
+      icon: <ShoppingBag className="w-3 h-3" />, 
+      catClass: 'bg-orange-50 text-orange-700' 
+    },
   ]);
+
+  // Dynamic calculations
+  const totalIncome = transactions.reduce((acc, t) => t.amount > 0 ? acc + t.amount : acc, 0);
+  const totalExpenses = transactions.reduce((acc, t) => t.amount < 0 ? acc + Math.abs(t.amount) : acc, 0);
+  const netCashFlow = totalIncome - totalExpenses;
 
   // Filter logic
   const filteredTransactions = transactions.filter(t => {
@@ -102,18 +189,105 @@ export default function TransactionsPage() {
     return matchesCategory && matchesAccount && matchesSearch;
   });
 
+  // Action Triggers
+  const openAddModal = () => {
+    setModalMode("add");
+    setEditingTransaction(null);
+    setFormType("expense");
+    setFormAmount("");
+    setFormCategory("Food & Drink");
+    setFormAccount("Bank Central Asia");
+    
+    // Today's date YYYY-MM-DD
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    setFormDate(`${yyyy}-${mm}-${dd}`);
+    
+    setFormNote("");
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (t) => {
+    setModalMode("edit");
+    setEditingTransaction(t);
+    setFormType(t.amount < 0 ? "expense" : "income");
+    setFormAmount(String(Math.abs(t.amount)));
+    setFormCategory(t.category);
+    setFormAccount(t.account);
+    setFormDate(formatDateInput(t.date));
+    setFormNote(t.note);
+    setIsModalOpen(true);
+  };
+
   const handleDelete = (id) => {
     if (confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) {
       setTransactions(prev => prev.filter(t => t.id !== id));
     }
   };
 
-  const handleAddTransaction = () => {
-    alert("Fitur Tambah Transaksi akan diintegrasikan dengan database backend Laravel.");
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const amt = parseInt(formAmount, 10);
+    if (isNaN(amt) || amt <= 0) {
+      alert("Jumlah transaksi harus angka positif!");
+      return;
+    }
+
+    const finalAmount = formType === "expense" ? -Math.abs(amt) : Math.abs(amt);
+    
+    // Icon & styles mapping
+    let icon = <Banknote className="w-3 h-3" />;
+    let catClass = "bg-emerald-50 text-emerald-700";
+    if (formCategory === "Food & Drink") {
+      icon = <Utensils className="w-3 h-3" />;
+      catClass = "bg-red-50 text-red-700";
+    } else if (formCategory === "Transport") {
+      icon = <Car className="w-3 h-3" />;
+      catClass = "bg-blue-50 text-blue-700";
+    } else if (formCategory === "Shopping") {
+      icon = <ShoppingBag className="w-3 h-3" />;
+      catClass = "bg-orange-50 text-orange-700";
+    } else if (formCategory === "Investment") {
+      icon = <TrendingUp className="w-3 h-3" style={{ color: "rgb(15, 118, 110)" }} />;
+      catClass = "bg-teal-50 text-teal-700";
+    }
+
+    const formattedDate = formatDateDisplay(formDate);
+
+    if (modalMode === "add") {
+      const newTx = {
+        id: Date.now(),
+        date: formattedDate,
+        category: formCategory,
+        account: formAccount,
+        note: formNote || "-",
+        amount: finalAmount,
+        type: formType,
+        icon,
+        catClass
+      };
+      setTransactions(prev => [newTx, ...prev]);
+    } else {
+      setTransactions(prev => prev.map(t => t.id === editingTransaction.id ? {
+        ...t,
+        date: formattedDate,
+        category: formCategory,
+        account: formAccount,
+        note: formNote || "-",
+        amount: finalAmount,
+        type: formType,
+        icon,
+        catClass
+      } : t));
+    }
+
+    setIsModalOpen(false);
   };
 
   const handleExport = () => {
-    alert("Mengekspor data transaksi ke format CSV / Excel...");
+    alert("Mengekspor data transaksi ke format CSV...");
   };
 
   return (
@@ -127,7 +301,7 @@ export default function TransactionsPage() {
             <p className="text-gray-500 text-sm mt-1">Comprehensive record of your financial movements across all linked accounts.</p>
           </div>
           <button 
-            onClick={handleAddTransaction}
+            onClick={openAddModal}
             className="flex items-center justify-center gap-2 bg-[#00685F] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 shrink-0"
           >
             <Plus className="w-5 h-5" />
@@ -138,43 +312,71 @@ export default function TransactionsPage() {
         {/* Overview Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Income Card */}
-          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40">
+          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Income</p>
-                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 12.450.000</h3>
+                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp {totalIncome.toLocaleString('id-ID')}</h3>
                 <p className="text-[10px] text-gray-400 mt-1">This current month</p>
               </div>
               <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><Wallet className="w-6 h-6" /></div>
             </div>
-            <div className="flex items-center gap-2 self-start bg-emerald-50 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-2 self-start bg-emerald-50 px-2 py-1 rounded-lg z-10">
               <TrendingUp className="w-3 h-3 text-emerald-600" />
               <span className="text-[10px] font-black text-emerald-600">12.5%</span>
+            </div>
+
+            {/* Sparkline graphic at the bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-10 overflow-hidden pointer-events-none">
+              <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="income-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.15"/>
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M 0 25 Q 15 15 35 22 T 70 5 T 100 12" fill="none" stroke="#10b981" strokeWidth="1.5" />
+                <path d="M 0 25 Q 15 15 35 22 T 70 5 T 100 12 L 100 30 L 0 30 Z" fill="url(#income-grad)" />
+              </svg>
             </div>
           </div>
 
           {/* Expenses Card */}
-          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40">
+          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-red-500/5">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Expenses</p>
-                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 4.820.000</h3>
+                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp {totalExpenses.toLocaleString('id-ID')}</h3>
                 <p className="text-[10px] text-gray-400 mt-1">This current month</p>
               </div>
               <div className="p-2.5 bg-red-50 text-red-600 rounded-xl"><ShoppingCart className="w-6 h-6" /></div>
             </div>
-            <div className="flex items-center gap-2 self-start bg-red-50 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-2 self-start bg-red-50 px-2 py-1 rounded-lg z-10">
               <TrendingDown className="w-3 h-3 text-red-600" />
               <span className="text-[10px] font-black text-red-600">3.2%</span>
+            </div>
+
+            {/* Sparkline graphic at the bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-10 overflow-hidden pointer-events-none">
+              <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="expense-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.15"/>
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M 0 5 Q 20 18 45 10 T 80 25 T 100 15" fill="none" stroke="#ef4444" strokeWidth="1.5" />
+                <path d="M 0 5 Q 20 18 45 10 T 80 25 T 100 15 L 100 30 L 0 30 Z" fill="url(#expense-grad)" />
+              </svg>
             </div>
           </div>
 
           {/* Net Cash Card */}
-          <div className="bg-[#E6F0EF]/60 p-6 rounded-[2.5rem] border border-[#c0ded9]/50 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden">
+          <div className="bg-[#E6F0EF]/60 p-6 rounded-[2.5rem] border border-[#c0ded9]/50 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#00685F]/5">
             <div className="flex justify-between items-start">
               <div className="relative z-10">
                 <p className="text-[10px] font-black text-[#00685F] uppercase tracking-widest">Net Cash Flow</p>
-                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 7.630.000</h3>
+                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp {netCashFlow.toLocaleString('id-ID')}</h3>
                 <p className="text-[10px] text-[#00685F]/60 mt-1">Estimated savings potential</p>
               </div>
               <div className="p-2.5 bg-[#00685F] text-white rounded-xl relative z-10"><BarChart3 className="w-6 h-6" /></div>
@@ -182,6 +384,20 @@ export default function TransactionsPage() {
             <div className="flex -space-x-2 mt-4 relative z-10">
               <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-200 text-[8px] flex items-center justify-center font-bold text-slate-700">AT</div>
               <div className="w-6 h-6 rounded-full border-2 border-white bg-[#00685F] text-white text-[8px] flex items-center justify-center font-bold">MF</div>
+            </div>
+
+            {/* Sparkline graphic at the bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-10 overflow-hidden pointer-events-none">
+              <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="net-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00685F" stopOpacity="0.15"/>
+                    <stop offset="100%" stopColor="#00685F" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M 0 20 Q 20 25 45 12 T 80 8 T 100 2" fill="none" stroke="#00685F" strokeWidth="1.5" />
+                <path d="M 0 20 Q 20 25 45 12 T 80 8 T 100 2 L 100 30 L 0 30 Z" fill="url(#net-grad)" />
+              </svg>
             </div>
           </div>
         </div>
@@ -194,7 +410,7 @@ export default function TransactionsPage() {
             <select 
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F]"
+              className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F] transition-all cursor-pointer hover:bg-slate-100"
             >
               <option value="All">Category: All</option>
               <option value="Salary">Salary</option>
@@ -204,7 +420,7 @@ export default function TransactionsPage() {
               <option value="Investment">Investment</option>
             </select>
             
-            <select className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F]">
+            <select className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F] transition-all cursor-pointer hover:bg-slate-100">
               <option>Date: Last 30 Days</option>
               <option>Date: This Month</option>
               <option>Date: Last 7 Days</option>
@@ -213,7 +429,7 @@ export default function TransactionsPage() {
             <select 
               value={accountFilter}
               onChange={(e) => setAccountFilter(e.target.value)}
-              className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F]"
+              className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold outline-none text-slate-600 focus:ring-1 focus:ring-[#00685F] transition-all cursor-pointer hover:bg-slate-100"
             >
               <option value="All">Account: All Accounts</option>
               <option value="Bank Central Asia">Bank Central Asia</option>
@@ -231,18 +447,18 @@ export default function TransactionsPage() {
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-gray-50 border border-gray-100 rounded-xl py-2 pl-9 pr-4 text-xs w-full focus:ring-1 focus:ring-[#00685F] outline-none text-slate-600" 
+                className="bg-slate-50 border border-slate-100 rounded-xl py-2 pl-9 pr-4 text-xs w-full focus:ring-1 focus:ring-[#00685F] focus:bg-white outline-none text-slate-600 transition-all" 
                 placeholder="Search transactions..."
               />
             </div>
             <button 
               onClick={handleExport}
               title="Export CSV"
-              className="p-2 border border-gray-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-colors active:scale-95"
+              className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95"
             >
               <Download className="w-4 h-4" />
             </button>
-            <button className="p-2 border border-gray-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-colors active:scale-95">
+            <button className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95">
               <Filter className="w-4 h-4" />
             </button>
           </div>
@@ -252,7 +468,7 @@ export default function TransactionsPage() {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[700px]">
-              <thead className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest">
+              <thead className="bg-slate-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest">
                 <tr>
                   <th className="px-6 py-5">Date</th>
                   <th className="px-6 py-5">Category</th>
@@ -262,16 +478,16 @@ export default function TransactionsPage() {
                   <th className="px-6 py-5 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 text-sm text-slate-600">
+              <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
                 {filteredTransactions.length > 0 ? (
                   filteredTransactions.map((t) => {
                     const isExpense = t.amount < 0;
-                    const amountText = (isExpense ? "- " : "+ ") + "Rp " + Math.abs(t.amount).toLocaleString('id-ID');
-                    const amountClass = isExpense ? "text-red-600 font-bold" : "text-emerald-600 font-bold";
+                    const amountText = formatRupiah(t.amount);
+                    const amountClass = isExpense ? "text-red-600 font-extrabold" : "text-emerald-600 font-extrabold";
 
                     return (
-                      <tr key={t.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-6 py-4 text-gray-500 font-medium whitespace-nowrap">{t.date}</td>
+                      <tr key={t.id} className="hover:bg-slate-50/60 transition-colors duration-200 group">
+                        <td className="px-6 py-4 text-gray-500 font-semibold whitespace-nowrap">{t.date}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold ${t.catClass}`}>
                             {t.icon}
@@ -279,14 +495,23 @@ export default function TransactionsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 font-bold text-slate-800 text-xs whitespace-nowrap">{t.account}</td>
-                        <td className="px-6 py-4 text-gray-400 text-xs max-w-xs truncate" title={t.note}>{t.note}</td>
-                        <td className={`px-6 py-4 text-right whitespace-nowrap ${amountClass}`}>{amountText}</td>
+                        <td className="px-6 py-4 text-gray-400 text-xs max-w-xs truncate font-medium" title={t.note}>
+                          {t.note}
+                        </td>
+                        <td className={`px-6 py-4 text-right whitespace-nowrap font-mono tracking-tight ${amountClass}`}>{amountText}</td>
                         <td className="px-6 py-4 text-center whitespace-nowrap">
-                          <div className="flex justify-center gap-2 text-gray-400">
-                            <button className="hover:text-[#00685F] transition-colors p-1"><Pencil className="w-4 h-4" /></button>
+                          <div className="flex justify-center gap-2 text-slate-300 group-hover:text-slate-400 transition-colors">
+                            <button 
+                              onClick={() => openEditModal(t)}
+                              title="Edit Transaksi"
+                              className="hover:text-[#00685F] transition-colors p-1 hover:bg-slate-100 rounded-lg active:scale-90"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
                             <button 
                               onClick={() => handleDelete(t.id)}
-                              className="hover:text-red-500 transition-colors p-1"
+                              title="Hapus Transaksi"
+                              className="hover:text-red-500 transition-colors p-1 hover:bg-slate-100 rounded-lg active:scale-90"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -297,8 +522,8 @@ export default function TransactionsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-10 text-center text-sm font-semibold text-slate-400">
-                      Tidak ada transaksi yang cocok dengan filter.
+                    <td colSpan="6" className="py-14 text-center text-sm font-bold text-slate-400">
+                      Tidak ada transaksi yang cocok dengan pencarian / filter.
                     </td>
                   </tr>
                 )}
@@ -307,25 +532,155 @@ export default function TransactionsPage() {
           </div>
           
           {/* Pagination */}
-          <div className="px-6 py-5 bg-white border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-500 font-medium text-center">
-              Showing <span className="text-slate-900 font-bold">1-{filteredTransactions.length}</span> of <span className="text-slate-900 font-bold">{filteredTransactions.length}</span> transactions
+          <div className="px-6 py-5 bg-white border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-gray-500 font-semibold text-center">
+              Showing <span className="text-slate-900 font-extrabold">1-{filteredTransactions.length}</span> of <span className="text-slate-900 font-extrabold">{filteredTransactions.length}</span> transactions
             </p>
             <div className="flex items-center gap-2">
-              <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold text-gray-300 cursor-not-allowed">&lt; Previous</button>
+              <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold text-gray-300 cursor-not-allowed select-none">&lt; Previous</button>
               <div className="flex gap-1">
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#00685F] text-white text-xs font-bold">1</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-xs font-bold text-slate-600">2</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-xs font-bold text-slate-600">3</button>
-                <span className="text-gray-300 px-1">...</span>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-xs font-bold text-slate-600">13</button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#00685F] text-white text-xs font-bold shadow-sm shadow-[#00685F]/20">1</button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-50 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">2</button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-50 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">3</button>
+                <span className="text-gray-300 px-1 select-none">...</span>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-50 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">13</button>
               </div>
-              <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold hover:bg-gray-50 text-slate-600">Next &gt;</button>
+              <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold hover:bg-slate-50 text-slate-600 transition-all active:scale-95">Next &gt;</button>
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* Form Modal (Add / Edit Transaction) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between">
+              <h3 className="text-lg font-extrabold text-slate-900">
+                {modalMode === "add" ? "Add Transaction" : "Edit Transaction"}
+              </h3>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+              {/* Type Switcher */}
+              <div className="flex bg-slate-100 p-1 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setFormType("income")}
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${formType === "income" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                >
+                  Pemasukan (Income)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormType("expense")}
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${formType === "expense" ? "bg-white text-red-500 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                >
+                  Pengeluaran (Expense)
+                </button>
+              </div>
+
+              {/* Amount */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Jumlah (Amount)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400">Rp</span>
+                  <input
+                    type="number"
+                    required
+                    value={formAmount}
+                    onChange={(e) => setFormAmount(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              {/* Category */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori (Category)</label>
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-bold cursor-pointer"
+                >
+                  <option value="Salary">Salary</option>
+                  <option value="Food & Drink">Food & Drink</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Investment">Investment</option>
+                </select>
+              </div>
+
+              {/* Account */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rekening (Account)</label>
+                <select
+                  value={formAccount}
+                  onChange={(e) => setFormAccount(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-bold cursor-pointer"
+                >
+                  <option value="Bank Central Asia">Bank Central Asia</option>
+                  <option value="GoPay Wallet">GoPay Wallet</option>
+                  <option value="Mandiri Bank">Mandiri Bank</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Stock Portfolio">Stock Portfolio</option>
+                </select>
+              </div>
+
+              {/* Date */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanggal (Date)</label>
+                <input
+                  type="date"
+                  required
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-bold cursor-pointer"
+                />
+              </div>
+
+              {/* Note */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Catatan (Note)</label>
+                <input
+                  type="text"
+                  value={formNote}
+                  onChange={(e) => setFormNote(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-semibold"
+                  placeholder="Keterangan transaksi..."
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
