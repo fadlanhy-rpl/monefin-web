@@ -84,7 +84,7 @@ export default function RecentTransactions() {
       </div>
 
       {/* Tabs Filter */}
-      <div className="flex items-center gap-1.5 mt-5 border-b border-slate-100 pb-3">
+      <div className="flex items-center gap-1.5 mt-5 border-b border-slate-100 pb-3 overflow-x-auto flex-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none">
         {['all', 'income', 'expense'].map((filter) => {
           const isActive = activeFilter === filter;
           const label = filter === 'all' ? 'Semua' : filter === 'income' ? 'Pemasukan' : 'Pengeluaran';
@@ -92,7 +92,7 @@ export default function RecentTransactions() {
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 ${
                 isActive 
                   ? 'bg-brand-600 text-white shadow-sm shadow-brand-600/15' 
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
