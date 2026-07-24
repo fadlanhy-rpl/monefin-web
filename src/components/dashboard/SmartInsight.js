@@ -40,7 +40,7 @@ export default function SmartInsight() {
   return (
     <div 
       ref={ref} 
-      className={`reveal xl:col-span-1 min-h-[260px] [perspective:1000px] ${isVisible ? 'in-view' : ''}`} 
+      className={`reveal xl:col-span-1 min-h-[295px] sm:min-h-[260px] [perspective:1000px] ${isVisible ? 'in-view' : ''}`} 
       style={{ animationDelay: "400ms" }}
     >
       <div 
@@ -70,7 +70,7 @@ export default function SmartInsight() {
 
           <button 
             onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
-            className="ripple-container ripple-dark press-scale mt-5 w-full bg-white border border-brand-200 text-brand-700 font-bold text-xs py-3 rounded-xl hover:bg-brand-50 hover:border-brand-400 transition-colors shadow-sm"
+            className="ripple-container ripple-dark press-scale mt-4 sm:mt-5 w-full bg-white border border-brand-200 text-brand-700 font-bold text-xs py-2.5 sm:py-3 rounded-xl hover:bg-brand-50 hover:border-brand-400 transition-colors shadow-sm"
           >
             Adjust Budget
           </button>
@@ -115,7 +115,7 @@ export default function SmartInsight() {
 
           <button 
             onClick={handleSave}
-            className="ripple-container press-scale mt-5 w-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md shadow-brand-600/15 flex items-center justify-center gap-1.5"
+            className="ripple-container press-scale mt-4 sm:mt-5 w-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2.5 sm:py-3 rounded-xl transition-all shadow-md shadow-brand-600/15 flex items-center justify-center gap-1.5"
           >
             <Check className="w-4 h-4" />
             Simpan Perubahan
