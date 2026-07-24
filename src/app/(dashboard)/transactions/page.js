@@ -327,7 +327,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Sparkline graphic at the bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-10 overflow-hidden pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 h-12 overflow-hidden pointer-events-none rounded-b-[2.5rem]">
               <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="income-grad" x1="0" y1="0" x2="0" y2="1">
@@ -335,8 +335,8 @@ export default function TransactionsPage() {
                     <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
                   </linearGradient>
                 </defs>
-                <path d="M 0 25 Q 15 15 35 22 T 70 5 T 100 12" fill="none" stroke="#10b981" strokeWidth="1.5" />
-                <path d="M 0 25 Q 15 15 35 22 T 70 5 T 100 12 L 100 30 L 0 30 Z" fill="url(#income-grad)" />
+                <path d="M 0 24 C 20 24, 35 16, 50 18 C 65 20, 80 8, 100 12" fill="none" stroke="#10b981" strokeWidth="1.5" />
+                <path d="M 0 24 C 20 24, 35 16, 50 18 C 65 20, 80 8, 100 12 L 100 30 L 0 30 Z" fill="url(#income-grad)" />
               </svg>
             </div>
           </div>
@@ -357,7 +357,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Sparkline graphic at the bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-10 overflow-hidden pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 h-12 overflow-hidden pointer-events-none rounded-b-[2.5rem]">
               <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="expense-grad" x1="0" y1="0" x2="0" y2="1">
@@ -365,8 +365,8 @@ export default function TransactionsPage() {
                     <stop offset="100%" stopColor="#ef4444" stopOpacity="0"/>
                   </linearGradient>
                 </defs>
-                <path d="M 0 5 Q 20 18 45 10 T 80 25 T 100 15" fill="none" stroke="#ef4444" strokeWidth="1.5" />
-                <path d="M 0 5 Q 20 18 45 10 T 80 25 T 100 15 L 100 30 L 0 30 Z" fill="url(#expense-grad)" />
+                <path d="M 0 8 C 20 8, 35 18, 50 16 C 65 14, 80 24, 100 20" fill="none" stroke="#ef4444" strokeWidth="1.5" />
+                <path d="M 0 8 C 20 8, 35 18, 50 16 C 65 14, 80 24, 100 20 L 100 30 L 0 30 Z" fill="url(#expense-grad)" />
               </svg>
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Sparkline graphic at the bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-10 overflow-hidden pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 h-12 overflow-hidden pointer-events-none rounded-b-[2.5rem]">
               <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="net-grad" x1="0" y1="0" x2="0" y2="1">
@@ -395,8 +395,8 @@ export default function TransactionsPage() {
                     <stop offset="100%" stopColor="#00685F" stopOpacity="0"/>
                   </linearGradient>
                 </defs>
-                <path d="M 0 20 Q 20 25 45 12 T 80 8 T 100 2" fill="none" stroke="#00685F" strokeWidth="1.5" />
-                <path d="M 0 20 Q 20 25 45 12 T 80 8 T 100 2 L 100 30 L 0 30 Z" fill="url(#net-grad)" />
+                <path d="M 0 20 C 20 20, 35 24, 50 16 C 65 8, 80 6, 100 8" fill="none" stroke="#00685F" strokeWidth="1.5" />
+                <path d="M 0 20 C 20 20, 35 24, 50 16 C 65 8, 80 6, 100 8 L 100 30 L 0 30 Z" fill="url(#net-grad)" />
               </svg>
             </div>
           </div>
