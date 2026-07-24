@@ -83,16 +83,16 @@ export default function Header({ setMobileOpen }) {
         {/* Responsive Expandable Search Bar */}
         <div className={`relative transition-all duration-300 ease-in-out h-10 ${
           isExpanded 
-            ? 'w-[140px] min-[380px]:w-[180px] min-[480px]:w-[240px] sm:w-60 md:w-72 lg:w-80' 
-            : 'w-10 sm:w-60 md:w-72 lg:w-80'
+            ? 'w-[150px] min-[380px]:w-[190px] min-[480px]:w-[250px] sm:w-[320px] md:w-[380px] lg:w-[420px]' 
+            : 'w-10 sm:w-[320px] md:w-[380px] lg:w-[420px]'
         }`}>
           <Search className={`w-4 h-4 absolute top-1/2 -translate-y-1/2 transition-colors pointer-events-none z-10 ${
-            isExpanded ? 'left-3.5 text-slate-400' : 'left-3 text-slate-600 hidden sm:block'
+            isExpanded ? 'left-3.5 text-slate-400' : 'left-3.5 text-slate-600 hidden sm:block'
           }`} />
           <input 
             ref={searchInputRef}
             type="text" 
-            placeholder={isExpanded ? "Search..." : ""} 
+            placeholder={isExpanded ? "Search analytics, transactions..." : ""} 
             autoComplete="off"
             value={searchQuery}
             onChange={(e) => { handleSearchChange(e.target.value); setSearchOpen(true); }}
@@ -104,10 +104,10 @@ export default function Header({ setMobileOpen }) {
                 setSearchOpen(false);
               }, 200);
             }}
-            className={`w-full h-full bg-white border rounded-xl py-2 text-sm placeholder:text-slate-400 focus:border-brand-600 focus:outline-none transition-all shadow-sm ${
+            className={`w-full h-full bg-[#eff2f1] border border-transparent rounded-full py-2 text-sm placeholder:text-slate-400 text-slate-700 focus:bg-white focus:border-brand-600/30 focus:outline-none transition-all shadow-sm ${
               isExpanded 
-                ? 'border-slate-200/80 pl-10 pr-8 opacity-100 cursor-text shadow-slate-100/50' 
-                : 'border-transparent pl-0 pr-0 opacity-0 sm:opacity-100 sm:border-slate-200/80 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text'
+                ? 'pl-10 pr-8 opacity-100 cursor-text shadow-slate-100/50' 
+                : 'pl-0 pr-0 opacity-0 sm:opacity-100 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text'
             }`} 
           />
           {/* Circular click wrapper for search icon when collapsed (mobile only) */}
@@ -118,16 +118,16 @@ export default function Header({ setMobileOpen }) {
                 setIsFocused(true);
                 setTimeout(() => searchInputRef.current?.focus(), 50);
               }}
-              className="absolute inset-0 w-full h-full flex items-center justify-center rounded-xl p-2 text-slate-600 hover:bg-slate-100 transition-all sm:hidden"
+              className="absolute inset-0 w-full h-full rounded-full hover:bg-slate-200/50 transition-colors sm:hidden flex items-center justify-center border border-transparent bg-[#eff2f1]"
               aria-label="Fokus Cari"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4 text-slate-600" />
             </button>
           )}
 
           {/* Shortcut key "/" - hide when collapsed on mobile */}
           {isExpanded && (
-            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
           )}
 
           {/* Clear button inside input */}
@@ -135,7 +135,7 @@ export default function Header({ setMobileOpen }) {
             <button 
               type="button"
               onClick={() => handleSearchChange("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 z-10"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 z-10"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
