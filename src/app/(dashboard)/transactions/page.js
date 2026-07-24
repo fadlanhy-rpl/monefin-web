@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import { 
   Banknote, 
@@ -66,6 +66,15 @@ export default function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Listen to global header search event
+  useEffect(() => {
+    const handleHeaderSearch = (e) => {
+      setSearchQuery(e.detail || "");
+    };
+    window.addEventListener("header-search", handleHeaderSearch);
+    return () => window.removeEventListener("header-search", handleHeaderSearch);
+  }, []);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Modal States

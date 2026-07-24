@@ -10,6 +10,14 @@ export default function Header({ setMobileOpen }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSearchActive, setMobileSearchActive] = useState(false);
+
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("header-search", { detail: val }));
+    }
+  };
 
   // Notification items in state for dynamic updates
   const [notifications, setNotifications] = useState([
@@ -43,6 +51,7 @@ export default function Header({ setMobileOpen }) {
         setNotifOpen(false);
         setProfileOpen(false);
         setSearchOpen(false);
+        setMobileSearchActive(false);
       }
       if (e.key === "/" && document.activeElement !== searchInputRef.current) {
         e.preventDefault();
@@ -63,6 +72,48 @@ export default function Header({ setMobileOpen }) {
 
   return (
     <header ref={headerRef} className="sticky top-0 z-35 bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
+      {/* Mobile Search Overlay */}
+      {mobileSearchActive && (
+        <div className="absolute inset-0 bg-[#f4f7f6] px-4 flex items-center gap-3 z-50 animate-in fade-in duration-150 rounded-b-xl shadow-md">
+          <button 
+            type="button"
+            onClick={() => { setMobileSearchActive(false); handleSearchChange(""); }}
+            className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-all"
+            aria-label="Kembali"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              autoComplete="off"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full bg-white border border-slate-200/80 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-brand-600 focus:outline-none transition-all shadow-sm"
+              autoFocus
+            />
+            {/* Mobile Search suggestions dropdown */}
+            {searchQuery && (
+              <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40 max-h-48 overflow-y-auto">
+                {['Food & Beverage', 'Gaji Bulanan', 'Transportasi', 'Food & Drink', 'Salary', 'Transport', 'Shopping', 'Investment'].filter(s => s.toLowerCase().includes(searchQuery.toLowerCase())).map((suggestion, idx) => (
+                  <button 
+                    key={suggestion}
+                    type="button"
+                    onClick={() => { handleSearchChange(suggestion); setMobileSearchActive(false); }}
+                    className={`suggestion-item w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors ${idx !== 0 ? 'border-t border-slate-50' : ''}`}
+                  >
+                    <Search className="w-4 h-4 text-slate-400" />
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* LEFT GROUP: menu + search */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all" aria-label="Buka menu">
@@ -77,7 +128,7 @@ export default function Header({ setMobileOpen }) {
             placeholder="Search... (press '/' to focus)" 
             autoComplete="off"
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+            onChange={(e) => { handleSearchChange(e.target.value); setSearchOpen(true); }}
             onFocus={() => { setSearchOpen(true); setNotifOpen(false); setProfileOpen(false); }}
             className="w-full bg-white border border-slate-200/80 rounded-xl pl-10 pr-10 py-2.5 text-sm placeholder:text-slate-400 focus:border-brand-600 focus:outline-none transition-all shadow-sm shadow-slate-100/50" 
           />
@@ -86,10 +137,10 @@ export default function Header({ setMobileOpen }) {
           {/* Search suggestions dropdown */}
           {searchOpen && (
             <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40">
-              {['Food & Beverage', 'Gaji Bulanan', 'Transportasi'].map((suggestion, idx) => (
+              {['Food & Beverage', 'Gaji Bulanan', 'Transportasi', 'Food & Drink', 'Salary', 'Transport', 'Shopping', 'Investment'].map((suggestion, idx) => (
                 <button 
                   key={suggestion}
-                  onClick={() => { setSearchQuery(suggestion); setSearchOpen(false); }}
+                  onClick={() => { handleSearchChange(suggestion); setSearchOpen(false); }}
                   className={`suggestion-item w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors ${idx !== 0 ? 'border-t border-slate-50' : ''}`}
                 >
                   <Search className="w-4 h-4 text-slate-400" />
@@ -100,7 +151,11 @@ export default function Header({ setMobileOpen }) {
           )}
         </div>
 
-        <button className="sm:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all" aria-label="Cari">
+        <button 
+          onClick={() => setMobileSearchActive(true)}
+          className="sm:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all border border-slate-200" 
+          aria-label="Cari"
+        >
           <Search className="w-5 h-5" />
         </button>
       </div>
