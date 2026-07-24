@@ -10,7 +10,9 @@ export default function Header({ setMobileOpen }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [mobileSearchActive, setMobileSearchActive] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const isExpanded = isFocused || searchQuery.length > 0;
 
   const handleSearchChange = (val) => {
     setSearchQuery(val);
@@ -51,7 +53,7 @@ export default function Header({ setMobileOpen }) {
         setNotifOpen(false);
         setProfileOpen(false);
         setSearchOpen(false);
-        setMobileSearchActive(false);
+        setIsFocused(false);
       }
       if (e.key === "/" && document.activeElement !== searchInputRef.current) {
         e.preventDefault();
@@ -72,92 +74,90 @@ export default function Header({ setMobileOpen }) {
 
   return (
     <header ref={headerRef} className="sticky top-0 z-35 bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
-      {/* Mobile Search Overlay */}
-      {mobileSearchActive && (
-        <div className="absolute inset-0 bg-[#f4f7f6] px-4 flex items-center gap-3 z-50 animate-in fade-in duration-150 rounded-b-xl shadow-md">
-          <button 
-            type="button"
-            onClick={() => { setMobileSearchActive(false); handleSearchChange(""); }}
-            className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-all"
-            aria-label="Kembali"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 19l-7-7 7-7"/></svg>
-          </button>
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              autoComplete="off"
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full bg-white border border-slate-200/80 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-brand-600 focus:outline-none transition-all shadow-sm"
-              autoFocus
-            />
-            {/* Mobile Search suggestions dropdown */}
-            {searchQuery && (
-              <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40 max-h-48 overflow-y-auto">
-                {['Food & Beverage', 'Gaji Bulanan', 'Transportasi', 'Food & Drink', 'Salary', 'Transport', 'Shopping', 'Investment'].filter(s => s.toLowerCase().includes(searchQuery.toLowerCase())).map((suggestion, idx) => (
-                  <button 
-                    key={suggestion}
-                    type="button"
-                    onClick={() => { handleSearchChange(suggestion); setMobileSearchActive(false); }}
-                    className={`suggestion-item w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors ${idx !== 0 ? 'border-t border-slate-50' : ''}`}
-                  >
-                    <Search className="w-4 h-4 text-slate-400" />
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* LEFT GROUP: menu + search */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all" aria-label="Buka menu">
+        <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shrink-0" aria-label="Buka menu">
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
 
-        <div className="relative flex-1 max-w-md hidden sm:block">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        {/* Responsive Expandable Search Bar */}
+        <div className={`relative transition-all duration-300 ease-in-out h-10 ${
+          isExpanded 
+            ? 'w-[140px] min-[380px]:w-[180px] min-[480px]:w-[240px] sm:w-60 md:w-72 lg:w-80' 
+            : 'w-10 sm:w-60 md:w-72 lg:w-80'
+        }`}>
+          <Search className={`w-4 h-4 absolute top-1/2 -translate-y-1/2 transition-colors pointer-events-none z-10 ${
+            isExpanded ? 'left-3.5 text-slate-400' : 'left-3 text-slate-600 hidden sm:block'
+          }`} />
           <input 
             ref={searchInputRef}
             type="text" 
-            placeholder="Search... (press '/' to focus)" 
+            placeholder={isExpanded ? "Search..." : ""} 
             autoComplete="off"
             value={searchQuery}
             onChange={(e) => { handleSearchChange(e.target.value); setSearchOpen(true); }}
-            onFocus={() => { setSearchOpen(true); setNotifOpen(false); setProfileOpen(false); }}
-            className="w-full bg-white border border-slate-200/80 rounded-xl pl-10 pr-10 py-2.5 text-sm placeholder:text-slate-400 focus:border-brand-600 focus:outline-none transition-all shadow-sm shadow-slate-100/50" 
+            onFocus={() => { setIsFocused(true); setSearchOpen(true); setNotifOpen(false); setProfileOpen(false); }}
+            onBlur={() => {
+              // Delay slightly so that click handlers on suggestions list can run
+              setTimeout(() => {
+                setIsFocused(false);
+                setSearchOpen(false);
+              }, 200);
+            }}
+            className={`w-full h-full bg-white border rounded-xl py-2 text-sm placeholder:text-slate-400 focus:border-brand-600 focus:outline-none transition-all shadow-sm ${
+              isExpanded 
+                ? 'border-slate-200/80 pl-10 pr-8 opacity-100 cursor-text shadow-slate-100/50' 
+                : 'border-transparent pl-0 pr-0 opacity-0 sm:opacity-100 sm:border-slate-200/80 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text'
+            }`} 
           />
-          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono">/</span>
+          {/* Circular click wrapper for search icon when collapsed (mobile only) */}
+          {!isExpanded && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsFocused(true);
+                setTimeout(() => searchInputRef.current?.focus(), 50);
+              }}
+              className="absolute inset-0 w-full h-full rounded-xl hover:bg-slate-100 transition-colors sm:hidden flex items-center justify-center border border-slate-200/80 bg-white"
+              aria-label="Fokus Cari"
+            >
+              <Search className="w-4 h-4 text-slate-600" />
+            </button>
+          )}
 
-          {/* Search suggestions dropdown */}
-          {searchOpen && (
-            <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40">
+          {/* Shortcut key "/" - hide when collapsed on mobile */}
+          {isExpanded && (
+            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
+          )}
+
+          {/* Clear button inside input */}
+          {isExpanded && searchQuery && (
+            <button 
+              type="button"
+              onClick={() => handleSearchChange("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 z-10"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          )}
+
+          {/* Suggestions Dropdown */}
+          {searchOpen && isExpanded && (
+            <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40 max-h-48 overflow-y-auto w-48 sm:w-full">
               {['Food & Beverage', 'Gaji Bulanan', 'Transportasi', 'Food & Drink', 'Salary', 'Transport', 'Shopping', 'Investment'].map((suggestion, idx) => (
                 <button 
                   key={suggestion}
+                  type="button"
                   onClick={() => { handleSearchChange(suggestion); setSearchOpen(false); }}
-                  className={`suggestion-item w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors ${idx !== 0 ? 'border-t border-slate-50' : ''}`}
+                  className={`suggestion-item w-full flex items-center gap-3 px-3 py-2 text-left text-xs text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors ${idx !== 0 ? 'border-t border-slate-50' : ''}`}
                 >
-                  <Search className="w-4 h-4 text-slate-400" />
+                  <Search className="w-3.5 h-3.5 text-slate-400" />
                   {suggestion}
                 </button>
               ))}
             </div>
           )}
         </div>
-
-        <button 
-          onClick={() => setMobileSearchActive(true)}
-          className="sm:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all border border-slate-200" 
-          aria-label="Cari"
-        >
-          <Search className="w-5 h-5" />
-        </button>
       </div>
 
       {/* RIGHT GROUP: notification + add transaction + profile */}
