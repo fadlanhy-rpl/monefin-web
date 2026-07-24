@@ -135,6 +135,57 @@ export default function TransactionsPage() {
           </button>
         </div>
 
+        {/* Overview Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Income Card */}
+          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Income</p>
+                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 12.450.000</h3>
+                <p className="text-[10px] text-gray-400 mt-1">This current month</p>
+              </div>
+              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><Wallet className="w-6 h-6" /></div>
+            </div>
+            <div className="flex items-center gap-2 self-start bg-emerald-50 px-2 py-1 rounded-lg">
+              <TrendingUp className="w-3 h-3 text-emerald-600" />
+              <span className="text-[10px] font-black text-emerald-600">12.5%</span>
+            </div>
+          </div>
+
+          {/* Expenses Card */}
+          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Expenses</p>
+                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 4.820.000</h3>
+                <p className="text-[10px] text-gray-400 mt-1">This current month</p>
+              </div>
+              <div className="p-2.5 bg-red-50 text-red-600 rounded-xl"><ShoppingCart className="w-6 h-6" /></div>
+            </div>
+            <div className="flex items-center gap-2 self-start bg-red-50 px-2 py-1 rounded-lg">
+              <TrendingDown className="w-3 h-3 text-red-600" />
+              <span className="text-[10px] font-black text-red-600">3.2%</span>
+            </div>
+          </div>
+
+          {/* Net Cash Card */}
+          <div className="bg-[#E6F0EF]/60 p-6 rounded-[2.5rem] border border-[#c0ded9]/50 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden">
+            <div className="flex justify-between items-start">
+              <div className="relative z-10">
+                <p className="text-[10px] font-black text-[#00685F] uppercase tracking-widest">Net Cash Flow</p>
+                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 7.630.000</h3>
+                <p className="text-[10px] text-[#00685F]/60 mt-1">Estimated savings potential</p>
+              </div>
+              <div className="p-2.5 bg-[#00685F] text-white rounded-xl relative z-10"><BarChart3 className="w-6 h-6" /></div>
+            </div>
+            <div className="flex -space-x-2 mt-4 relative z-10">
+              <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-200 text-[8px] flex items-center justify-center font-bold text-slate-700">AT</div>
+              <div className="w-6 h-6 rounded-full border-2 border-white bg-[#00685F] text-white text-[8px] flex items-center justify-center font-bold">MF</div>
+            </div>
+          </div>
+        </div>
+
         {/* Filters Section */}
         <div className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Filters</span>
@@ -270,57 +321,6 @@ export default function TransactionsPage() {
                 <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-xs font-bold text-slate-600">13</button>
               </div>
               <button className="px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold hover:bg-gray-50 text-slate-600">Next &gt;</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-10">
-          {/* Income Card */}
-          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Income</p>
-                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 12.450.000</h3>
-                <p className="text-[10px] text-gray-400 mt-1">This current month</p>
-              </div>
-              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><Wallet className="w-6 h-6" /></div>
-            </div>
-            <div className="flex items-center gap-2 self-start bg-emerald-50 px-2 py-1 rounded-lg">
-              <TrendingUp className="w-3 h-3 text-emerald-600" />
-              <span className="text-[10px] font-black text-emerald-600">12.5%</span>
-            </div>
-          </div>
-
-          {/* Expenses Card */}
-          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Expenses</p>
-                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 4.820.000</h3>
-                <p className="text-[10px] text-gray-400 mt-1">This current month</p>
-              </div>
-              <div className="p-2.5 bg-red-50 text-red-600 rounded-xl"><ShoppingCart className="w-6 h-6" /></div>
-            </div>
-            <div className="flex items-center gap-2 self-start bg-red-50 px-2 py-1 rounded-lg">
-              <TrendingDown className="w-3 h-3 text-red-600" />
-              <span className="text-[10px] font-black text-red-600">3.2%</span>
-            </div>
-          </div>
-
-          {/* Net Cash Card */}
-          <div className="bg-[#E6F0EF]/60 p-6 rounded-[2.5rem] border border-[#c0ded9]/50 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden">
-            <div className="flex justify-between items-start">
-              <div className="relative z-10">
-                <p className="text-[10px] font-black text-[#00685F] uppercase tracking-widest">Net Cash Flow</p>
-                <h3 className="text-2xl font-black text-slate-900 mt-2">Rp 7.630.000</h3>
-                <p className="text-[10px] text-[#00685F]/60 mt-1">Estimated savings potential</p>
-              </div>
-              <div className="p-2.5 bg-[#00685F] text-white rounded-xl relative z-10"><BarChart3 className="w-6 h-6" /></div>
-            </div>
-            <div className="flex -space-x-2 mt-4 relative z-10">
-              <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-200 text-[8px] flex items-center justify-center font-bold text-slate-700">AT</div>
-              <div className="w-6 h-6 rounded-full border-2 border-white bg-[#00685F] text-white text-[8px] flex items-center justify-center font-bold">MF</div>
             </div>
           </div>
         </div>
