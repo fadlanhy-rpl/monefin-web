@@ -344,7 +344,7 @@ export default function TransactionsPage() {
         {/* Overview Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Income Card */}
-          <div className={`bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-700 delay-100 ease-out transform hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+          <div className={`bg-white p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-700 delay-100 ease-out transform hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Income</p>
@@ -374,7 +374,7 @@ export default function TransactionsPage() {
           </div>
 
           {/* Expenses Card */}
-          <div className={`bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-700 delay-200 ease-out transform hover:-translate-y-1 hover:shadow-xl hover:shadow-red-500/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+          <div className={`bg-white p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-700 delay-200 ease-out transform hover:-translate-y-1 hover:shadow-xl hover:shadow-red-500/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Expenses</p>
@@ -404,7 +404,7 @@ export default function TransactionsPage() {
           </div>
 
           {/* Net Cash Card */}
-          <div className={`bg-[#E6F0EF]/60 p-6 rounded-[2.5rem] border border-[#c0ded9]/50 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-700 delay-300 ease-out transform hover:-translate-y-1 hover:shadow-xl hover:shadow-[#00685F]/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+          <div className={`bg-[#E6F0EF]/60 p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border border-[#c0ded9]/50 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden transition-all duration-700 delay-300 ease-out transform hover:-translate-y-1 hover:shadow-xl hover:shadow-[#00685F]/5 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <div className="flex justify-between items-start">
               <div className="relative z-10">
                 <p className="text-[10px] font-black text-[#00685F] uppercase tracking-widest">Net Cash Flow</p>
@@ -413,7 +413,7 @@ export default function TransactionsPage() {
               </div>
               <div className="p-2.5 bg-[#00685F] text-white rounded-xl relative z-10 transition-transform duration-300 hover:scale-110 hover:rotate-6"><BarChart3 className="w-6 h-6" /></div>
             </div>
-            <div className="flex -space-x-2 mt-4 relative z-10">
+            <div className="flex -space-x-2 mt-2.5 sm:mt-4 relative z-10">
               <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-200 text-[8px] flex items-center justify-center font-bold text-slate-700 transition-transform duration-300 hover:scale-110">AT</div>
               <div className="w-6 h-6 rounded-full border-2 border-white bg-[#00685F] text-white text-[8px] flex items-center justify-center font-bold transition-transform duration-300 hover:scale-110">MF</div>
             </div>
