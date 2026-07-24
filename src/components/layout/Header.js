@@ -141,7 +141,7 @@ export default function Header({ setMobileOpen }) {
 
           {/* Suggestions Dropdown */}
           {searchOpen && isExpanded && (
-            <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40 max-h-48 overflow-y-auto w-48 sm:w-full">
+            <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40 max-h-48 overflow-y-auto w-full">
               {['Food & Beverage', 'Gaji Bulanan', 'Transportasi', 'Food & Drink', 'Salary', 'Transport', 'Shopping', 'Investment'].map((suggestion, idx) => (
                 <button 
                   key={suggestion}
