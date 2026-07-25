@@ -57,7 +57,7 @@ export default function StatCards() {
   }, []);
 
   return (
-    <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+    <div ref={ref} className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
       
       {/* Premium Total Balance Card (Credit Card UI) */}
       <div className={`reveal relative pt-3 ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "0ms" }}>

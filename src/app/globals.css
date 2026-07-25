@@ -140,10 +140,14 @@
   }
 }
 
-/* ---------- Custom Scrollbar ---------- */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: #cfd8d6; border-radius: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
+/* ---------- Custom Scrollbar (Hidden Globally) ---------- */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
 
 /* ---------- Sidebar Nav ---------- */
 .sidebar-link.active {
