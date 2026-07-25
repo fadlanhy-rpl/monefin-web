@@ -30,8 +30,9 @@ export default function RegisterForm() {
       
       <div className="w-full max-w-md mx-auto my-auto space-y-6 py-6">
         {/* Header */}
-        <div className="space-y-2">
+        <div>
           <h1 className="text-[21px] sm:text-3xl font-extrabold text-gray-900 tracking-tight whitespace-nowrap">Create Your Account</h1>
+          <p className="text-gray-400 mt-2 text-sm">Join us and start managing your wealth today</p>
         </div>
 
         {/* Form */}
