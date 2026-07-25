@@ -109,12 +109,12 @@ export default function LoginForm() {
       </div>
 
       {/* Footer Links */}
-      <div className="w-full flex justify-center lg:justify-between px-4 lg:px-12 text-[10px] text-gray-300 font-bold uppercase tracking-widest pt-6 border-t border-gray-50 lg:border-t-0">
+      <div className="w-full flex flex-col sm:flex-row justify-center lg:justify-between items-center gap-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest pt-6 border-t border-gray-50 lg:border-t-0">
         <p>© 2024 MoneFin</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-[#00685F]">Privacy</a>
-          <a href="#" className="hover:text-[#00685F]">Terms</a>
-          <a href="#" className="hover:text-[#00685F]">Security</a>
+          <a href="#" className="hover:text-[#00685F] transition-colors">Privacy</a>
+          <a href="#" className="hover:text-[#00685F] transition-colors">Terms</a>
+          <a href="#" className="hover:text-[#00685F] transition-colors">Security</a>
         </div>
       </div>
     </div>
