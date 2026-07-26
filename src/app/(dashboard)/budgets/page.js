@@ -262,7 +262,10 @@ export default function BudgetsPage() {
         {/* BUDGET CARDS GRID / LIST CONTAINER */}
         <div className="space-y-6">
           {viewMode === "card" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div 
+              key={`grid-${monthIndex}-${currentPage}`}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
               {paginatedBudgets.map((b, index) => {
                 const percent = b.limit > 0 ? (b.spent / b.limit) : 0;
                 const percentDisplay = Math.round(percent * 100);
@@ -316,10 +319,7 @@ export default function BudgetsPage() {
                 return (
                   <div 
                     key={b.id} 
-                    className={`bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between space-y-6 transition-all duration-700 ease-out transform hover:-translate-y-1 hover:shadow-xl group relative overflow-hidden ${
-                      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-                    }`}
-                    style={{ animationDelay: `${(index + 1) * 80}ms` }}
+                    className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl group relative overflow-hidden"
                   >
                     <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                       <button 
@@ -376,7 +376,10 @@ export default function BudgetsPage() {
             </div>
           ) : (
             /* LIST VIEW */
-            <div className="space-y-3.5">
+            <div 
+              key={`list-${monthIndex}-${currentPage}`}
+              className="space-y-3.5 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
               {paginatedBudgets.map((b, index) => {
                 const percent = b.limit > 0 ? (b.spent / b.limit) : 0;
                 const percentDisplay = Math.round(percent * 100);
@@ -430,10 +433,7 @@ export default function BudgetsPage() {
                 return (
                   <div 
                     key={b.id} 
-                    className={`bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 group relative ${
-                      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-                    }`}
-                    style={{ animationDelay: `${(index + 1) * 60}ms` }}
+                    className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 group relative"
                   >
                     {/* Left: Icon & Title */}
                     <div className="flex items-center gap-4 min-w-[200px] shrink-0">
