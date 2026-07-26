@@ -22,7 +22,8 @@ import {
   Pencil,
   Trash2,
   X,
-  Check
+  LayoutGrid,
+  List
 } from "lucide-react";
 
 // Helper to get category icon component
@@ -40,6 +41,7 @@ function getCategoryIcon(iconType) {
 
 export default function BudgetsPage() {
   const [isVisible, setIsVisible] = useState(false);
+  const [viewMode, setViewMode] = useState("card"); // "card" | "list"
   const [monthIndex, setMonthIndex] = useState(2); // Default to July 2026
   const months = ["May 2026", "June 2026", "July 2026"];
 
@@ -190,7 +192,27 @@ export default function BudgetsPage() {
             <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-900">Monthly Budget</h2>
             <p className="text-gray-400 text-sm mt-1">Track your spending efficiency across categories</p>
           </div>
-          <div className="flex items-center gap-3">
+          
+          <div className="flex flex-wrap items-center gap-3">
+            {/* View Switcher Toggle */}
+            <div className="flex items-center bg-slate-100 p-1.5 rounded-xl border border-slate-200/50 select-none">
+              <button 
+                onClick={() => setViewMode("card")}
+                className={`p-2 rounded-lg transition-all cursor-pointer ${viewMode === "card" ? "bg-white text-[#00685F] shadow-sm font-bold scale-105" : "text-slate-400 hover:text-slate-600"}`}
+                title="Tampilan Kartu (Card)"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded-lg transition-all cursor-pointer ${viewMode === "list" ? "bg-white text-[#00685F] shadow-sm font-bold scale-105" : "text-slate-400 hover:text-slate-600"}`}
+                title="Tampilan Daftar (List)"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Month Switcher */}
             <div className="flex items-center bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-bold shadow-sm select-none">
               <ChevronLeft 
                 className={`w-4 h-4 cursor-pointer transition-colors ${monthIndex === 0 ? 'text-slate-200 cursor-not-allowed' : 'text-slate-400 hover:text-slate-700'}`} 
@@ -202,6 +224,8 @@ export default function BudgetsPage() {
                 onClick={handleNextMonth}
               />
             </div>
+
+            {/* Set New Budget Button */}
             <button 
               onClick={openAddModal}
               className="press-scale flex items-center gap-2 bg-[#00685F] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#004D46] hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[#00685F]/20 cursor-pointer"
@@ -212,129 +236,248 @@ export default function BudgetsPage() {
           </div>
         </div>
 
-        {/* BUDGET CARDS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {budgets.map((b, index) => {
-            const percent = b.limit > 0 ? (b.spent / b.limit) : 0;
-            const percentDisplay = Math.round(percent * 100);
-            
-            // Dynamic theme and alerts configuration based on percentage
-            let statusText = "On track";
-            let statusIcon = <CheckCircle className="w-3.5 h-3.5" />;
-            let colorTheme = "brand"; // default
-            let badgeBg = "bg-brand-50 text-brand-600";
-            let iconBg = "bg-brand-50 text-brand-600";
-            let progressBarColor = "bg-[#00685F]";
-            let textColor = "text-brand-600";
-            
-            // Special Savings Goal badge style
-            const isSavingsGoal = b.category.toLowerCase().includes("savings") || b.iconType === "piggy-bank";
+        {/* BUDGET CARDS GRID / LIST CONTAINER */}
+        {viewMode === "card" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {budgets.map((b, index) => {
+              const percent = b.limit > 0 ? (b.spent / b.limit) : 0;
+              const percentDisplay = Math.round(percent * 100);
+              
+              let statusText = "On track";
+              let statusIcon = <CheckCircle className="w-3.5 h-3.5" />;
+              let badgeBg = "bg-brand-50 text-brand-600";
+              let iconBg = "bg-brand-50 text-brand-600";
+              let progressBarColor = "bg-[#00685F]";
+              let textColor = "text-brand-600";
+              
+              const isSavingsGoal = b.category.toLowerCase().includes("savings") || b.iconType === "piggy-bank";
 
-            if (percent >= 1.0) {
-              statusText = "Budget exceeded";
-              statusIcon = <AlertTriangle className="w-3.5 h-3.5" />;
-              colorTheme = "red";
-              badgeBg = "bg-red-50 text-red-600 animate-pulse";
-              iconBg = "bg-red-50 text-red-600";
-              progressBarColor = "bg-red-600";
-              textColor = "text-red-600";
-            } else if (percent >= 0.85) {
-              statusText = "Almost reached";
-              statusIcon = <AlertCircle className="w-3.5 h-3.5" />;
-              colorTheme = "orange";
-              badgeBg = "bg-orange-50 text-orange-600";
-              iconBg = "bg-orange-50 text-orange-600";
-              progressBarColor = "bg-amber-600";
-              textColor = "text-orange-600";
-            } else if (percent >= 0.75) {
-              statusText = "Approaching limit";
-              statusIcon = <AlertCircle className="w-3.5 h-3.5" />;
-              colorTheme = "orange";
-              badgeBg = "bg-orange-50 text-orange-600";
-              iconBg = "bg-orange-50 text-orange-600";
-              progressBarColor = "bg-amber-600";
-              textColor = "text-orange-600";
-            } else if (percent <= 0.35 && !isSavingsGoal) {
-              statusText = "Low utilization";
-              statusIcon = <Info className="w-3.5 h-3.5" />;
-              colorTheme = "blue";
-              badgeBg = "bg-blue-50 text-blue-500";
-              iconBg = "bg-blue-50 text-blue-600";
-              progressBarColor = "bg-blue-500";
-              textColor = "text-blue-500";
-            } else if (isSavingsGoal) {
-              statusText = percent >= 1.0 ? "Goal reached" : "On track";
-              statusIcon = <Sparkles className="w-3.5 h-3.5" />;
-              colorTheme = "savings";
-              badgeBg = "bg-brand-50 text-brand-700 font-extrabold";
-              iconBg = "bg-[#00685F] text-white";
-              progressBarColor = "bg-[#00685F]";
-              textColor = "text-brand-700";
-            }
+              if (percent >= 1.0) {
+                statusText = "Budget exceeded";
+                statusIcon = <AlertTriangle className="w-3.5 h-3.5" />;
+                badgeBg = "bg-red-50 text-red-600 animate-pulse";
+                iconBg = "bg-red-50 text-red-600";
+                progressBarColor = "bg-red-600";
+                textColor = "text-red-600";
+              } else if (percent >= 0.85) {
+                statusText = "Almost reached";
+                statusIcon = <AlertCircle className="w-3.5 h-3.5" />;
+                badgeBg = "bg-orange-50 text-orange-600";
+                iconBg = "bg-orange-50 text-orange-600";
+                progressBarColor = "bg-amber-600";
+                textColor = "text-orange-600";
+              } else if (percent >= 0.75) {
+                statusText = "Approaching limit";
+                statusIcon = <AlertCircle className="w-3.5 h-3.5" />;
+                badgeBg = "bg-orange-50 text-orange-600";
+                iconBg = "bg-orange-50 text-orange-600";
+                progressBarColor = "bg-amber-600";
+                textColor = "text-orange-600";
+              } else if (percent <= 0.35 && !isSavingsGoal) {
+                statusText = "Low utilization";
+                statusIcon = <Info className="w-3.5 h-3.5" />;
+                badgeBg = "bg-slate-100 text-slate-500";
+                iconBg = "bg-slate-50 text-slate-500";
+                progressBarColor = "bg-slate-400";
+                textColor = "text-slate-500";
+              } else if (isSavingsGoal) {
+                statusText = percent >= 1.0 ? "Goal reached" : "On track";
+                statusIcon = <Sparkles className="w-3.5 h-3.5" />;
+                badgeBg = "bg-brand-50 text-brand-700 font-extrabold";
+                iconBg = "bg-[#00685F] text-white";
+                progressBarColor = "bg-[#00685F]";
+                textColor = "text-brand-700";
+              }
 
-            return (
-              <div 
-                key={b.id} 
-                className={`bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between space-y-6 transition-all duration-700 ease-out transform hover:-translate-y-1 hover:shadow-xl group relative overflow-hidden ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-                }`}
-                style={{ animationDelay: `${(index + 1) * 80}ms` }}
-              >
-                {/* Hover actions */}
-                <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                  <button 
-                    onClick={() => openEditModal(b)}
-                    title="Ubah Anggaran"
-                    className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(b.id)}
-                    title="Hapus Anggaran"
-                    className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${iconBg}`}>
-                    {getCategoryIcon(b.iconType)}
+              return (
+                <div 
+                  key={b.id} 
+                  className={`bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between space-y-6 transition-all duration-700 ease-out transform hover:-translate-y-1 hover:shadow-xl group relative overflow-hidden ${
+                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                  }`}
+                  style={{ animationDelay: `${(index + 1) * 80}ms` }}
+                >
+                  <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                    <button 
+                      onClick={() => openEditModal(b)}
+                      title="Ubah Anggaran"
+                      className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(b.id)}
+                      title="Hapus Anggaran"
+                      className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 group-hover:text-brand-700 transition-colors">{b.category}</h3>
-                    <p className="text-xs text-gray-400">{b.description}</p>
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold">
-                    <span className="text-gray-400">Rp {b.spent.toLocaleString('id-ID')} / Rp {b.limit.toLocaleString('id-ID')}</span>
-                    <span className={`${textColor} font-black`}>
-                      {percent >= 1.0 
-                        ? `Over by Rp ${(b.spent - b.limit).toLocaleString('id-ID')}` 
-                        : `Rp ${(b.limit - b.spent).toLocaleString('id-ID')} left`
-                      }
-                    </span>
+                  <div className="space-y-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${iconBg}`}>
+                      {getCategoryIcon(b.iconType)}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 group-hover:text-brand-700 transition-colors">{b.category}</h3>
+                      <p className="text-xs text-gray-400">{b.description}</p>
+                    </div>
                   </div>
-                  {/* Progress bar container */}
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden relative">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-1000 ease-out ${progressBarColor}`}
-                      style={{ width: `${Math.min(percentDisplay, 100)}%` }}
-                    ></div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-gray-400">Rp {b.spent.toLocaleString('id-ID')} / Rp {b.limit.toLocaleString('id-ID')}</span>
+                      <span className={`${textColor} font-black`}>
+                        {percent >= 1.0 
+                          ? `Over by Rp ${(b.spent - b.limit).toLocaleString('id-ID')}` 
+                          : `Rp ${(b.limit - b.spent).toLocaleString('id-ID')} left`
+                        }
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden relative">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${progressBarColor}`}
+                        style={{ width: `${Math.min(percentDisplay, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg px-2.5 py-1 self-start select-none ${badgeBg}`}>
+                    {statusIcon}
+                    <span>{statusText} ({percentDisplay}% spent)</span>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* LIST VIEW */
+          <div className="space-y-3.5">
+            {budgets.map((b, index) => {
+              const percent = b.limit > 0 ? (b.spent / b.limit) : 0;
+              const percentDisplay = Math.round(percent * 100);
+              
+              let statusText = "On track";
+              let statusIcon = <CheckCircle className="w-3.5 h-3.5" />;
+              let badgeBg = "bg-brand-50 text-brand-600";
+              let iconBg = "bg-brand-50 text-brand-600";
+              let progressBarColor = "bg-[#00685F]";
+              let textColor = "text-brand-600";
+              
+              const isSavingsGoal = b.category.toLowerCase().includes("savings") || b.iconType === "piggy-bank";
 
-                <div className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg px-2.5 py-1 self-start select-none ${badgeBg}`}>
-                  {statusIcon}
-                  <span>{statusText} ({percentDisplay}% spent)</span>
+              if (percent >= 1.0) {
+                statusText = "Budget exceeded";
+                statusIcon = <AlertTriangle className="w-3.5 h-3.5" />;
+                badgeBg = "bg-red-50 text-red-600 animate-pulse";
+                iconBg = "bg-red-50 text-red-600";
+                progressBarColor = "bg-red-600";
+                textColor = "text-red-600";
+              } else if (percent >= 0.85) {
+                statusText = "Almost reached";
+                statusIcon = <AlertCircle className="w-3.5 h-3.5" />;
+                badgeBg = "bg-orange-50 text-orange-600";
+                iconBg = "bg-orange-50 text-orange-600";
+                progressBarColor = "bg-amber-600";
+                textColor = "text-orange-600";
+              } else if (percent >= 0.75) {
+                statusText = "Approaching limit";
+                statusIcon = <AlertCircle className="w-3.5 h-3.5" />;
+                badgeBg = "bg-orange-50 text-orange-600";
+                iconBg = "bg-orange-50 text-orange-600";
+                progressBarColor = "bg-amber-600";
+                textColor = "text-orange-600";
+              } else if (percent <= 0.35 && !isSavingsGoal) {
+                statusText = "Low utilization";
+                statusIcon = <Info className="w-3.5 h-3.5" />;
+                badgeBg = "bg-slate-100 text-slate-500";
+                iconBg = "bg-slate-50 text-slate-500";
+                progressBarColor = "bg-slate-400";
+                textColor = "text-slate-500";
+              } else if (isSavingsGoal) {
+                statusText = percent >= 1.0 ? "Goal reached" : "On track";
+                statusIcon = <Sparkles className="w-3.5 h-3.5" />;
+                badgeBg = "bg-brand-50 text-brand-700 font-extrabold";
+                iconBg = "bg-[#00685F] text-white";
+                progressBarColor = "bg-[#00685F]";
+                textColor = "text-brand-700";
+              }
+
+              return (
+                <div 
+                  key={b.id} 
+                  className={`bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 group relative ${
+                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                  }`}
+                  style={{ animationDelay: `${(index + 1) * 60}ms` }}
+                >
+                  {/* Left side: Icon & Title */}
+                  <div className="flex items-center gap-4 min-w-[200px] shrink-0">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${iconBg}`}>
+                      {getCategoryIcon(b.iconType)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm group-hover:text-brand-700 transition-colors leading-tight">{b.category}</h4>
+                      <p className="text-[11px] text-gray-400 leading-tight mt-0.5">{b.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Middle side: Progress bar */}
+                  <div className="flex-1 min-w-[150px] md:px-4 space-y-1.5">
+                    <div className="flex justify-between text-[11px] font-bold text-slate-400 leading-none">
+                      <span>Usage Progress</span>
+                      <span className={`${textColor} font-black`}>{percentDisplay}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden relative">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${progressBarColor}`}
+                        style={{ width: `${Math.min(percentDisplay, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Right side: Amounts & Status Badge */}
+                  <div className="flex items-center justify-between md:justify-end gap-6 shrink-0">
+                    <div className="text-left md:text-right">
+                      <p className="text-xs font-bold text-slate-800">Rp {b.spent.toLocaleString('id-ID')} / Rp {b.limit.toLocaleString('id-ID')}</p>
+                      <p className={`text-[10px] font-bold leading-tight mt-0.5 ${textColor}`}>
+                        {percent >= 1.0 
+                          ? `Over by Rp ${(b.spent - b.limit).toLocaleString('id-ID')}` 
+                          : `Rp ${(b.limit - b.spent).toLocaleString('id-ID')} left`
+                        }
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider rounded-lg px-2.5 py-1 select-none shrink-0 ${badgeBg}`}>
+                        {statusIcon}
+                        {statusText}
+                      </span>
+
+                      {/* Edit/Delete actions */}
+                      <div className="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
+                        <button 
+                          onClick={() => openEditModal(b)}
+                          title="Ubah Anggaran"
+                          className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(b.id)}
+                          title="Hapus Anggaran"
+                          className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* BOTTOM OVERVIEW SECTION */}
         <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10 transition-all duration-700 delay-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
@@ -359,7 +502,7 @@ export default function BudgetsPage() {
             {/* Donut Chart */}
             <div className="relative w-40 h-40 flex-shrink-0 cursor-pointer transition-transform duration-300 group-hover:scale-105">
               <svg className="w-full h-full transform -rotate-90">
-                <circle cx="80" cy="80" r={70} stroke="#f1f5f9" strokeWidth="12" fill="transparent" />
+                <circle cx="80" cy="80" r="70" stroke="#f1f5f9" strokeWidth="12" fill="transparent" />
                 <circle 
                   cx="80" 
                   cy="80" 
