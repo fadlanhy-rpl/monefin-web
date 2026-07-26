@@ -140,7 +140,7 @@ export default function BudgetsGrid({
           })}
         </div>
       ) : (
-        /* LIST VIEW */
+        /* LIST VIEW (Optimized for Mobile and Desktop consistency) */
         <div 
           key={`list-${monthIndex}-${currentPage}`}
           className="space-y-3.5 animate-in fade-in slide-in-from-bottom-4 duration-500"
@@ -198,26 +198,26 @@ export default function BudgetsGrid({
             return (
               <div 
                 key={b.id} 
-                className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 group relative"
+                className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between gap-3 sm:gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 group relative"
               >
                 {/* Left: Icon & Title */}
-                <div className="flex items-center gap-4 min-w-[200px] shrink-0">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${iconBg}`}>
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 sm:flex-initial">
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${iconBg}`}>
                     {getCategoryIcon(b.iconType)}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-sm group-hover:text-brand-700 transition-colors leading-tight">{b.category}</h4>
-                    <p className="text-[11px] text-gray-400 leading-tight mt-0.5">{b.description}</p>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-brand-700 transition-colors leading-tight truncate">{b.category}</h4>
+                    <p className="text-[10px] sm:text-[11px] text-gray-400 leading-tight mt-0.5 truncate max-w-[120px] sm:max-w-none">{b.description}</p>
                   </div>
                 </div>
 
-                {/* Middle: Progress bar */}
-                <div className="flex-1 min-w-[150px] md:px-4 space-y-1.5">
-                  <div className="flex justify-between text-[11px] font-bold text-slate-400 leading-none">
-                    <span>Usage Progress</span>
+                {/* Middle: Progress bar (Remains row layout on mobile, stays compact) */}
+                <div className="hidden xs:block flex-1 max-w-[100px] sm:max-w-xs md:px-4 space-y-1.5">
+                  <div className="flex justify-between text-[9px] sm:text-[11px] font-bold text-slate-400 leading-none">
+                    <span className="hidden sm:inline">Usage</span>
                     <span className={`${textColor} font-black`}>{percentDisplay}%</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden relative">
+                  <div className="w-full bg-slate-100 h-1.5 sm:h-2 rounded-full overflow-hidden relative">
                     <div 
                       className={`h-full rounded-full transition-all duration-1000 ease-out ${progressBarColor}`}
                       style={{ width: `${Math.min(percentDisplay, 100)}%` }}
@@ -226,10 +226,10 @@ export default function BudgetsGrid({
                 </div>
 
                 {/* Right: Amounts & Status Badge */}
-                <div className="flex items-center justify-between md:justify-end gap-6 shrink-0">
-                  <div className="text-left md:text-right">
-                    <p className="text-xs font-bold text-slate-800">Rp {b.spent.toLocaleString('id-ID')} / Rp {b.limit.toLocaleString('id-ID')}</p>
-                    <p className={`text-[10px] font-bold leading-tight mt-0.5 ${textColor}`}>
+                <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                  <div className="text-right">
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-800">Rp {b.spent.toLocaleString('id-ID')}</p>
+                    <p className={`text-[9px] sm:text-[10px] font-bold leading-tight mt-0.5 ${textColor}`}>
                       {percent >= 1.0 
                         ? `Over by Rp ${(b.spent - b.limit).toLocaleString('id-ID')}` 
                         : `Rp ${(b.limit - b.spent).toLocaleString('id-ID')} left`
@@ -237,29 +237,27 @@ export default function BudgetsGrid({
                     </p>
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider rounded-lg px-2.5 py-1 select-none shrink-0 ${badgeBg}`}>
-                      {statusIcon}
-                      {statusText}
-                    </span>
+                  <span className={`inline-flex items-center gap-1 text-[8px] sm:text-[9px] font-black uppercase tracking-wider rounded-lg px-2 py-1 select-none ${badgeBg}`}>
+                    {statusIcon}
+                    <span className="hidden sm:inline">{statusText}</span>
+                  </span>
 
-                    {/* Edit/Delete actions */}
-                    <div className="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
-                      <button 
-                        onClick={() => openEditModal(b)}
-                        title="Ubah Anggaran"
-                        className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(b.id)}
-                        title="Hapus Anggaran"
-                        className="p-1.5 bg-slate-50 border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                  {/* Edit/Delete actions */}
+                  <div className="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
+                    <button 
+                      onClick={() => openEditModal(b)}
+                      title="Ubah Anggaran"
+                      className="p-1 bg-slate-50 border border-slate-100 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                    >
+                      <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(b.id)}
+                      title="Hapus Anggaran"
+                      className="p-1 bg-slate-50 border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -268,9 +266,9 @@ export default function BudgetsGrid({
         </div>
       )}
 
-      {/* PAGINATION CONTROLS */}
+      {/* PAGINATION CONTROLS (Optimized to prevent wrapping/overflow on mobile) */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-6 border-t border-slate-100 mt-4 select-none">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between pt-6 border-t border-slate-100 mt-4 select-none">
           <p className="text-xs font-bold text-slate-400">
             Showing <span className="text-slate-800">{startIndex + 1}</span> to{" "}
             <span className="text-slate-800">{Math.min(endIndex, budgetsLength)}</span> of{" "}

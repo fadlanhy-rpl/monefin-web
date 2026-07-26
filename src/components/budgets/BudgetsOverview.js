@@ -10,27 +10,27 @@ export default function BudgetsOverview({
   strokeDashoffset
 }) {
   return (
-    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10 transition-all duration-700 delay-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 pb-10 transition-all duration-700 delay-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
       {/* Spending Overview Card */}
-      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-8 items-center hover:shadow-lg transition-all duration-300 group">
-        <div className="flex-1 space-y-4">
-          <h3 className="text-xl font-bold text-slate-900">Spending Overview</h3>
-          <p className="text-sm text-gray-400 leading-relaxed">
+      <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-6 sm:gap-8 items-center hover:shadow-lg transition-all duration-300 group overflow-hidden">
+        <div className="flex-1 space-y-4 w-full">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900">Spending Overview</h3>
+          <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
             You've spent {overallPercentage}% of your total monthly budget across all categories. You have Rp {remainingBudget.toLocaleString('id-ID')} remaining.
           </p>
-          <div className="flex gap-10 pt-4">
+          <div className="flex flex-wrap gap-6 sm:gap-10 pt-2">
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase">Total Budget</p>
-              <p className="text-xl font-black text-slate-900 mt-1">Rp {totalLimit.toLocaleString('id-ID')}</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Budget</p>
+              <p className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">Rp {totalLimit.toLocaleString('id-ID')}</p>
             </div>
-            <div className="border-l border-slate-100 pl-8">
-              <p className="text-[10px] font-bold text-gray-400 uppercase">Total Spent</p>
-              <p className="text-xl font-black text-brand-600 mt-1">Rp {totalSpent.toLocaleString('id-ID')}</p>
+            <div className="border-l border-slate-100 pl-4 sm:pl-8">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Spent</p>
+              <p className="text-lg sm:text-xl font-black text-brand-600 mt-0.5">Rp {totalSpent.toLocaleString('id-ID')}</p>
             </div>
           </div>
         </div>
         {/* Donut Chart */}
-        <div className="relative w-40 h-40 flex-shrink-0 cursor-pointer transition-transform duration-300 group-hover:scale-105">
+        <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex-shrink-0 cursor-pointer transition-transform duration-300 group-hover:scale-105">
           <svg className="w-full h-full transform -rotate-90">
             <circle cx="80" cy="80" r="70" stroke="#f1f5f9" strokeWidth="12" fill="transparent" />
             <circle 
@@ -47,24 +47,24 @@ export default function BudgetsOverview({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-black text-slate-900">{overallPercentage}%</span>
-            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Spent</span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900">{overallPercentage}%</span>
+            <span className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider">Spent</span>
           </div>
         </div>
       </div>
 
       {/* Smart Saving Tip Card */}
-      <div className="bg-brand-50/40 p-8 rounded-[2.5rem] border border-brand-100/30 flex gap-6 relative overflow-hidden hover:shadow-lg transition-all duration-300 group">
-        <div className="space-y-4 relative z-10">
-          <h3 className="text-xl font-bold text-slate-900">Smart Saving Tip</h3>
-          <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
+      <div className="bg-brand-50/40 p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-brand-100/30 flex flex-col sm:flex-row gap-6 relative overflow-hidden hover:shadow-lg transition-all duration-300 group">
+        <div className="space-y-4 relative z-10 w-full">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900">Smart Saving Tip</h3>
+          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
             Based on your current dining trends, switching to home cooking on weekends could save you Rp 450,000 next month.
           </p>
-          <button className="flex items-center gap-2 text-brand-600 font-bold text-sm group cursor-pointer hover:underline">
+          <button className="flex items-center gap-2 text-brand-600 font-bold text-xs sm:text-sm group cursor-pointer hover:underline">
             Enable Auto-Savings <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
-        <div className="absolute -right-8 -bottom-8 opacity-20 text-[#00685F] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-12">
+        <div className="absolute -right-8 -bottom-8 opacity-20 text-[#00685F] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-12 pointer-events-none">
           <Lightbulb style={{ width: "160px", height: "160px" }} />
         </div>
       </div>
