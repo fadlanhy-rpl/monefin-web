@@ -18,20 +18,23 @@ export default function BudgetsOverview({
           <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
             You've spent {overallPercentage}% of your total monthly budget across all categories. You have Rp {remainingBudget.toLocaleString('id-ID')} remaining.
           </p>
-          <div className="flex flex-wrap gap-6 sm:gap-10 pt-2">
-            <div>
+          
+          {/* Side-by-Side 2-Column Grid on all screen sizes with divide line */}
+          <div className="grid grid-cols-2 divide-x divide-slate-100 pt-2 w-full select-none">
+            <div className="pr-3 sm:pr-4">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Budget</p>
-              <p className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">Rp {totalLimit.toLocaleString('id-ID')}</p>
+              <p className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 truncate">Rp {totalLimit.toLocaleString('id-ID')}</p>
             </div>
-            <div className="border-l border-slate-100 pl-4 sm:pl-8">
+            <div className="pl-3 sm:pl-4">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Spent</p>
-              <p className="text-lg sm:text-xl font-black text-brand-600 mt-0.5">Rp {totalSpent.toLocaleString('id-ID')}</p>
+              <p className="text-sm sm:text-lg font-black text-brand-600 mt-0.5 truncate">Rp {totalSpent.toLocaleString('id-ID')}</p>
             </div>
           </div>
         </div>
-        {/* Donut Chart */}
-        <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex-shrink-0 cursor-pointer transition-transform duration-300 group-hover:scale-105">
-          <svg className="w-full h-full transform -rotate-90">
+        
+        {/* Donut Chart (Explicitly centered horizontally with mx-auto, and viewBox added to scale cleanly) */}
+        <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex-shrink-0 cursor-pointer transition-transform duration-300 group-hover:scale-105 mx-auto sm:mx-0">
+          <svg viewBox="0 0 160 160" className="w-full h-full transform -rotate-90">
             <circle cx="80" cy="80" r="70" stroke="#f1f5f9" strokeWidth="12" fill="transparent" />
             <circle 
               cx="80" 
