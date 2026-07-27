@@ -15,16 +15,17 @@ export default function AccountsHeader({
         </p>
       </div>
 
-      {/* Card Total Saldo (Fixed: changed min-w-[320px] to min-w-0 sm:min-w-[320px] to prevent horizontal overflow on 288px mobile viewports) */}
-      <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center lg:items-end w-full lg:w-fit min-w-0 sm:min-w-[320px] transition-all hover:shadow-md duration-300">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center lg:text-right">Total Saldo Seluruh Akun</p>
-        <h3 className="text-3xl sm:text-4xl font-black text-[#00685F] mt-2 text-center lg:text-right">Rp {totalBalance.toLocaleString("id-ID")}</h3>
+      {/* Card Total Saldo (Reduced padding to p-4 on mobile and adjusted font size to text-2xl sm:text-4xl to prevent wrapping of Rp balance) */}
+      <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center lg:items-end w-full lg:w-fit min-w-0 sm:min-w-[320px] transition-all hover:shadow-md duration-300">
+        <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest text-center lg:text-right">Total Saldo Seluruh Akun</p>
+        <h3 className="text-2xl sm:text-4xl font-black text-[#00685F] mt-1.5 text-center lg:text-right">Rp {totalBalance.toLocaleString("id-ID")}</h3>
         
+        {/* Adjusted padding to px-4 py-2.5 and text-xs on mobile to prevent "Tambah Akun Baru" from wrapping into two lines */}
         <button 
           onClick={openAddModal}
-          className="mt-5 sm:mt-6 w-full sm:w-auto flex items-center justify-center gap-2 bg-[#00685F] text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-[#004D46] hover:shadow-lg transition shadow-lg shadow-[#00685F]/20 group active:scale-95 cursor-pointer text-sm"
+          className="mt-4 sm:mt-6 w-full sm:w-auto flex items-center justify-center gap-2 bg-[#00685F] text-white px-4 py-2.5 sm:px-8 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold hover:bg-[#004D46] hover:shadow-lg transition shadow-lg shadow-[#00685F]/20 group active:scale-95 cursor-pointer text-xs sm:text-sm whitespace-nowrap"
         >
-          <PlusCircle className="w-5 h-5" /> Tambah Akun Baru
+          <PlusCircle className="w-4 h-4 sm:w-5 h-5 shrink-0" /> Tambah Akun Baru
         </button>
       </div>
     </div>
