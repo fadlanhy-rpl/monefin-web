@@ -78,7 +78,7 @@ export default function GoalsGrid({
         <div className="lg:col-span-2 bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6 sm:space-y-10 hover:shadow-md transition-all duration-300 relative group overflow-hidden">
           {/* Header layout optimized for mobile to prevent title squishing */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
+            <div className="flex items-center gap-3 sm:gap-5 w-full">
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#00685F] to-[#004D46] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#00685F]/20 shrink-0">
                 {renderGoalIcon(leftGoal.icon || "laptop")}
               </div>
