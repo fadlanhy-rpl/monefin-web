@@ -54,13 +54,11 @@ export default function GoalsGrid({
     return g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
   };
 
-  // Helper to render icon dynamically
   const renderGoalIcon = (iconName) => {
     const IconComponent = iconMap[iconName] || Target;
     return <IconComponent className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5 text-white" />;
   };
 
-  // Calculate remaining months based on Rp 850,000 monthly saving rate
   const calculateInsightText = (g) => {
     const remaining = g.target - g.current;
     if (remaining <= 0) {
@@ -77,19 +75,20 @@ export default function GoalsGrid({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       {/* MAIN GOAL CARD (Left) */}
       {leftGoal ? (
-        <div className="lg:col-span-2 bg-white p-5 xs:p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8 sm:space-y-10 hover:shadow-md transition-all duration-300 relative group overflow-hidden">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+        <div className="lg:col-span-2 bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6 sm:space-y-10 hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+          {/* Header layout optimized for mobile to prevent title squishing */}
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#00685F] to-[#004D46] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#00685F]/20 shrink-0">
                 {renderGoalIcon(leftGoal.icon || "laptop")}
               </div>
-              <div className="min-w-0">
-                <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate">{leftGoal.title}</h3>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate leading-tight">{leftGoal.title}</h3>
                 <p className="text-gray-400 font-semibold text-xs sm:text-sm truncate mt-0.5">{leftGoal.subtitle}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 shrink-0 select-none">
+            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0 select-none border-t sm:border-t-0 border-slate-50 pt-2 sm:pt-0">
               {getPercent(leftGoal) >= 100 ? (
                 <span className="bg-emerald-50 text-emerald-600 text-[10px] sm:text-xs font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-emerald-100 flex items-center gap-1.5 animate-pulse">
                   <CheckCircle className="w-3.5 h-3.5" /> Achieved
@@ -129,7 +128,7 @@ export default function GoalsGrid({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest select-none">Progress Saat Ini</p>
               <div className="flex items-baseline gap-2 flex-wrap">
                 <h4 className="text-2xl sm:text-4xl font-black text-[#00685F] tracking-tighter">Rp {leftGoal.current.toLocaleString("id-ID")}</h4>
@@ -138,7 +137,7 @@ export default function GoalsGrid({
             </div>
             <div className="flex flex-col md:items-end gap-1 select-none">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-left md:text-right">Deadline</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Calendar className="w-4 h-4 text-slate-400" />
                 <span className="font-bold text-slate-900 text-xs sm:text-sm">{leftGoal.deadlineDate}</span>
                 <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">
@@ -149,7 +148,6 @@ export default function GoalsGrid({
           </div>
 
           <div className="space-y-6">
-            {/* Progress Bar with glowing color when completed */}
             <div className="w-full bg-slate-50 h-3.5 rounded-full overflow-hidden relative border border-slate-100/50">
               <div 
                 className={`h-full shadow-sm transition-all duration-1000 ease-out rounded-full ${
@@ -200,11 +198,11 @@ export default function GoalsGrid({
 
       {/* SIDE GOAL CARD (Right - Circular Progress Card) */}
       {rightGoal ? (
-        <div className="bg-white p-5 xs:p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 relative group overflow-hidden">
-          <div className="flex justify-between items-center">
-            <h3 className="font-extrabold text-slate-900 text-lg truncate max-w-[150px]">{rightGoal.title}</h3>
+        <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+          <div className="flex justify-between items-center gap-2">
+            <h3 className="font-extrabold text-slate-900 text-base sm:text-lg truncate flex-1">{rightGoal.title}</h3>
             <div className="flex items-center gap-1.5 shrink-0 select-none">
-              <span className="bg-[#00685F]/5 text-[#00685F] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">
+              <span className="bg-[#00685F]/5 text-[#00685F] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter">
                 {rightGoal.tag || "Safety"}
               </span>
               
@@ -237,8 +235,8 @@ export default function GoalsGrid({
           </div>
 
           {/* Donut Progress Chart (Centered with scale pulse on hover) */}
-          <div className="flex justify-center py-6 select-none">
-            <div className="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
+          <div className="flex justify-center py-5 sm:py-6 select-none">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
               <svg viewBox="0 0 160 160" className="w-full h-full transform -rotate-90 filter drop-shadow-md">
                 <circle cx="80" cy="80" r="70" stroke="#f8fafb" strokeWidth="12" fill="transparent" />
                 <circle 
@@ -255,8 +253,8 @@ export default function GoalsGrid({
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-black text-slate-900">{getPercent(rightGoal)}%</span>
-                {getPercent(rightGoal) >= 100 && <span className="text-[8px] font-black text-emerald-500 uppercase mt-0.5 tracking-widest">Achieved</span>}
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{getPercent(rightGoal)}%</span>
+                {getPercent(rightGoal) >= 100 && <span className="text-[7px] sm:text-[8px] font-black text-emerald-500 uppercase mt-0.5 tracking-widest">Achieved</span>}
               </div>
             </div>
           </div>
@@ -282,13 +280,13 @@ export default function GoalsGrid({
               </div>
             )}
             
-            <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-100/50">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 select-none">Total Tabungan</p>
               <h4 className="text-xl font-black text-slate-900 tracking-tight">Rp {rightGoal.current.toLocaleString("id-ID")}</h4>
               <p className="text-[10px] text-gray-400 font-semibold mt-0.5 tracking-tight select-none">Goal: Rp {rightGoal.target.toLocaleString("id-ID")}</p>
             </div>
             
-            <div className="flex justify-between items-center select-none text-[10px] pt-1">
+            <div className="flex justify-between items-center select-none text-[10px] pt-1 flex-wrap gap-2">
               <span className="text-gray-400 font-bold">Deadline: {rightGoal.deadlineDate || "Ongoing"}</span>
               <span className="text-[#00685F] font-black uppercase tracking-wider text-[9px]">High Priority</span>
             </div>
