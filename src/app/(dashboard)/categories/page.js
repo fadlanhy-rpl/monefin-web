@@ -123,24 +123,23 @@ export default function CategoriesPage() {
   // View Mode: "card" | "list"
   const [viewMode, setViewMode] = useState("card");
 
-  // Pagination States (max 7 items including the Add Card on the last page)
+  // Pagination States (max 8 actual categories per page)
   const [currentPage, setCurrentPage] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const itemsPerPage = 7;
+  const itemsPerPage = 8;
 
   // Filtered Categories based on current tab
   const filteredCategories = categories.filter((c) => c.type === activeTab);
 
-  // Total items calculation (categories + 1 create card)
-  const totalItems = filteredCategories.length + 1;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Total pages based on actual categories (8 per page)
+  const totalPages = Math.max(1, Math.ceil(filteredCategories.length / itemsPerPage));
 
   // Slice categories for the current page
   const startIndex = (currentPage - 1) * itemsPerPage;
-  // If showCreateCard is true on this page, we show only 6 categories, otherwise 7
+  const paginatedCategories = filteredCategories.slice(startIndex, startIndex + itemsPerPage);
+
+  // Show "Buat Kategori" card only on the last page
   const showCreateCard = currentPage === totalPages;
-  const categoriesToShowCount = showCreateCard ? itemsPerPage - 1 : itemsPerPage;
-  const paginatedCategories = filteredCategories.slice(startIndex, startIndex + categoriesToShowCount);
 
   // Toast State
   const [toastMessage, setToastMessage] = useState("");
@@ -240,8 +239,8 @@ export default function CategoriesPage() {
       
       // Handle page overflow after deletion
       const newFilteredCount = updatedCategories.filter((c) => c.type === activeTab).length;
-      const newTotalPages = Math.ceil((newFilteredCount + 1) / itemsPerPage);
-      if (currentPage > newTotalPages && newTotalPages >= 1) {
+      const newTotalPages = Math.max(1, Math.ceil(newFilteredCount / itemsPerPage));
+      if (currentPage > newTotalPages) {
         setCurrentPage(newTotalPages);
       }
       
@@ -272,7 +271,7 @@ export default function CategoriesPage() {
       setTimeout(() => {
         setActiveTab(formType);
         const newFiltered = updated.filter((c) => c.type === formType);
-        const newTotalPages = Math.ceil((newFiltered.length + 1) / itemsPerPage);
+        const newTotalPages = Math.max(1, Math.ceil(newFiltered.length / itemsPerPage));
         setCurrentPage(newTotalPages);
         setIsTransitioning(false);
       }, 200);
@@ -301,7 +300,7 @@ export default function CategoriesPage() {
         // Recalculate page location if category type changed
         if (editingCategory.type !== formType) {
           const newFiltered = updated.filter((c) => c.type === formType);
-          const newTotalPages = Math.ceil((newFiltered.length + 1) / itemsPerPage);
+          const newTotalPages = Math.max(1, Math.ceil(newFiltered.length / itemsPerPage));
           setCurrentPage(newTotalPages);
         }
         setIsTransitioning(false);
@@ -350,7 +349,7 @@ export default function CategoriesPage() {
 
         {/* Pagination Control (Hidden if only 1 page is needed) */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 select-none pt-4 transition-all duration-500">
+          <div className="flex justify-center items-center gap-4 select-none pt-4 transition-all duration-500 animate-in fade-in">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
