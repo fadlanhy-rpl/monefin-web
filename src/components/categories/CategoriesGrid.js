@@ -163,62 +163,70 @@ export default function CategoriesGrid({
           )}
         </div>
       ) : (
-        /* LIST VIEW */
+        /* LIST VIEW (Genuinely Horizontal List on Mobile) */
         <div className={`flex flex-col gap-4 transition-all duration-300 transform ${isTransitioning ? 'opacity-0 translate-y-3' : 'opacity-100 translate-y-0'}`}>
           {categories.map((cat, index) => {
             const colorClasses = getColorClass(cat.color);
             return (
               <div 
                 key={cat.id}
-                className="bg-white p-4.5 sm:p-5 rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md hover:border-slate-200/60 transition-all duration-300 group animate-in fade-in slide-in-from-bottom-1"
+                className="bg-white p-3.5 sm:p-5 rounded-[1.5rem] border border-slate-100 shadow-sm flex items-center justify-between gap-3 hover:shadow-md hover:border-slate-200/60 transition-all duration-300 group animate-in fade-in slide-in-from-bottom-1"
                 style={{ animationDelay: `${(index + 1) * 60}ms` }}
               >
-                {/* Left: Icon + Title & Desc */}
-                <div className="flex items-center gap-4 min-w-0 flex-1">
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${colorClasses.bg}`}>
+                {/* Left: Icon + Title & Sub */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${colorClasses.bg}`}>
                     {getIcon(cat.icon)}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-slate-900 tracking-tight truncate text-sm sm:text-base">{cat.name}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate max-w-xl font-medium">{cat.description}</p>
+                  <div className="min-w-0">
+                    <h3 className="font-extrabold text-slate-900 tracking-tight truncate text-xs sm:text-base leading-tight">
+                      {cat.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5 select-none">
+                      <span className="bg-slate-50 text-slate-500 text-[9px] font-bold px-2 py-0.5 rounded-lg border border-slate-100 sm:hidden">
+                        {cat.transactions} Transaksi
+                      </span>
+                      <p className="text-xs text-gray-400 truncate hidden sm:block max-w-md font-medium">
+                        {cat.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Middle info (Transactions + Progress Bar) */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-8 w-full sm:w-auto shrink-0">
-                  {/* Transaction Badge */}
-                  <div className="flex items-center justify-between sm:justify-start gap-2 sm:w-28">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest sm:hidden">Transaksi</span>
-                    <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-xl border border-slate-100 select-none whitespace-nowrap">
-                      {cat.transactions} Transaksi
-                    </span>
-                  </div>
+                {/* Right: progress + transactions + action */}
+                <div className="flex items-center gap-3 sm:gap-8 shrink-0">
+                  <span className="hidden sm:inline-block bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-xl border border-slate-100 select-none">
+                    {cat.transactions} Transaksi
+                  </span>
 
-                  {/* Budget progress bar */}
-                  <div className="flex items-center gap-3 w-full sm:w-44 select-none">
-                    <div className="flex-1 bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100/50">
+                  <div className="flex items-center gap-2 select-none">
+                    <div className="hidden sm:block w-28 bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100/50">
                       <div 
                         className={`h-full rounded-full transition-all duration-1000 ease-out ${
                           cat.realization >= 90 
-                            ? "bg-red-500 shadow-sm shadow-red-500/20" 
+                            ? "bg-red-500" 
                             : cat.realization >= 75 
-                              ? "bg-orange-500 shadow-sm shadow-orange-500/20" 
-                              : "bg-[#00685F] shadow-sm shadow-[#00685F]/20"
+                              ? "bg-orange-500" 
+                              : "bg-[#00685F]"
                         }`} 
                         style={{ width: `${Math.min(cat.realization, 100)}%` }}
                       ></div>
                     </div>
-                    <span className="text-xs font-black text-slate-800 min-w-[2.5rem] text-right">{cat.realization}%</span>
+                    <span className={`text-[10px] sm:text-xs font-black px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg shrink-0 ${
+                      cat.realization >= 90 
+                        ? "bg-red-50 text-red-600 border border-red-100" 
+                        : cat.realization >= 75 
+                          ? "bg-orange-50 text-orange-600 border border-orange-100" 
+                          : "bg-[#E6F0EF] text-[#00685F] border border-[#00685F]/10"
+                    }`}>
+                      {cat.realization}%
+                    </span>
                   </div>
-                </div>
 
-                {/* Right: Actions menu */}
-                <div className="flex items-center justify-between sm:justify-end gap-2 border-t sm:border-t-0 border-slate-50 pt-3 sm:pt-0 shrink-0">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest sm:hidden">Aksi Kategori</span>
                   <div className="relative">
                     <button 
                       onClick={() => toggleMenu(cat.id)}
-                      className="text-slate-300 hover:text-slate-500 transition p-2 hover:bg-slate-50 rounded-xl cursor-pointer"
+                      className="text-slate-300 hover:text-slate-500 transition p-1.5 hover:bg-slate-50 rounded-xl cursor-pointer"
                     >
                       <MoreVertical className="w-4.5 h-4.5" />
                     </button>
@@ -248,12 +256,12 @@ export default function CategoriesGrid({
           {showCreateCard && (
             <div 
               onClick={openAddModal}
-              className="bg-white p-4.5 sm:p-5 rounded-[1.5rem] border-2 border-dashed border-slate-200 flex items-center justify-center gap-3 text-slate-500 hover:border-[#00685F] hover:shadow-sm transition-all duration-300 cursor-pointer group select-none min-h-[70px] animate-in fade-in"
+              className="bg-white p-3.5 sm:p-5 rounded-[1.5rem] border-2 border-dashed border-slate-200 flex items-center justify-center gap-3 text-slate-500 hover:border-[#00685F] hover:shadow-sm transition-all duration-300 cursor-pointer group select-none min-h-[50px] sm:min-h-[70px] animate-in fade-in"
             >
-              <div className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-[#E6F0EF] group-hover:text-[#00685F] transition-all duration-300 scale-95 group-hover:scale-100 shadow-inner">
-                <Plus className="w-4.5 h-4.5" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-[#E6F0EF] group-hover:text-[#00685F] transition-all duration-300 scale-95 group-hover:scale-100 shadow-inner">
+                <Plus className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </div>
-              <span className="font-extrabold text-slate-900 text-sm group-hover:text-[#00685F] transition-colors">Buat Kategori Baru</span>
+              <span className="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-[#00685F] transition-colors">Buat Kategori Baru</span>
             </div>
           )}
         </div>
