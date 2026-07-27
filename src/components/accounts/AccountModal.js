@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 
 export default function AccountModal({
   isOpen,
@@ -18,12 +18,49 @@ export default function AccountModal({
 }) {
   if (!isOpen) return null;
 
+  // Preset Template Quick Fill
+  const applyPreset = (preset) => {
+    switch (preset) {
+      case "BCA":
+        setFormName("Bank BCA");
+        setFormType("bank-primary");
+        setFormNumber("xxxx " + Math.floor(1000 + Math.random() * 9000));
+        setFormHolder("AKHMAD MAARIZ");
+        break;
+      case "Mandiri":
+        setFormName("Bank Mandiri");
+        setFormType("bank-dark");
+        setFormNumber("xxxx " + Math.floor(1000 + Math.random() * 9000));
+        setFormHolder("");
+        break;
+      case "GoPay":
+        setFormName("GoPay");
+        setFormType("wallet");
+        setFormNumber("");
+        setFormHolder("");
+        break;
+      case "OVO":
+        setFormName("OVO");
+        setFormType("wallet");
+        setFormNumber("");
+        setFormHolder("");
+        break;
+      case "Tunai":
+        setFormName("Dompet Tunai");
+        setFormType("cash");
+        setFormNumber("");
+        setFormHolder("");
+        break;
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-slate-900">
+          <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#00685F]" />
             {modalMode === "add" ? "Tambah Akun Baru" : "Edit Akun"}
           </h3>
           <button 
@@ -36,6 +73,26 @@ export default function AccountModal({
 
         {/* Modal Body */}
         <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+          
+          {/* Quick presets (Only on Add mode) */}
+          {modalMode === "add" && (
+            <div className="space-y-1.5 select-none">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Template Akun Cepat</label>
+              <div className="flex flex-wrap gap-2 pt-0.5">
+                {["BCA", "Mandiri", "GoPay", "OVO", "Tunai"].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => applyPreset(p)}
+                    className="px-3 py-1.5 bg-slate-50 hover:bg-brand-50 border border-slate-100 hover:border-[#00685F] text-slate-600 hover:text-[#00685F] rounded-xl text-xs font-bold transition-all cursor-pointer hover:scale-105 active:scale-95"
+                  >
+                    + {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Account Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Akun / Bank</label>
@@ -90,7 +147,7 @@ export default function AccountModal({
                   value={formNumber}
                   onChange={(e) => setFormNumber(e.target.value)}
                   className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-semibold text-slate-800"
-                  placeholder="**** 1234"
+                  placeholder="xxxx 1234"
                 />
               </div>
 
