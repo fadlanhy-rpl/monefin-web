@@ -1,18 +1,51 @@
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Sparkles } from "lucide-react";
 
 export default function CategoriesStats({
   totalCategories,
   activeCategoriesCount,
-  onViewReportClick
+  onViewReportClick,
+  activeTab,
+  highestCategory
 }) {
+  // Compute dynamic analysis text based on active tab
+  const getAnalysisTitle = () => {
+    return activeTab === "expense" 
+      ? "Analisis Pengeluaran Mingguan" 
+      : "Analisis Pemasukan Bulanan";
+  };
+
+  const getAnalysisText = () => {
+    if (!highestCategory) {
+      return activeTab === "expense"
+        ? "Belum ada data pengeluaran yang dianalisis minggu ini. Mulailah mencatat transaksi Anda!"
+        : "Belum ada data pemasukan yang tercatat bulan ini. Catat pemasukan pertama Anda!";
+    }
+
+    if (activeTab === "expense") {
+      if (highestCategory.realization >= 90) {
+        return `⚠️ Kategori "${highestCategory.name}" telah kritis mencapai ${highestCategory.realization}% dari anggaran batas Anda. Disarankan untuk membatasi pengeluaran kategori ini!`;
+      }
+      if (highestCategory.realization >= 75) {
+        return `Kategori "${highestCategory.name}" mengalami kenaikan signifikan sebesar ${highestCategory.realization}% dari anggaran batas Anda. Coba kurangi limit anggaran.`;
+      }
+      return `Realisasi anggaran pengeluaran terkendali dengan sangat baik. Penggunaan tertinggi ada pada kategori "${highestCategory.name}" sebesar ${highestCategory.realization}%.`;
+    } else {
+      // Income tab
+      return `🎉 Kategori "${highestCategory.name}" memberikan kontribusi terbesar bulan ini dengan realisasi target pemasukan sebesar ${highestCategory.realization}%. Kerja bagus!`;
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
       {/* Analisis Card */}
       <div className="lg:col-span-2 bg-[#00685F] p-6 sm:p-8 rounded-[2.5rem] text-white flex flex-col sm:flex-row items-center justify-between gap-8 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
         <div className="space-y-4 relative z-10">
-          <h3 className="text-xl sm:text-2xl font-bold tracking-tight">Analisis Pengeluaran Mingguan</h3>
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-emerald-300 animate-pulse" />
+            {getAnalysisTitle()}
+          </h3>
           <p className="text-white/80 text-xs sm:text-sm max-w-md leading-relaxed font-semibold">
-            Kategori "Makanan & Minuman" mengalami kenaikan 12% dibandingkan minggu lalu. Coba atur limit anggaran untuk menghemat lebih banyak.
+            {getAnalysisText()}
           </p>
           <button 
             onClick={onViewReportClick}

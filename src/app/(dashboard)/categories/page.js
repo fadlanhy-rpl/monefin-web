@@ -248,6 +248,23 @@ export default function CategoriesPage() {
     }
   };
 
+  // Quick Simulation Transaction Incrementor
+  const handleQuickTransaction = (id) => {
+    const updated = categories.map((c) => {
+      if (c.id === id) {
+        const nextRealization = Math.min(c.realization + 5, 100);
+        showToast(`Simulasi Transaksi: Kategori "${c.name}" +1 Transaksi (+5% Realisasi)`);
+        return {
+          ...c,
+          transactions: c.transactions + 1,
+          realization: nextRealization
+        };
+      }
+      return c;
+    });
+    setCategories(updated);
+  };
+
   // Handle Form Submit (Add/Edit)
   const handleFormSubmit = () => {
     if (!formName.trim()) return;
@@ -314,6 +331,11 @@ export default function CategoriesPage() {
   // Count active categories (categories that have at least 1 transaction)
   const activeCategoriesCount = categories.filter((c) => c.transactions > 0).length;
 
+  // Find category with the highest realization for the active tab (expense/income)
+  const highestCategory = filteredCategories.length > 0
+    ? [...filteredCategories].sort((a, b) => b.realization - a.realization)[0]
+    : null;
+
   return (
     <DashboardLayout>
       <div className="space-y-8 min-w-0">
@@ -344,6 +366,7 @@ export default function CategoriesPage() {
             viewMode={viewMode}
             showCreateCard={showCreateCard}
             isTransitioning={isTransitioning}
+            handleQuickTransaction={handleQuickTransaction}
           />
         </div>
 
@@ -386,6 +409,8 @@ export default function CategoriesPage() {
             totalCategories={categories.length}
             activeCategoriesCount={activeCategoriesCount}
             onViewReportClick={() => showToast("Membuka laporan analisis mingguan...")}
+            activeTab={activeTab}
+            highestCategory={highestCategory}
           />
         </div>
 

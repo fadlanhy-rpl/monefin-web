@@ -13,7 +13,8 @@ import {
   HelpCircle,
   Briefcase,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  PlusCircle
 } from "lucide-react";
 import { useState } from "react";
 
@@ -48,7 +49,8 @@ export default function CategoriesGrid({
   openAddModal,
   viewMode,
   showCreateCard,
-  isTransitioning
+  isTransitioning,
+  handleQuickTransaction
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
 
@@ -123,11 +125,16 @@ export default function CategoriesGrid({
                   <p className="text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2 min-h-[2rem]">{cat.description}</p>
                 </div>
 
-                {/* Bottom row (Progress) */}
+                {/* Bottom row (Progress + Quick Simulation button) */}
                 <div className="space-y-2 select-none pt-1">
-                  <div className="flex justify-between text-[10px] font-black">
+                  <div className="flex justify-between items-center text-[10px] font-black">
                     <span className="text-gray-400 uppercase tracking-widest">Realisasi Anggaran</span>
-                    <span className="text-slate-900">{cat.realization}%</span>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleQuickTransaction(cat.id); }}
+                      className="text-[#00685F] hover:text-[#004D46] hover:underline flex items-center gap-0.5 cursor-pointer font-extrabold"
+                    >
+                      +1 Transaksi
+                    </button>
                   </div>
                   <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100/50">
                     <div 
@@ -140,6 +147,9 @@ export default function CategoriesGrid({
                       }`} 
                       style={{ width: `${Math.min(cat.realization, 100)}%` }}
                     ></div>
+                  </div>
+                  <div className="flex justify-end text-[10px] font-bold text-slate-900 mt-0.5">
+                    <span>{cat.realization}%</span>
                   </div>
                 </div>
               </div>
@@ -163,7 +173,7 @@ export default function CategoriesGrid({
           )}
         </div>
       ) : (
-        /* LIST VIEW (Genuinely Horizontal List on Mobile) */
+        /* LIST VIEW */
         <div className={`flex flex-col gap-4 transition-all duration-300 transform ${isTransitioning ? 'opacity-0 translate-y-3' : 'opacity-100 translate-y-0'}`}>
           {categories.map((cat, index) => {
             const colorClasses = getColorClass(cat.color);
@@ -195,11 +205,30 @@ export default function CategoriesGrid({
 
                 {/* Right: progress + transactions + action */}
                 <div className="flex items-center gap-3 sm:gap-8 shrink-0">
-                  <span className="hidden sm:inline-block bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-xl border border-slate-100 select-none">
-                    {cat.transactions} Transaksi
-                  </span>
+                  {/* Transaction badge with quick simulation incrementor */}
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-xl border border-slate-100 select-none">
+                      {cat.transactions} Transaksi
+                    </span>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleQuickTransaction(cat.id); }}
+                      className="text-xs font-black text-[#00685F] hover:bg-[#E6F0EF] w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer border border-[#00685F]/15"
+                      title="Simulasi 1 Transaksi Tambahan"
+                    >
+                      +
+                    </button>
+                  </div>
 
                   <div className="flex items-center gap-2 select-none">
+                    {/* Mobile transaction incrementor */}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleQuickTransaction(cat.id); }}
+                      className="sm:hidden text-[9px] font-black text-[#00685F] bg-[#E6F0EF] px-2 py-1 rounded-lg border border-[#00685F]/10 cursor-pointer"
+                      title="Simulasi 1 Transaksi"
+                    >
+                      +1 Trans
+                    </button>
+
                     <div className="hidden sm:block w-28 bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100/50">
                       <div 
                         className={`h-full rounded-full transition-all duration-1000 ease-out ${
