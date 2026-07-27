@@ -1,4 +1,4 @@
-import { ChevronRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 export default function GoalsHeader({
   isVisible,
@@ -7,12 +7,6 @@ export default function GoalsHeader({
 }) {
   return (
     <div className={`transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} space-y-4`}>
-      {/* BREADCRUMB */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 font-medium select-none">
-        <span>Main</span> 
-        <ChevronRight className="w-3 h-3" /> 
-        <span className="text-[#00685F] font-bold">Target Tabungan</span>
-      </nav>
 
       {/* HEADER TITLE */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
