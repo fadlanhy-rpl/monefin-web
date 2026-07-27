@@ -4,6 +4,7 @@ import {
   GraduationCap, 
   Target, 
   Shield, 
+  ShieldCheck,
   Heart, 
   Car, 
   Home, 
