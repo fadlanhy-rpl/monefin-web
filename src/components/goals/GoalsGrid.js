@@ -1,0 +1,214 @@
+import { Laptop, Calendar, ShieldCheck, CreditCard, BarChart2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+
+export default function GoalsGrid({
+  goals,
+  openEditModal,
+  handleDelete,
+  openDepositModal
+}) {
+  const [activeMenuId, setActiveMenuId] = useState(null);
+
+  const toggleMenu = (id) => {
+    setActiveMenuId(activeMenuId === id ? null : id);
+  };
+
+  // Render left and right card based on goals list
+  const leftGoal = goals[0];
+  const rightGoal = goals[1];
+
+  // Helper to calculate percentages
+  const getPercent = (g) => {
+    if (!g) return 0;
+    return g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* MAIN GOAL CARD (Left) */}
+      {leftGoal ? (
+        <div className="lg:col-span-2 bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-10 hover:shadow-md transition-shadow relative group">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-5 min-w-0">
+              <div className="w-14 h-14 bg-[#00685F] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#00685F]/20 shrink-0">
+                <Laptop className="w-8 h-8" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate">{leftGoal.title}</h3>
+                <p className="text-gray-400 font-medium text-xs sm:text-sm truncate">{leftGoal.subtitle}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="bg-[#00685F]/5 text-[#00685F] text-xs sm:text-sm font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-[#00685F]/10">
+                {getPercent(leftGoal)}% Completed
+              </span>
+              
+              {/* Menu options */}
+              <div className="relative">
+                <button 
+                  onClick={() => toggleMenu(leftGoal.id)}
+                  className="text-slate-400 hover:text-slate-600 transition p-1.5 hover:bg-slate-50 rounded-xl cursor-pointer"
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+                {activeMenuId === leftGoal.id && (
+                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                    <button 
+                      onClick={() => { openEditModal(leftGoal); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-[#00685F]" /> Ubah
+                    </button>
+                    <button 
+                      onClick={() => { handleDelete(leftGoal.id); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Progress Saat Ini</p>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <h4 className="text-3xl sm:text-4xl font-black text-[#00685F] tracking-tighter">Rp {leftGoal.current.toLocaleString("id-ID")}</h4>
+                <span className="text-gray-300 font-bold text-xs sm:text-sm">/ Rp {leftGoal.target.toLocaleString("id-ID")}</span>
+              </div>
+            </div>
+            <div className="flex flex-col md:items-end gap-1 select-none">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-left md:text-right">Deadline</p>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span className="font-bold text-slate-900 text-xs sm:text-sm">{leftGoal.deadlineDate}</span>
+                <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">
+                  {leftGoal.deadlineText}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="w-full bg-slate-50 h-3.5 rounded-full overflow-hidden relative">
+              <div 
+                className="bg-[#00685F] h-full shadow-sm transition-all duration-1000 ease-out rounded-full"
+                style={{ width: `${Math.min(getPercent(leftGoal), 100)}%` }}
+              ></div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button 
+                onClick={() => openDepositModal(leftGoal)}
+                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white py-4 rounded-[1.2rem] font-bold flex items-center justify-center gap-3 transition-all duration-150 active:scale-95 cursor-pointer shadow-md text-sm"
+              >
+                <CreditCard className="w-5 h-5" /> Deposit Savings
+              </button>
+              <button className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-900 px-8 py-4 rounded-[1.2rem] font-bold border border-slate-100 transition-colors active:scale-95 cursor-pointer text-sm">
+                <BarChart2 className="w-5 h-5" /> Insight
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="lg:col-span-2 bg-slate-50 border border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center p-12 text-slate-400 text-sm font-bold">
+          Belum ada Target Utama. Buat baru!
+        </div>
+      )}
+
+      {/* SIDE GOAL CARD (Right - Circular Progress Card) */}
+      {rightGoal ? (
+        <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative group">
+          <div className="flex justify-between items-center">
+            <h3 className="font-extrabold text-slate-900 text-lg">{rightGoal.title}</h3>
+            <div className="flex items-center gap-1.5">
+              <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter select-none">
+                {rightGoal.tag || "Safety"}
+              </span>
+              
+              {/* Menu options */}
+              <div className="relative">
+                <button 
+                  onClick={() => toggleMenu(rightGoal.id)}
+                  className="text-slate-400 hover:text-slate-600 transition p-1 hover:bg-slate-50 rounded-lg cursor-pointer"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {activeMenuId === rightGoal.id && (
+                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                    <button 
+                      onClick={() => { openEditModal(rightGoal); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-[#00685F]" /> Ubah
+                    </button>
+                    <button 
+                      onClick={() => { handleDelete(rightGoal.id); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Donut Progress Chart (Centered with viewBox scaling) */}
+          <div className="flex justify-center py-6">
+            <div className="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center relative select-none">
+              <svg viewBox="0 0 160 160" className="w-full h-full transform -rotate-90">
+                <circle cx="80" cy="80" r="70" stroke="#f8fafb" strokeWidth="12" fill="transparent" />
+                <circle 
+                  cx="80" 
+                  cy="80" 
+                  r="70" 
+                  stroke="#00685F" 
+                  strokeWidth="12" 
+                  fill="transparent" 
+                  strokeDasharray="440" 
+                  strokeDashoffset={440 - (440 * getPercent(rightGoal)) / 100} 
+                  strokeLinecap="round" 
+                  className="transition-all duration-1000 ease-out" 
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-3xl font-black text-slate-900">{getPercent(rightGoal)}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#00685F]">
+              <ShieldCheck className="w-4 h-4" /> Status Keuangan: <span className="text-slate-900">{rightGoal.statusText || "Stable"}</span>
+            </div>
+            
+            <div className="bg-slate-50 p-5 rounded-2xl">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 select-none">Total Tabungan</p>
+              <h4 className="text-xl font-black text-slate-900 tracking-tight">Rp {rightGoal.current.toLocaleString("id-ID")}</h4>
+              <p className="text-[10px] text-gray-400 font-bold mt-1 tracking-tight select-none">Goal: Rp {rightGoal.target.toLocaleString("id-ID")}</p>
+            </div>
+            
+            <div className="flex justify-between items-center select-none text-[10px]">
+              <span className="text-gray-400 font-bold">Deadline: {rightGoal.deadlineDate || "Ongoing"}</span>
+              <span className="text-[#00685F] font-black uppercase">High Priority</span>
+            </div>
+            <button 
+              onClick={() => openDepositModal(rightGoal)}
+              className="w-full border-2 border-[#00685F] text-[#00685F] hover:bg-[#00685F] hover:text-white py-3 rounded-xl font-bold transition-all active:scale-95 cursor-pointer text-sm"
+            >
+              Update Saldo
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-slate-50 border border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center p-12 text-slate-400 text-sm font-bold">
+          Belum ada Target Cadangan. Buat baru!
+        </div>
+      )}
+    </div>
+  );
+}
