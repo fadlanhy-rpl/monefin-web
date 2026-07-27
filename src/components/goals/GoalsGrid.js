@@ -1,5 +1,35 @@
-import { Laptop, Calendar, ShieldCheck, CreditCard, BarChart2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { 
+  Laptop, 
+  Plane, 
+  GraduationCap, 
+  Target, 
+  Shield, 
+  Heart, 
+  Car, 
+  Home, 
+  MoreHorizontal, 
+  Pencil, 
+  Trash2, 
+  Calendar, 
+  CreditCard, 
+  BarChart2, 
+  CheckCircle,
+  Sparkles,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
 import { useState } from "react";
+
+const iconMap = {
+  laptop: Laptop,
+  plane: Plane,
+  graduation: GraduationCap,
+  target: Target,
+  shield: Shield,
+  heart: Heart,
+  car: Car,
+  home: Home
+};
 
 export default function GoalsGrid({
   goals,
@@ -8,41 +38,66 @@ export default function GoalsGrid({
   openDepositModal
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
+  const [showInsightId, setShowInsightId] = useState(null);
 
   const toggleMenu = (id) => {
     setActiveMenuId(activeMenuId === id ? null : id);
   };
 
-  // Render left and right card based on goals list
-  const leftGoal = goals[0];
-  const rightGoal = goals[1];
+  const toggleInsight = (id) => {
+    setShowInsightId(showInsightId === id ? null : id);
+  };
 
-  // Helper to calculate percentages
   const getPercent = (g) => {
     if (!g) return 0;
     return g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
   };
 
+  // Helper to render icon dynamically
+  const renderGoalIcon = (iconName) => {
+    const IconComponent = iconMap[iconName] || Target;
+    return <IconComponent className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5 text-white" />;
+  };
+
+  // Calculate remaining months based on Rp 850,000 monthly saving rate
+  const calculateInsightText = (g) => {
+    const remaining = g.target - g.current;
+    if (remaining <= 0) {
+      return "Selamat! Target tabungan Anda sudah tercapai sepenuhnya. Waktunya menikmati hasil usaha Anda! 🎉";
+    }
+    const months = Math.ceil(remaining / 850000);
+    return `Dengan laju menabung rata-rata Rp 850.000/bln saat ini, Anda membutuhkan sekitar ${months} bulan lagi untuk mencapai target Rp ${g.target.toLocaleString("id-ID")}. Tetap semangat! 💪`;
+  };
+
+  const leftGoal = goals[0];
+  const rightGoal = goals[1];
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       {/* MAIN GOAL CARD (Left) */}
       {leftGoal ? (
-        <div className="lg:col-span-2 bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-10 hover:shadow-md transition-shadow relative group">
+        <div className="lg:col-span-2 bg-white p-5 xs:p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8 sm:space-y-10 hover:shadow-md transition-all duration-300 relative group overflow-hidden">
           <div className="flex justify-between items-start">
-            <div className="flex items-center gap-5 min-w-0">
-              <div className="w-14 h-14 bg-[#00685F] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#00685F]/20 shrink-0">
-                <Laptop className="w-8 h-8" />
+            <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#00685F] to-[#004D46] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#00685F]/20 shrink-0">
+                {renderGoalIcon(leftGoal.icon || "laptop")}
               </div>
               <div className="min-w-0">
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate">{leftGoal.title}</h3>
-                <p className="text-gray-400 font-medium text-xs sm:text-sm truncate">{leftGoal.subtitle}</p>
+                <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate">{leftGoal.title}</h3>
+                <p className="text-gray-400 font-semibold text-xs sm:text-sm truncate mt-0.5">{leftGoal.subtitle}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="bg-[#00685F]/5 text-[#00685F] text-xs sm:text-sm font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-[#00685F]/10">
-                {getPercent(leftGoal)}% Completed
-              </span>
+            <div className="flex items-center gap-2 shrink-0 select-none">
+              {getPercent(leftGoal) >= 100 ? (
+                <span className="bg-emerald-50 text-emerald-600 text-[10px] sm:text-xs font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-emerald-100 flex items-center gap-1.5 animate-pulse">
+                  <CheckCircle className="w-3.5 h-3.5" /> Achieved
+                </span>
+              ) : (
+                <span className="bg-[#00685F]/5 text-[#00685F] text-[10px] sm:text-xs font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-[#00685F]/10">
+                  {getPercent(leftGoal)}% Completed
+                </span>
+              )}
               
               {/* Menu options */}
               <div className="relative">
@@ -53,7 +108,7 @@ export default function GoalsGrid({
                   <MoreHorizontal className="w-5 h-5" />
                 </button>
                 {activeMenuId === leftGoal.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
                     <button 
                       onClick={() => { openEditModal(leftGoal); setActiveMenuId(null); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
@@ -74,16 +129,16 @@ export default function GoalsGrid({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
             <div className="space-y-2">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Progress Saat Ini</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest select-none">Progress Saat Ini</p>
               <div className="flex items-baseline gap-2 flex-wrap">
-                <h4 className="text-3xl sm:text-4xl font-black text-[#00685F] tracking-tighter">Rp {leftGoal.current.toLocaleString("id-ID")}</h4>
+                <h4 className="text-2xl sm:text-4xl font-black text-[#00685F] tracking-tighter">Rp {leftGoal.current.toLocaleString("id-ID")}</h4>
                 <span className="text-gray-300 font-bold text-xs sm:text-sm">/ Rp {leftGoal.target.toLocaleString("id-ID")}</span>
               </div>
             </div>
             <div className="flex flex-col md:items-end gap-1 select-none">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-left md:text-right">Deadline</p>
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
+                <Calendar className="w-4 h-4 text-slate-400" />
                 <span className="font-bold text-slate-900 text-xs sm:text-sm">{leftGoal.deadlineDate}</span>
                 <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">
                   {leftGoal.deadlineText}
@@ -93,9 +148,14 @@ export default function GoalsGrid({
           </div>
 
           <div className="space-y-6">
-            <div className="w-full bg-slate-50 h-3.5 rounded-full overflow-hidden relative">
+            {/* Progress Bar with glowing color when completed */}
+            <div className="w-full bg-slate-50 h-3.5 rounded-full overflow-hidden relative border border-slate-100/50">
               <div 
-                className="bg-[#00685F] h-full shadow-sm transition-all duration-1000 ease-out rounded-full"
+                className={`h-full shadow-sm transition-all duration-1000 ease-out rounded-full ${
+                  getPercent(leftGoal) >= 100 
+                    ? "bg-gradient-to-r from-emerald-400 to-teal-500 shadow-lg shadow-emerald-400/20"
+                    : "bg-gradient-to-r from-[#00685F] to-[#008A7E]"
+                }`}
                 style={{ width: `${Math.min(getPercent(leftGoal), 100)}%` }}
               ></div>
             </div>
@@ -103,29 +163,47 @@ export default function GoalsGrid({
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
                 onClick={() => openDepositModal(leftGoal)}
-                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white py-4 rounded-[1.2rem] font-bold flex items-center justify-center gap-3 transition-all duration-150 active:scale-95 cursor-pointer shadow-md text-sm"
+                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2.5 transition-all duration-150 active:scale-[0.98] cursor-pointer shadow-md text-sm select-none"
               >
-                <CreditCard className="w-5 h-5" /> Deposit Savings
+                <CreditCard className="w-4.5 h-4.5" /> Deposit Savings
               </button>
-              <button className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-900 px-8 py-4 rounded-[1.2rem] font-bold border border-slate-100 transition-colors active:scale-95 cursor-pointer text-sm">
-                <BarChart2 className="w-5 h-5" /> Insight
+              <button 
+                onClick={() => toggleInsight(leftGoal.id)}
+                className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-900 px-6 py-3.5 rounded-2xl font-bold border border-slate-100 transition-colors active:scale-[0.98] cursor-pointer text-sm select-none"
+              >
+                <BarChart2 className="w-4.5 h-4.5 text-[#00685F]" /> 
+                <span>Insight</span>
+                {showInsightId === leftGoal.id ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
               </button>
             </div>
           </div>
+
+          {/* Interactive Slide-down Insight Panel */}
+          {showInsightId === leftGoal.id && (
+            <div className="bg-[#E6F0EF]/40 border border-[#00685F]/10 rounded-2xl p-4.5 text-xs sm:text-sm font-semibold text-[#004D46] animate-in slide-in-from-top-3 duration-250 flex items-start gap-2.5 leading-relaxed">
+              <Sparkles className="w-5 h-5 text-[#00685F] shrink-0 mt-0.5" />
+              <span>{calculateInsightText(leftGoal)}</span>
+            </div>
+          )}
+
+          {/* Golden background aura when completed */}
+          {getPercent(leftGoal) >= 100 && (
+            <div className="absolute -right-16 -top-16 w-32 h-32 bg-emerald-400/5 rounded-full blur-3xl select-none"></div>
+          )}
         </div>
       ) : (
-        <div className="lg:col-span-2 bg-slate-50 border border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center p-12 text-slate-400 text-sm font-bold">
+        <div className="lg:col-span-2 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center p-12 text-slate-400 text-sm font-bold">
           Belum ada Target Utama. Buat baru!
         </div>
       )}
 
       {/* SIDE GOAL CARD (Right - Circular Progress Card) */}
       {rightGoal ? (
-        <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative group">
+        <div className="bg-white p-5 xs:p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 relative group overflow-hidden">
           <div className="flex justify-between items-center">
-            <h3 className="font-extrabold text-slate-900 text-lg">{rightGoal.title}</h3>
-            <div className="flex items-center gap-1.5">
-              <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter select-none">
+            <h3 className="font-extrabold text-slate-900 text-lg truncate max-w-[150px]">{rightGoal.title}</h3>
+            <div className="flex items-center gap-1.5 shrink-0 select-none">
+              <span className="bg-[#00685F]/5 text-[#00685F] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">
                 {rightGoal.tag || "Safety"}
               </span>
               
@@ -138,7 +216,7 @@ export default function GoalsGrid({
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {activeMenuId === rightGoal.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
                     <button 
                       onClick={() => { openEditModal(rightGoal); setActiveMenuId(null); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
@@ -157,55 +235,72 @@ export default function GoalsGrid({
             </div>
           </div>
 
-          {/* Donut Progress Chart (Centered with viewBox scaling) */}
-          <div className="flex justify-center py-6">
-            <div className="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center relative select-none">
-              <svg viewBox="0 0 160 160" className="w-full h-full transform -rotate-90">
+          {/* Donut Progress Chart (Centered with scale pulse on hover) */}
+          <div className="flex justify-center py-6 select-none">
+            <div className="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
+              <svg viewBox="0 0 160 160" className="w-full h-full transform -rotate-90 filter drop-shadow-md">
                 <circle cx="80" cy="80" r="70" stroke="#f8fafb" strokeWidth="12" fill="transparent" />
                 <circle 
                   cx="80" 
                   cy="80" 
                   r="70" 
-                  stroke="#00685F" 
+                  stroke={getPercent(rightGoal) >= 100 ? "#10B981" : "#00685F"} 
                   strokeWidth="12" 
                   fill="transparent" 
                   strokeDasharray="440" 
-                  strokeDashoffset={440 - (440 * getPercent(rightGoal)) / 100} 
+                  strokeDashoffset={440 - (440 * Math.min(getPercent(rightGoal), 100)) / 100} 
                   strokeLinecap="round" 
                   className="transition-all duration-1000 ease-out" 
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-3xl font-black text-slate-900">{getPercent(rightGoal)}%</span>
+                {getPercent(rightGoal) >= 100 && <span className="text-[8px] font-black text-emerald-500 uppercase mt-0.5 tracking-widest">Achieved</span>}
               </div>
             </div>
           </div>
 
-          <div className="space-y-5">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#00685F]">
-              <ShieldCheck className="w-4 h-4" /> Status Keuangan: <span className="text-slate-900">{rightGoal.statusText || "Stable"}</span>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#00685F]">
+                <ShieldCheck className="w-4 h-4" /> Status: <span className="text-slate-900">{rightGoal.statusText || "Stable"}</span>
+              </div>
+              <button 
+                onClick={() => toggleInsight(rightGoal.id)}
+                className="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-0.5 select-none"
+              >
+                Insight
+                {showInsightId === rightGoal.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
             </div>
+
+            {/* Circular Card Insight Panel */}
+            {showInsightId === rightGoal.id && (
+              <div className="bg-[#E6F0EF]/40 border border-[#00685F]/10 rounded-xl p-3 text-[11px] font-semibold text-[#004D46] animate-in slide-in-from-top-2 duration-200 leading-normal">
+                {calculateInsightText(rightGoal)}
+              </div>
+            )}
             
-            <div className="bg-slate-50 p-5 rounded-2xl">
+            <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-100/50">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 select-none">Total Tabungan</p>
               <h4 className="text-xl font-black text-slate-900 tracking-tight">Rp {rightGoal.current.toLocaleString("id-ID")}</h4>
-              <p className="text-[10px] text-gray-400 font-bold mt-1 tracking-tight select-none">Goal: Rp {rightGoal.target.toLocaleString("id-ID")}</p>
+              <p className="text-[10px] text-gray-400 font-semibold mt-0.5 tracking-tight select-none">Goal: Rp {rightGoal.target.toLocaleString("id-ID")}</p>
             </div>
             
-            <div className="flex justify-between items-center select-none text-[10px]">
+            <div className="flex justify-between items-center select-none text-[10px] pt-1">
               <span className="text-gray-400 font-bold">Deadline: {rightGoal.deadlineDate || "Ongoing"}</span>
-              <span className="text-[#00685F] font-black uppercase">High Priority</span>
+              <span className="text-[#00685F] font-black uppercase tracking-wider text-[9px]">High Priority</span>
             </div>
             <button 
               onClick={() => openDepositModal(rightGoal)}
-              className="w-full border-2 border-[#00685F] text-[#00685F] hover:bg-[#00685F] hover:text-white py-3 rounded-xl font-bold transition-all active:scale-95 cursor-pointer text-sm"
+              className="w-full border-2 border-[#00685F] text-[#00685F] hover:bg-[#00685F] hover:text-white py-3 rounded-xl font-bold transition-all active:scale-[0.97] cursor-pointer text-sm select-none"
             >
               Update Saldo
             </button>
           </div>
         </div>
       ) : (
-        <div className="bg-slate-50 border border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center p-12 text-slate-400 text-sm font-bold">
+        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center p-12 text-slate-400 text-sm font-bold">
           Belum ada Target Cadangan. Buat baru!
         </div>
       )}

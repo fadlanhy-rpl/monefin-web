@@ -23,7 +23,8 @@ export default function GoalsPage() {
       target: 5000000,
       deadlineDate: "31 Des 2026",
       deadlineText: "5 bln lagi",
-      type: "linear"
+      type: "linear",
+      icon: "laptop"
     },
     {
       id: 2,
@@ -33,7 +34,8 @@ export default function GoalsPage() {
       target: 10000000,
       statusText: "Stable",
       deadlineDate: "Ongoing",
-      type: "circular"
+      type: "circular",
+      icon: "shield"
     }
   ]);
 
@@ -74,6 +76,7 @@ export default function GoalsPage() {
   const [formDeadlineText, setFormDeadlineText] = useState("");
   const [formType, setFormType] = useState("linear");
   const [formTag, setFormTag] = useState("Safety");
+  const [formIcon, setFormIcon] = useState("target");
 
   // Modal States - Deposit
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
@@ -101,6 +104,7 @@ export default function GoalsPage() {
     setFormDeadlineText("5 bln lagi");
     setFormType("linear");
     setFormTag("Safety");
+    setFormIcon("target");
     setIsGoalModalOpen(true);
   };
 
@@ -116,6 +120,7 @@ export default function GoalsPage() {
     setFormDeadlineText(g.deadlineText || "");
     setFormType(g.type);
     setFormTag(g.tag || "Safety");
+    setFormIcon(g.icon || "target");
     setIsGoalModalOpen(true);
   };
 
@@ -149,7 +154,8 @@ export default function GoalsPage() {
         deadlineText: formDeadlineText || "Ongoing",
         type: formType,
         tag: formTag || "Savings",
-        statusText: "Stable"
+        statusText: "Stable",
+        icon: formIcon
       };
       setGoals(prev => [...prev, newGoal]);
       triggerToast("Target tabungan baru berhasil dibuat!");
@@ -163,7 +169,8 @@ export default function GoalsPage() {
         deadlineDate: formDeadlineDate,
         deadlineText: formDeadlineText,
         type: formType,
-        tag: formTag
+        tag: formTag,
+        icon: formIcon
       } : g));
       triggerToast("Target tabungan berhasil diperbarui!");
     }
@@ -278,6 +285,8 @@ export default function GoalsPage() {
         setFormType={setFormType}
         formTag={formTag}
         setFormTag={setFormTag}
+        formIcon={formIcon}
+        setFormIcon={setFormIcon}
       />
 
       {/* Deposit Modal */}
