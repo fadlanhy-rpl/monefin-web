@@ -93,9 +93,10 @@ export default function RegisterForm() {
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)} 
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-[#00685F]"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-xl text-gray-400 hover:text-[#00685F] hover:bg-gray-100/70 transition-all outline-none focus:outline-none focus:ring-0 border-none select-none cursor-pointer"
+                title={showPassword ? "Hide Password" : "Show Password"}
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="w-5 h-5 text-[#00685F]" /> : <Eye className="w-5 h-5 text-gray-400" />}
               </button>
             </div>
             <p className="text-[10px] text-gray-400 font-medium ml-1">Must be at least 8 characters with a symbol.</p>

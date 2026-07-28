@@ -169,6 +169,18 @@ input::-webkit-credentials-auto-fill-button {
   background-color: #f4f6f5;
 }
 
+/* ---------- Focus Ring Refinement ---------- */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input[type="button"]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus {
+  outline: none !important;
+}
+
 /* ---------- Animations ---------- */
 .bar-rise {
   animation: barRise .7s cubic-bezier(.2,.8,.2,1) both;
@@ -300,11 +312,6 @@ input::-webkit-credentials-auto-fill-button {
   .pulse-dot::before, .bell-wiggle:hover svg, .bar-grow, .ripple,
   .float-icon, .dropdown-pop { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }
-}
-
-input:focus, button:focus, a:focus {
-  outline: 2px solid #00685F;
-  outline-offset: 2px;
 }
 
 /* ---------- Premium Visual Enhancements ---------- */
