@@ -176,6 +176,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => setMobileOpen && setMobileOpen(false)}
               className={`sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive ? "active" : "text-slate-600"
               }`}
@@ -189,6 +190,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       <div className="px-3 pb-6 border-t border-slate-100 pt-4">
         <Link
           href="/settings"
+          onClick={() => setMobileOpen && setMobileOpen(false)}
           className={`sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${pathname === "/settings" ? "active" : "text-slate-600"}`}
         >
           <svg
@@ -209,8 +211,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
 
   return (
     <>
-      {/* SIDEBAR (desktop) */}
-      <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 bg-white border-r border-slate-100 sticky top-0 h-screen">
+      {/* SIDEBAR (desktop / tablet md) */}
+      <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-white border-r border-slate-100 sticky top-0 h-screen z-30">
         <BrandHeader isMobile={false} />
         <NavLinks />
       </aside>
@@ -219,10 +221,10 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       {mobileOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/40 z-40 md:hidden"
             onClick={() => setMobileOpen(false)}
           ></div>
-          <aside className="fixed z-50 top-0 left-0 h-full w-64 bg-white flex flex-col lg:hidden transition-transform duration-300 transform translate-x-0">
+          <aside className="fixed z-50 top-0 left-0 h-full w-64 bg-white flex flex-col md:hidden transition-transform duration-300 transform translate-x-0 shadow-2xl">
             <BrandHeader isMobile={true} />
             <NavLinks />
           </aside>
