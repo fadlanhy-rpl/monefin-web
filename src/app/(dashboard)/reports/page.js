@@ -11,6 +11,11 @@ import { CheckCircle2 } from "lucide-react";
 export default function ReportsPage() {
   const [isVisible, setIsVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState("s1");
+
+  // Dynamic savings state for interactive simulation
+  const [netSavings, setNetSavings] = useState(4800000);
+  const [savingRate, setSavingRate] = useState(60);
 
   useEffect(() => {
     setIsVisible(true);
@@ -23,20 +28,68 @@ export default function ReportsPage() {
     }, 3000);
   };
 
-  // Monthly performance dataset
-  const monthlyData = [
-    { month: "Januari 2026", income: 8000000, expense: 3200000, cashflow: 4800000, status: "Surplus" },
-    { month: "Februari 2026", income: 8500000, expense: 4100000, cashflow: 4400000, status: "Surplus" },
-    { month: "Maret 2026", income: 7800000, expense: 5200000, cashflow: 2600000, status: "Surplus" },
-    { month: "April 2026", income: 9200000, expense: 4000000, cashflow: 5200000, status: "Surplus" },
-    { month: "Mei 2026", income: 8900000, expense: 3500000, cashflow: 5400000, status: "Surplus" },
-    { month: "Juni 2026", income: 10500000, expense: 6000000, cashflow: 4500000, status: "Surplus" },
-  ];
+  // Full datasets per period
+  const allMonthlyData = {
+    s1: [
+      { month: "Januari 2026", income: 8000000, expense: 3200000, cashflow: 4800000, status: "Surplus" },
+      { month: "Februari 2026", income: 8500000, expense: 4100000, cashflow: 4400000, status: "Surplus" },
+      { month: "Maret 2026", income: 7800000, expense: 5200000, cashflow: 2600000, status: "Surplus" },
+      { month: "April 2026", income: 9200000, expense: 4000000, cashflow: 5200000, status: "Surplus" },
+      { month: "Mei 2026", income: 8900000, expense: 3500000, cashflow: 5400000, status: "Surplus" },
+      { month: "Juni 2026", income: 10500000, expense: 6000000, cashflow: 4500000, status: "Surplus" },
+    ],
+    q1: [
+      { month: "Januari 2026", income: 8000000, expense: 3200000, cashflow: 4800000, status: "Surplus" },
+      { month: "Februari 2026", income: 8500000, expense: 4100000, cashflow: 4400000, status: "Surplus" },
+      { month: "Maret 2026", income: 7800000, expense: 5200000, cashflow: 2600000, status: "Surplus" },
+    ],
+    q2: [
+      { month: "April 2026", income: 9200000, expense: 4000000, cashflow: 5200000, status: "Surplus" },
+      { month: "Mei 2026", income: 8900000, expense: 3500000, cashflow: 5400000, status: "Surplus" },
+      { month: "Juni 2026", income: 10500000, expense: 6000000, cashflow: 4500000, status: "Surplus" },
+    ],
+    full: [
+      { month: "Januari 2026", income: 8000000, expense: 3200000, cashflow: 4800000, status: "Surplus" },
+      { month: "Februari 2026", income: 8500000, expense: 4100000, cashflow: 4400000, status: "Surplus" },
+      { month: "Maret 2026", income: 7800000, expense: 5200000, cashflow: 2600000, status: "Surplus" },
+      { month: "April 2026", income: 9200000, expense: 4000000, cashflow: 5200000, status: "Surplus" },
+      { month: "Mei 2026", income: 8900000, expense: 3500000, cashflow: 5400000, status: "Surplus" },
+      { month: "Juni 2026", income: 10500000, expense: 6000000, cashflow: 4500000, status: "Surplus" },
+    ]
+  };
+
+  const currentMonthlyData = allMonthlyData[selectedPeriod] || allMonthlyData.s1;
+
+  // Handle period dropdown change
+  const handlePeriodChange = (periodId) => {
+    setSelectedPeriod(periodId);
+    if (periodId === "q1") {
+      setNetSavings(2400000);
+      setSavingRate(52);
+    } else if (periodId === "q2") {
+      setNetSavings(2400000);
+      setSavingRate(68);
+    } else if (periodId === "full") {
+      setNetSavings(9600000);
+      setSavingRate(64);
+    } else {
+      setNetSavings(4800000);
+      setSavingRate(60);
+    }
+    showToast(`Periode laporan diperbarui.`);
+  };
+
+  // Interactive Quick Savings Simulation
+  const handleSimulateSavings = () => {
+    setNetSavings(prev => prev + 500000);
+    setSavingRate(prev => Math.min(prev + 5, 100));
+    showToast("Simulasi Tabungan: +Rp 500.000 berhasil ditambahkan ke Net Savings!");
+  };
 
   // Export CSV Handler
   const handleExportCSV = () => {
     const headers = ["Bulan", "Pemasukan (IDR)", "Pengeluaran (IDR)", "Net Cashflow (IDR)", "Status"];
-    const rows = monthlyData.map(row => [
+    const rows = currentMonthlyData.map(row => [
       row.month,
       row.income,
       row.expense,
@@ -50,12 +103,12 @@ export default function ReportsPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Laporan_Keuangan_MoneFin_2026.csv");
+    link.setAttribute("download", `Laporan_Keuangan_MoneFin_${selectedPeriod.toUpperCase()}_2026.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    showToast("File Laporan_Keuangan_MoneFin_2026.csv berhasil diunduh.");
+    showToast(`File Laporan_Keuangan_MoneFin_${selectedPeriod.toUpperCase()}_2026.csv berhasil diunduh.`);
   };
 
   // Export PDF Simulation Handler
@@ -78,25 +131,28 @@ export default function ReportsPage() {
           onNewTransaction={handleNewTransaction}
           onExportPDF={handleExportPDF}
           onExportCSV={handleExportCSV}
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={handlePeriodChange}
         />
 
-        {/* Overview Cards (Net Savings & Saving Rate) */}
+        {/* Overview Cards (Net Savings & Saving Rate with Quick Simulation) */}
         <div className={`transition-all duration-700 delay-100 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <ReportsOverview 
-            netSavings={4800000}
-            savingRate={60}
+            netSavings={netSavings}
+            savingRate={savingRate}
             growthPercentage={12.5}
+            onSimulateSavings={handleSimulateSavings}
           />
         </div>
 
-        {/* Charts Section (Trends & Donut Distribution) */}
+        {/* Charts Section (Trends with Line/Bar Switcher & Donut Distribution) */}
         <div className={`transition-all duration-700 delay-200 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <ReportsCharts />
         </div>
 
-        {/* Table Summary Section */}
+        {/* Table Summary Section (Searchable & Sortable Table) */}
         <div className={`transition-all duration-700 delay-300 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <ReportsTable monthlyData={monthlyData} />
+          <ReportsTable monthlyData={currentMonthlyData} />
         </div>
 
       </div>
