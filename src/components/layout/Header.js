@@ -76,7 +76,11 @@ export default function Header({ setMobileOpen }) {
     <header ref={headerRef} className="sticky top-0 z-35 bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
       {/* LEFT GROUP: menu + search */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shrink-0" aria-label="Buka menu">
+        <button 
+          onClick={() => setMobileOpen(true)} 
+          className="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shrink-0 cursor-pointer" 
+          aria-label="Buka menu"
+        >
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
 
@@ -98,7 +102,6 @@ export default function Header({ setMobileOpen }) {
             onChange={(e) => { handleSearchChange(e.target.value); setSearchOpen(true); }}
             onFocus={() => { setIsFocused(true); setSearchOpen(true); setNotifOpen(false); setProfileOpen(false); }}
             onBlur={() => {
-              // Delay slightly so that click handlers on suggestions list can run
               setTimeout(() => {
                 setIsFocused(false);
                 setSearchOpen(false);
@@ -110,7 +113,6 @@ export default function Header({ setMobileOpen }) {
                 : 'pl-0 pr-0 opacity-0 sm:opacity-100 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text'
             }`} 
           />
-          {/* Circular click wrapper for search icon when collapsed (mobile only) */}
           {!isExpanded && (
             <button
               type="button"
@@ -125,7 +127,7 @@ export default function Header({ setMobileOpen }) {
             </button>
           )}
 
-          {/* Shortcut key "/" - hide on mobile */}
+          {/* Shortcut key "/" */}
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
 
           {/* Clear button inside input */}
@@ -158,7 +160,7 @@ export default function Header({ setMobileOpen }) {
         </div>
       </div>
 
-      {/* RIGHT GROUP: notification + add transaction + profile */}
+      {/* RIGHT GROUP: notification + profile */}
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         
         {/* Notification */}
@@ -215,6 +217,7 @@ export default function Header({ setMobileOpen }) {
             </div>
           )}
         </div>
+
         {/* Profile */}
         <div className="relative pl-2 border-l border-slate-200/80">
           <button 
@@ -236,11 +239,17 @@ export default function Header({ setMobileOpen }) {
                 <p className="text-sm font-bold text-slate-800">Alex Morgan</p>
                 <p className="text-[10px] text-slate-400 mt-0.5">alex.morgan@monefin.id</p>
               </div>
-              <button className="profile-action w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors">
+              <button 
+                onClick={() => { router.push("/settings"); setProfileOpen(false); }}
+                className="profile-action w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+              >
                 <User className="w-4 h-4 text-slate-400" />
                 Profil Saya
               </button>
-              <button className="profile-action w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors">
+              <button 
+                onClick={() => { router.push("/settings"); setProfileOpen(false); }}
+                className="profile-action w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+              >
                 <Settings className="w-4 h-4 text-slate-400" />
                 Pengaturan Akun
               </button>
