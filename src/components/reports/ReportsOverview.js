@@ -15,7 +15,7 @@ export default function ReportsOverview({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-lg transition-all duration-500">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative z-10 overflow-hidden group hover:shadow-lg transition-all duration-500">
       {/* Left Column: Net Savings */}
       <div className="space-y-3 z-10">
         <div className="flex items-center gap-2 select-none">
