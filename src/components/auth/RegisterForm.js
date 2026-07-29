@@ -4,38 +4,50 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import toast from "react-hot-toast";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!agreeTerms) {
-      alert("Anda harus menyetujui Syarat dan Ketentuan!");
+      toast.error("Anda harus menyetujui Syarat dan Ketentuan!");
       return;
     }
-    router.push("/login");
+
+    setIsSubmitting(true);
+    const result = await register(fullName, email, password);
+
+    if (result.success) {
+      toast.success("Registrasi berhasil! Silakan cek email Anda untuk kode OTP.");
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+    } else {
+      toast.error(result.error || "Registrasi gagal. Silakan coba lagi.");
+    }
+
+    setIsSubmitting(false);
   };
 
   return (
     <div className="w-full lg:w-1/2 h-screen overflow-y-auto flex flex-col justify-between p-6 sm:p-10 lg:p-12 bg-white">
       
-      {/* Spacer */}
       <div className="hidden lg:block h-6"></div>
       
       <div className="w-full max-w-md mx-auto my-auto space-y-6 py-6">
-        {/* Header */}
         <div>
           <h1 className="text-[21px] sm:text-3xl font-extrabold text-gray-900 tracking-tight whitespace-nowrap">Create Your Account</h1>
           <p className="text-gray-400 mt-2 text-sm">Join us and start managing your wealth today</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           
           {/* Full Name */}
@@ -94,12 +106,11 @@ export default function RegisterForm() {
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)} 
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-xl text-gray-400 hover:text-[#00685F] hover:bg-gray-100/70 transition-all outline-none focus:outline-none focus:ring-0 border-none select-none cursor-pointer"
-                title={showPassword ? "Hide Password" : "Show Password"}
               >
                 {showPassword ? <EyeOff className="w-5 h-5 text-[#00685F]" /> : <Eye className="w-5 h-5 text-gray-400" />}
               </button>
             </div>
-            <p className="text-[10px] text-gray-400 font-medium ml-1">Must be at least 8 characters with a symbol.</p>
+            <p className="text-[10px] text-gray-400 font-medium ml-1">Minimal 6 karakter.</p>
           </div>
 
           {/* Terms Checkbox */}
@@ -122,9 +133,17 @@ export default function RegisterForm() {
           {/* Submit Button */}
           <button 
             type="submit"
-            className="w-full bg-[#00685F] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[#004D46] transition-all shadow-xl shadow-[#00685F]/20 active:scale-95"
+            disabled={isSubmitting}
+            className="w-full bg-[#00685F] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[#004D46] transition-all shadow-xl shadow-[#00685F]/20 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Create Account <ArrowRight className="w-5 h-5" />
+            {isSubmitting ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                Creating Account...
+              </>
+            ) : (
+              <>Create Account <ArrowRight className="w-5 h-5" /></>
+            )}
           </button>
         </form>
 
@@ -136,10 +155,13 @@ export default function RegisterForm() {
         </div>
 
         {/* Google Button */}
-        <button className="w-full border border-gray-100 py-4 rounded-2xl font-bold text-gray-700 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all shadow-sm">
+        <a
+          href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`}
+          className="w-full border border-gray-100 py-4 rounded-2xl font-bold text-gray-700 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all shadow-sm"
+        >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google Logo" />
           Google
-        </button>
+        </a>
 
         {/* Bottom Link */}
         <p className="text-center text-sm font-medium text-gray-500">
