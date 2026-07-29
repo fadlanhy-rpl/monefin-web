@@ -55,7 +55,7 @@
   --color-brand-600: #00685F;
   --color-brand-700: #005952;
   --color-brand-800: #004a44;
-  --color-brand-900: #003530;
+  --color-brand-[#00685F]: #003530;
   --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
 }
 
@@ -123,7 +123,7 @@
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
@@ -138,6 +138,16 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ---------- Hide Edge / IE / Safari Native Password & Clear Buttons ---------- */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ---------- Custom Scrollbar (Hidden Globally) ---------- */
@@ -157,6 +167,18 @@
 }
 .sidebar-link:hover:not(.active) {
   background-color: #f4f6f5;
+}
+
+/* ---------- Focus Ring Refinement ---------- */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input[type="button"]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus {
+  outline: none !important;
 }
 
 /* ---------- Animations ---------- */
@@ -290,11 +312,6 @@
   .pulse-dot::before, .bell-wiggle:hover svg, .bar-grow, .ripple,
   .float-icon, .dropdown-pop { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }
-}
-
-input:focus, button:focus, a:focus {
-  outline: 2px solid #00685F;
-  outline-offset: 2px;
 }
 
 /* ---------- Premium Visual Enhancements ---------- */
