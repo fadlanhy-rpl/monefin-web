@@ -8,8 +8,10 @@ import SecuritySection from "../../../components/settings/SecuritySection";
 import PreferencesSection from "../../../components/settings/PreferencesSection";
 import DangerZoneSection from "../../../components/settings/DangerZoneSection";
 import { CheckCircle2, AlertCircle, X, Settings } from "lucide-react";
+import { useAuth } from "../../../hooks/useAuth";
 
 export default function SettingsPage() {
+  const { user, updatePassword } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -66,8 +68,9 @@ export default function SettingsPage() {
     showToast("Perubahan profil dibatalkan.");
   };
 
-  const handleSavePassword = () => {
-    if (!currentPassword) {
+  const handleSavePassword = async () => {
+    // Validasi input
+    if (user?.has_password && !currentPassword) {
       showToast("Harap masukkan Password Saat Ini.");
       return;
     }
@@ -79,10 +82,26 @@ export default function SettingsPage() {
       showToast("Konfirmasi password tidak cocok!");
       return;
     }
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    showToast("Password akun berhasil diperbarui.");
+
+    const payload = {
+      new_password: newPassword,
+      new_password_confirmation: confirmPassword
+    };
+
+    if (user?.has_password) {
+      payload.current_password = currentPassword;
+    }
+
+    const result = await updatePassword(payload);
+
+    if (result.success) {
+      showToast(user?.has_password ? "Password akun berhasil diperbarui." : "Password berhasil dibuat.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      showToast(result.error || "Gagal memperbarui password.");
+    }
   };
 
   const handleForgotPassword = () => {
@@ -147,6 +166,7 @@ export default function SettingsPage() {
         {activeTab === "security" && (
           <div className={`transition-all duration-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <SecuritySection 
+              user={user}
               currentPassword={currentPassword}
               setCurrentPassword={setCurrentPassword}
               newPassword={newPassword}

@@ -10,7 +10,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const navItems = [
     {
       name: "Dashboard",
-      href: "/",
+      href: "/dashboard",
       icon: (
         <svg
           className="w-[18px] h-[18px]"
@@ -139,10 +139,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           />
         </div>
         <div className="leading-tight">
-          <p className="font-extrabold text-slate-800 text-[15px]">MoneFin</p>
-          <p className="text-[10px] tracking-wider text-brand-600 font-semibold">
-            WEALTH PRO
-          </p>
+          <p className="font-extrabold text-slate-800 text-[16px]">MoneFin</p>
         </div>
       </div>
       {isMobile && (

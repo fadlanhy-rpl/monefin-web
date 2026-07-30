@@ -28,7 +28,7 @@ function AuthCallbackContent() {
       // Verifikasi ke backend dan hydrate user state
       checkAuth().then(() => {
         toast.success("Login dengan Google berhasil!");
-        router.replace("/");
+        router.replace("/dashboard");
       });
     } else {
       router.replace("/login?error=callback_failed");

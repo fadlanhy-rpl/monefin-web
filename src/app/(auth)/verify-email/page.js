@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
 import toast from "react-hot-toast";
-import { Mail, RefreshCw, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Mail, RefreshCw, ArrowRight, CheckCircle2, ArrowLeft } from "lucide-react";
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -81,8 +82,8 @@ function VerifyEmailContent() {
     const result = await verifyEmail(email, otpString);
 
     if (result.success) {
-      toast.success("Email berhasil diverifikasi! Selamat datang di MoneFin.");
-      router.push("/");
+      toast.success("Email berhasil diverifikasi! Selamat datang.");
+      router.push("/dashboard");
     } else {
       toast.error(result.error || "Kode OTP tidak valid atau sudah kadaluarsa.");
       setOtp(["", "", "", "", "", ""]);
@@ -123,6 +124,14 @@ function VerifyEmailContent() {
       <div className="w-full max-w-md">
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-[#00685F]/10 border border-[#00685F]/5 p-8 sm:p-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-[#00685F] transition-colors group mb-6"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Kembali ke Beranda</span>
+          </Link>
+
           {/* Icon */}
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-[#00685F]/10 rounded-2xl flex items-center justify-center">

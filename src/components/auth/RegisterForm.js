@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 
@@ -40,9 +40,16 @@ export default function RegisterForm() {
   return (
     <div className="w-full lg:w-1/2 h-screen overflow-y-auto flex flex-col justify-between p-6 sm:p-10 lg:p-12 bg-white">
       
-      <div className="hidden lg:block h-6"></div>
+      <div className="hidden lg:block h-2"></div>
       
       <div className="w-full max-w-md mx-auto my-auto space-y-6 py-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-[#00685F] transition-colors group mb-2"
+        >
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+          <span>Kembali ke Beranda</span>
+        </Link>
         <div>
           <h1 className="text-[21px] sm:text-3xl font-extrabold text-gray-900 tracking-tight whitespace-nowrap">Create Your Account</h1>
           <p className="text-gray-400 mt-2 text-sm">Join us and start managing your wealth today</p>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldCheck, Eye, EyeOff, Lock, Smartphone, Laptop, LogOut } from "lucide-react";
+import { ShieldCheck, Eye, EyeOff, Lock, Smartphone, Laptop, LogOut, AlertCircle } from "lucide-react";
 
 export default function SecuritySection({
+  user,
   currentPassword,
   setCurrentPassword,
   newPassword,
@@ -32,34 +33,44 @@ export default function SecuritySection({
         </div>
       </div>
 
+      {/* Tampilkan Peringatan untuk User Google */}
+      {!user?.has_password && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3 text-amber-800">
+          <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+          <p className="text-sm font-medium">Akun Anda terdaftar melalui Google. Harap buat kata sandi agar Anda juga dapat masuk menggunakan Email dan Kata Sandi.</p>
+        </div>
+      )}
+
       {/* Password Change Form */}
       <div className="space-y-4">
         <h3 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
           <Lock className="w-3.5 h-3.5 text-[#00685F]" />
-          <span>Ubah Password</span>
+          <span>{user?.has_password ? "Ubah Password" : "Buat Password"}</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-          {/* Current Password */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Password Saat Ini</label>
-            <div className="relative">
-              <input 
-                type={showCurrent ? "text" : "password"} 
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-semibold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none text-slate-800 pr-11 transition-all" 
-                placeholder="••••••••"
-              />
-              <button 
-                type="button" 
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1"
-              >
-                {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+        <div className={`grid grid-cols-1 ${user?.has_password ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 sm:gap-6`}>
+          {/* Current Password (ONLY if user has password) */}
+          {user?.has_password && (
+            <div className="space-y-1.5">
+              <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Password Saat Ini</label>
+              <div className="relative">
+                <input 
+                  type={showCurrent ? "text" : "password"} 
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-semibold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none text-slate-800 pr-11 transition-all" 
+                  placeholder="••••••••"
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1"
+                >
+                  {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* New Password */}
           <div className="space-y-1.5">
@@ -119,7 +130,7 @@ export default function SecuritySection({
             onClick={onSavePassword}
             className="w-full sm:w-auto bg-[#00685F] text-white px-6 py-3 rounded-2xl font-extrabold hover:bg-[#004D46] transition-all shadow-md text-xs cursor-pointer active:scale-95 text-center select-none"
           >
-            Update Password
+            {user?.has_password ? "Update Password" : "Buat Password"}
           </button>
         </div>
       </div>
