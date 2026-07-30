@@ -9,8 +9,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: "MoneFin Wealth Pro",
-  description: "Financial Overview Dashboard",
+  title: "MoneFin",
+  description: "Personal Finance & Wealth Management Platform",
 };
 
 export default function RootLayout({ children }) {

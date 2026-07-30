@@ -1,13 +1,23 @@
 import { NextResponse } from "next/server";
 
-// Rute yang boleh diakses tanpa login
+// Rute yang boleh diakses tanpa login (termasuk Landing Page "/")
 const publicPaths = [
+  "/",
   "/login",
   "/register",
   "/verify-email",
   "/forgot-password",
   "/reset-password",
   "/auth/callback",
+];
+
+// Rute khusus autentikasi (yang jika sudah login akan diahlihkan ke /dashboard)
+const authOnlyPaths = [
+  "/login",
+  "/register",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
 ];
 
 export function middleware(request) {
@@ -18,6 +28,7 @@ export function middleware(request) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/api") ||
+    pathname.startsWith("/images") ||
     pathname.includes(".")
   ) {
     return NextResponse.next();
@@ -27,18 +38,22 @@ export function middleware(request) {
     (p) => pathname === p || pathname.startsWith(p + "?")
   );
 
+  const isAuthOnly = authOnlyPaths.some(
+    (p) => pathname === p || pathname.startsWith(p + "?")
+  );
+
   const token = request.cookies.get("auth_token")?.value;
 
-  // Jika halaman protected dan tidak ada token → redirect ke login
+  // 1. Jika mencoba akses halaman protected (seperti /dashboard, /transactions) tanpa login → redirect ke /login
   if (!isPublic && !token) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Jika sudah login dan mencoba akses halaman auth → redirect ke dashboard
-  if (isPublic && token && pathname !== "/auth/callback") {
-    return NextResponse.redirect(new URL("/", request.url));
+  // 2. Jika sudah login dan mencoba akses halaman auth (seperti /login, /register) → redirect ke /dashboard
+  if (isAuthOnly && token) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

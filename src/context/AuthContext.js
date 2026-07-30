@@ -177,14 +177,17 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       await apiLogout();
+    } catch (err) {
+      console.error("Logout API failed, proceeding to clear local session:", err);
     } finally {
+      setAuthToken(null);
       setUser(null);
       setIsAuthenticated(false);
       setLoading(false);
       if (typeof window !== "undefined") {
         localStorage.removeItem("user_data");
       }
-      router.push("/login");
+      router.push("/");
     }
   };
 
@@ -224,6 +227,16 @@ export function AuthProvider({ children }) {
   const updatePassword = async (passwordData) => {
     try {
       const result = await apiUpdatePassword(passwordData);
+      
+      // Update local user state agar UI (has_password) berubah instan
+      if (user && !user.has_password) {
+        const updatedUser = { ...user, has_password: true };
+        setUser(updatedUser);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user_data", JSON.stringify(updatedUser));
+        }
+      }
+      
       return { success: true, message: result.message };
     } catch (error) {
       const msg = error.data?.message || error.message || "Gagal mengubah password.";
