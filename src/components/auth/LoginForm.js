@@ -4,17 +4,35 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import toast from "react-hot-toast";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    router.push("/");
+    setIsSubmitting(true);
+
+    const result = await login(email, password, rememberMe);
+
+    if (result.success) {
+      toast.success("Login berhasil! Selamat datang kembali.");
+      router.push("/");
+    } else if (result.requireVerification) {
+      toast("Email belum diverifikasi. Silakan cek email Anda.", { icon: "📧" });
+      router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
+    } else {
+      toast.error(result.error || "Login gagal. Periksa email dan password Anda.");
+    }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -64,7 +82,6 @@ export default function LoginForm() {
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)} 
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-xl text-gray-400 hover:text-[#00685F] hover:bg-gray-100/70 transition-all outline-none focus:outline-none focus:ring-0 border-none select-none cursor-pointer"
-                title={showPassword ? "Hide Password" : "Show Password"}
               >
                 {showPassword ? <EyeOff className="w-5 h-5 text-[#00685F]" /> : <Eye className="w-5 h-5 text-gray-400" />}
               </button>
@@ -81,14 +98,22 @@ export default function LoginForm() {
               />
               <span className="text-xs font-semibold text-gray-500">Remember me</span>
             </label>
-            <a href="#" className="text-xs font-bold text-[#00685F] hover:underline">Forgot Password?</a>
+            <Link href="/forgot-password" className="text-xs font-bold text-[#00685F] hover:underline">Forgot Password?</Link>
           </div>
 
           <button 
             type="submit"
-            className="w-full bg-[#00685F] text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#004D46] transition-all shadow-lg shadow-[#00685F]/20 active:scale-95"
+            disabled={isSubmitting}
+            className="w-full bg-[#00685F] text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#004D46] transition-all shadow-lg shadow-[#00685F]/20 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Sign In to MoneFin <ArrowRight className="w-4 h-4" />
+            {isSubmitting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                Signing in...
+              </>
+            ) : (
+              <>Sign In to MoneFin <ArrowRight className="w-4 h-4" /></>
+            )}
           </button>
         </form>
 
@@ -98,13 +123,16 @@ export default function LoginForm() {
           <div className="flex-grow border-t border-gray-100"></div>
         </div>
 
-        <button className="w-full border border-gray-100 py-3.5 rounded-2xl font-bold text-gray-600 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google"></img>
+        <a
+          href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`}
+          className="w-full border border-gray-100 py-3.5 rounded-2xl font-bold text-gray-600 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all"
+        >
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
           <span className="text-sm">Google</span>
-        </button>
+        </a>
 
         <p className="text-center text-sm font-medium text-gray-400">
-          Don't have an account? 
+          Don&apos;t have an account? 
           <Link href="/register" className="text-[#00685F] font-bold hover:underline ml-1">Sign Up</Link>
         </p>
       </div>
