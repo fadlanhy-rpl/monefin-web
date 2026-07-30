@@ -2,8 +2,8 @@
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { setAuthToken } from "../../lib/api";
-import { useAuth } from "../../hooks/useAuth";
+import { setAuthToken } from "../../../lib/api";
+import { useAuth } from "../../../hooks/useAuth";
 import toast from "react-hot-toast";
 
 function AuthCallbackContent() {
