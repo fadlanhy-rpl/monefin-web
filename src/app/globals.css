@@ -137,6 +137,7 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
   }
 }
 
@@ -308,6 +309,7 @@ input:focus {
 .press-scale:active { transform: scale(0.96); }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
   .bar-rise, .donut-draw, .reveal, .reveal.in-view, .shimmer-sweep::after,
   .pulse-dot::before, .bell-wiggle:hover svg, .bar-grow, .ripple,
   .float-icon, .dropdown-pop { animation: none !important; transition: none !important; }
@@ -408,16 +410,36 @@ input:focus {
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .btn-catalis-inner {
-  display: flex;
-  flex-direction: column;
-  height: 1.25rem;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: center;
+  justify-items: center;
   overflow: hidden;
 }
 .btn-catalis-text {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+  white-space: nowrap;
 }
-.btn-catalis:hover .btn-catalis-text {
-  transform: translateY(-100%);
+.btn-catalis-text:first-child {
+  transform: translateY(0%);
+  opacity: 1;
+}
+.btn-catalis-text:last-child {
+  transform: translateY(120%);
+  opacity: 0;
+}
+.btn-catalis:hover .btn-catalis-text:first-child {
+  transform: translateY(-120%);
+  opacity: 0;
+}
+.btn-catalis:hover .btn-catalis-text:last-child {
+  transform: translateY(0%);
+  opacity: 1;
 }
 
 .catalis-card {
@@ -433,4 +455,95 @@ input:focus {
   font-style: italic;
   font-family: Georgia, Cambria, "Times New Roman", Times, serif;
   font-weight: 500;
-}
+}
+
+/* Background Mesh & Grid Utilities for Landing Page */
+.bg-grid-pattern {
+  background-size: 36px 36px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 104, 95, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 104, 95, 0.05) 1px, transparent 1px);
+}
+
+.bg-radial-hero {
+  background: radial-gradient(circle at 50% -10%, rgba(0, 104, 95, 0.12) 0%, rgba(224, 242, 239, 0.35) 45%, transparent 75%);
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -25px) scale(1.1); }
+}
+.animate-float-orb {
+  animation: floatOrb 10s ease-in-out infinite;
+}
+.animate-float-orb-reverse {
+  animation: floatOrb 12s ease-in-out infinite reverse;
+}
+
+/* Unique Section Backgrounds & Visual Character */
+.hero-gradient-bg {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 104, 95, 0.18) 0%, rgba(192, 222, 217, 0.35) 45%, transparent 80%),
+    linear-gradient(180deg, #eaf6f4 0%, #f4faf9 45%, #ffffff 100%);
+}
+
+.section-mint-bg {
+  background: linear-gradient(180deg, #ffffff 0%, #eaf5f3 35%, #e1f2ef 70%, #f4faf9 100%);
+}
+
+.section-slate-mint {
+  background: linear-gradient(180deg, #f4faf9 0%, #e6f3f0 50%, #ffffff 100%);
+}
+
+.section-dark-emerald {
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(39, 141, 126, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(0, 104, 95, 0.35) 0%, transparent 60%),
+    linear-gradient(135deg, #002b27 0%, #00453f 50%, #001f1c 100%);
+}
+
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.glowing-border-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 2.5rem;
+}
+.glowing-border-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 2.6rem;
+  background: linear-gradient(135deg, rgba(0, 104, 95, 0.35), rgba(39, 141, 126, 0.1), rgba(0, 104, 95, 0.25));
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spinSlow 25s linear infinite;
+}
+
+/* Extra Small Device Responsiveness (288px - 380px) */
+@media (max-width: 380px) {
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+  .glowing-border-card {
+    border-radius: 1.5rem !important;
+  }
+  .glowing-border-card::before {
+    border-radius: 1.6rem !important;
+  }
+  .catalis-card {
+    border-radius: 1.5rem !important;
+  }
+}
+
