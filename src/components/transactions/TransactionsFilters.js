@@ -1,14 +1,12 @@
-"use client";
-
 import { ChevronDown, Check, Search, Download, Filter } from "lucide-react";
 
 export default function TransactionsFilters({
-  categoryFilter,
-  setCategoryFilter,
+  categoryIdFilter,
+  setCategoryIdFilter,
   dateFilter,
   setDateFilter,
-  accountFilter,
-  setAccountFilter,
+  accountIdFilter,
+  setAccountIdFilter,
   searchQuery,
   setSearchQuery,
   handleExport,
@@ -18,10 +16,16 @@ export default function TransactionsFilters({
   isDateOpen,
   setIsDateOpen,
   isAccountOpen,
-  setIsAccountOpen
+  setIsAccountOpen,
+  categories = [],
+  accounts = []
 }) {
+
+  const selectedCategory = categories.find(c => String(c.id) === String(categoryIdFilter));
+  const selectedAccount = accounts.find(a => String(a.id) === String(accountIdFilter));
+
   return (
-    <div className={`bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 transition-all duration-700 delay-400 ease-out transform relative z-20 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+    <div className={`bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 transition-all duration-700 delay-400 ease-out transform relative z-20 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
       <span className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Filters</span>
       
       <div 
@@ -43,30 +47,37 @@ export default function TransactionsFilters({
             }}
             className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[95px] sm:min-w-[130px]"
           >
-            <span>Category: {categoryFilter === "All" ? "All" : categoryFilter}</span>
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+            <span className="truncate max-w-[100px]">Cat: {categoryIdFilter === "All" ? "All" : selectedCategory?.name}</span>
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isCategoryOpen ? "rotate-180 text-[#00685F]" : ""}`} />
           </button>
           
           {isCategoryOpen && (
             <>
               <div className="fixed inset-0 z-20" onClick={() => setIsCategoryOpen(false)} />
-              <div className="dropdown-pop fixed mt-1.5 right-2 sm:right-auto bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[170px] max-w-[calc(100vw-24px)] overflow-hidden">
-                {['All', 'Salary', 'Food & Drink', 'Transport', 'Shopping', 'Investment'].map((cat) => (
-                  <button
-                    key={cat}
+              <div className="dropdown-pop fixed mt-1.5 right-2 sm:right-auto bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[170px] max-w-[calc(100vw-24px)] overflow-hidden max-h-56 overflow-y-auto">
+                <button
                     type="button"
                     onClick={() => {
-                      setCategoryFilter(cat);
+                      setCategoryIdFilter("All");
                       setIsCategoryOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
-                      categoryFilter === cat 
-                        ? 'bg-brand-50 text-brand-700' 
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
+                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${categoryIdFilter === "All" ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
-                    <span>{cat === 'All' ? 'All Categories' : cat}</span>
-                    {categoryFilter === cat && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                    <span>All Categories</span>
+                    {categoryIdFilter === "All" && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setCategoryIdFilter(cat.id);
+                      setIsCategoryOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${String(categoryIdFilter) === String(cat.id) ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
+                  >
+                    <span>{cat.name}</span>
+                    {String(categoryIdFilter) === String(cat.id) && <Check className="w-3.5 h-3.5 text-brand-600" />}
                   </button>
                 ))}
               </div>
@@ -86,14 +97,14 @@ export default function TransactionsFilters({
             className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[105px] sm:min-w-[140px]"
           >
             <span>Date: {dateFilter}</span>
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isDateOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isDateOpen ? "rotate-180 text-[#00685F]" : ""}`} />
           </button>
           
           {isDateOpen && (
             <>
               <div className="fixed inset-0 z-20" onClick={() => setIsDateOpen(false)} />
               <div className="dropdown-pop fixed mt-1.5 right-2 sm:right-auto bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[170px] max-w-[calc(100vw-24px)] overflow-hidden">
-                {['Last 30 Days', 'This Month', 'Last 7 Days'].map((dateOpt) => (
+                {['All Time', 'Last 7 Days', 'Last 30 Days', 'This Month'].map((dateOpt) => (
                   <button
                     key={dateOpt}
                     type="button"
@@ -101,11 +112,7 @@ export default function TransactionsFilters({
                       setDateFilter(dateOpt);
                       setIsDateOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
-                      dateFilter === dateOpt 
-                        ? 'bg-brand-50 text-brand-700' 
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
+                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${dateFilter === dateOpt ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
                     <span>{dateOpt}</span>
                     {dateFilter === dateOpt && <Check className="w-3.5 h-3.5 text-brand-600" />}
@@ -127,30 +134,37 @@ export default function TransactionsFilters({
             }}
             className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[115px] sm:min-w-[160px]"
           >
-            <span>Account: {accountFilter === 'All' ? 'All' : accountFilter}</span>
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isAccountOpen ? 'rotate-180' : ''}`} />
+            <span className="truncate max-w-[100px]">Acc: {accountIdFilter === 'All' ? 'All' : selectedAccount?.name}</span>
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isAccountOpen ? "rotate-180 text-[#00685F]" : ""}`} />
           </button>
           
           {isAccountOpen && (
             <>
               <div className="fixed inset-0 z-20" onClick={() => setIsAccountOpen(false)} />
-              <div className="dropdown-pop fixed mt-1.5 right-2 sm:right-auto bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[190px] max-w-[calc(100vw-24px)] overflow-hidden">
-                {['All', 'Bank Central Asia', 'GoPay Wallet', 'Mandiri Bank', 'Credit Card', 'Stock Portfolio'].map((acc) => (
-                  <button
-                    key={acc}
+              <div className="dropdown-pop fixed mt-1.5 right-2 sm:right-auto bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[190px] max-w-[calc(100vw-24px)] overflow-hidden max-h-56 overflow-y-auto">
+                <button
                     type="button"
                     onClick={() => {
-                      setAccountFilter(acc);
+                      setAccountIdFilter("All");
                       setIsAccountOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${
-                      accountFilter === acc 
-                        ? 'bg-brand-50 text-brand-700' 
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
+                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${accountIdFilter === "All" ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
-                    <span>{acc === 'All' ? 'All Accounts' : acc}</span>
-                    {accountFilter === acc && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                    <span>All Accounts</span>
+                    {accountIdFilter === "All" && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                </button>
+                {accounts.map((acc) => (
+                  <button
+                    key={acc.id}
+                    type="button"
+                    onClick={() => {
+                      setAccountIdFilter(acc.id);
+                      setIsAccountOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${String(accountIdFilter) === String(acc.id) ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
+                  >
+                    <span>{acc.name}</span>
+                    {String(accountIdFilter) === String(acc.id) && <Check className="w-3.5 h-3.5 text-brand-600" />}
                   </button>
                 ))}
               </div>
@@ -173,11 +187,11 @@ export default function TransactionsFilters({
         <button 
           onClick={handleExport}
           title="Export CSV"
-          className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95 hover:scale-105"
+          className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95 hover:scale-105 cursor-pointer"
         >
           <Download className="w-4 h-4" />
         </button>
-        <button className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95 hover:scale-105">
+        <button className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95 hover:scale-105 cursor-pointer">
           <Filter className="w-4 h-4" />
         </button>
       </div>
