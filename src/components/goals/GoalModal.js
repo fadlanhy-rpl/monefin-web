@@ -45,6 +45,24 @@ export default function GoalModal({
   formIcon,
   setFormIcon
 }) {
+  // Format thousand separator
+  const formatThousand = (val) => {
+    if (val === undefined || val === null || val === "") return "";
+    const raw = String(val).replace(/\D/g, "");
+    if (!raw) return "";
+    return new Intl.NumberFormat("id-ID").format(raw);
+  };
+
+  const handleTargetChange = (e) => {
+    const rawDigits = e.target.value.replace(/\D/g, "");
+    setFormTarget(rawDigits);
+  };
+
+  const handleCurrentChange = (e) => {
+    const rawDigits = e.target.value.replace(/\D/g, "");
+    setFormCurrent(rawDigits);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -120,12 +138,13 @@ export default function GoalModal({
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Target Nominal</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400">Rp</span>
+              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 required
-                value={formTarget}
-                onChange={(e) => setFormTarget(e.target.value)}
+                value={formatThousand(formTarget)}
+                onChange={handleTargetChange}
                 className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
                 placeholder="0"
               />
@@ -136,12 +155,13 @@ export default function GoalModal({
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Tabungan Saat Ini</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400">Rp</span>
+              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 required
-                value={formCurrent}
-                onChange={(e) => setFormCurrent(e.target.value)}
+                value={formatThousand(formCurrent)}
+                onChange={handleCurrentChange}
                 className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
                 placeholder="0"
               />

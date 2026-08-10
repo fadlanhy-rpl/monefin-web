@@ -44,10 +44,10 @@ export default function BudgetModal({
   const selectedCategory = categories.find((c) => String(c.id) === String(formCategoryId));
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 relative">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[85vh]">
         {/* Modal Header */}
-        <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between">
+        <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-extrabold text-slate-900">
             {modalMode === "add" ? "Set New Budget" : "Edit Budget"}
           </h3>
@@ -61,95 +61,97 @@ export default function BudgetModal({
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleFormSubmit} className="p-6 space-y-5">
-          {/* Custom Modern Category Dropdown */}
-          <div className="space-y-1.5 relative" ref={dropdownRef}>
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-              Kategori (Category)
-            </label>
-            
-            {/* Dropdown Trigger Button */}
-            <button
-              type="button"
-              disabled={modalMode === "edit"}
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`w-full px-4 py-3.5 bg-slate-50 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer ${
-                isDropdownOpen
-                  ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white"
-                  : "border-slate-100 hover:border-slate-200"
-              } ${modalMode === "edit" ? "opacity-60 cursor-not-allowed" : ""}`}
-            >
-              <span className={selectedCategory ? "text-slate-900" : "text-slate-400 font-medium"}>
-                {selectedCategory ? selectedCategory.name : "Pilih Kategori Pengeluaran"}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                  isDropdownOpen ? "rotate-180 text-[#00685F]" : ""
-                }`}
-              />
-            </button>
+        <form onSubmit={handleFormSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+          <div className="p-6 space-y-5 overflow-y-auto flex-1">
+            {/* Custom Modern Category Dropdown */}
+            <div className="space-y-1.5 relative" ref={dropdownRef}>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                Kategori (Category)
+              </label>
+              
+              {/* Dropdown Trigger Button */}
+              <button
+                type="button"
+                disabled={modalMode === "edit"}
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`w-full px-4 py-3.5 bg-slate-50 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer ${
+                  isDropdownOpen
+                    ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white"
+                    : "border-slate-100 hover:border-slate-200"
+                } ${modalMode === "edit" ? "opacity-60 cursor-not-allowed" : ""}`}
+              >
+                <span className={selectedCategory ? "text-slate-900" : "text-slate-400 font-medium"}>
+                  {selectedCategory ? selectedCategory.name : "Pilih Kategori Pengeluaran"}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                    isDropdownOpen ? "rotate-180 text-[#00685F]" : ""
+                  }`}
+                />
+              </button>
 
-            {/* Floating Dropdown List */}
-            {isDropdownOpen && modalMode !== "edit" && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] max-h-56 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                {categories.length === 0 ? (
-                  <div className="px-4 py-3 text-xs text-slate-400 text-center font-medium">
-                    Tidak ada kategori pengeluaran.
-                  </div>
-                ) : (
-                  categories.map((cat) => {
-                    const isSelected = String(cat.id) === String(formCategoryId);
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => {
-                          setFormCategoryId(cat.id);
-                          setIsDropdownOpen(false);
-                        }}
-                        className={`w-full px-3.5 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all text-left cursor-pointer ${
-                          isSelected
-                            ? "bg-[#00685F]/10 text-[#00685F]"
-                            : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                        }`}
-                      >
-                        <span>{cat.name}</span>
-                        {isSelected && <Check className="w-4 h-4 text-[#00685F]" />}
-                      </button>
-                    );
-                  })
-                )}
+              {/* Floating Dropdown List */}
+              {isDropdownOpen && modalMode !== "edit" && (
+                <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] max-h-56 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                  {categories.length === 0 ? (
+                    <div className="px-4 py-3 text-xs text-slate-400 text-center font-medium">
+                      Tidak ada kategori pengeluaran.
+                    </div>
+                  ) : (
+                    categories.map((cat) => {
+                      const isSelected = String(cat.id) === String(formCategoryId);
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            setFormCategoryId(cat.id);
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`w-full px-3.5 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all text-left cursor-pointer ${
+                            isSelected
+                              ? "bg-[#00685F]/10 text-[#00685F]"
+                              : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                          }`}
+                        >
+                          <span>{cat.name}</span>
+                          {isSelected && <Check className="w-4 h-4 text-[#00685F]" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+
+              {modalMode === "edit" && (
+                <p className="text-xs text-slate-500 mt-1">Kategori tidak dapat diubah setelah anggaran dibuat.</p>
+              )}
+            </div>
+
+            {/* Limit Input with Thousand Separator */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                Batas Anggaran (Limit)
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">
+                  Rp
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  required
+                  value={formatThousand(formLimit)}
+                  onChange={handleLimitChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
+                  placeholder="0"
+                />
               </div>
-            )}
-
-            {modalMode === "edit" && (
-              <p className="text-xs text-slate-500 mt-1">Kategori tidak dapat diubah setelah anggaran dibuat.</p>
-            )}
-          </div>
-
-          {/* Limit Input with Thousand Separator */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-              Batas Anggaran (Limit)
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">
-                Rp
-              </span>
-              <input
-                type="text"
-                inputMode="numeric"
-                required
-                value={formatThousand(formLimit)}
-                onChange={handleLimitChange}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
-                placeholder="0"
-              />
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-slate-100 mt-6">
+          {/* Buttons Footer */}
+          <div className="p-6 pt-4 border-t border-slate-100 flex gap-3 shrink-0 bg-white">
             <button
               type="button"
               onClick={onClose}

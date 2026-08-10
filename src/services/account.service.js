@@ -27,3 +27,11 @@ export const deleteAccount = async (id) => {
   });
   return data;
 };
+
+export const reorderAccounts = async (accounts) => {
+  const data = await fetchAPI("/accounts/reorder", {
+    method: "PUT",
+    body: { accounts },
+  });
+  return data;
+};

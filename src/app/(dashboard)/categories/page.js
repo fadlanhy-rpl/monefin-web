@@ -7,6 +7,7 @@ import CategoriesTabs from "../../../components/categories/CategoriesTabs";
 import CategoriesGrid from "../../../components/categories/CategoriesGrid";
 import CategoriesStats from "../../../components/categories/CategoriesStats";
 import CategoryModal from "../../../components/categories/CategoryModal";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function CategoriesPage() {
@@ -149,6 +150,10 @@ export default function CategoriesPage() {
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [editingCategory, setEditingCategory] = useState(null);
 
+  // Confirm Modal State
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deletingCategory, setDeletingCategory] = useState(null);
+
   // Form States
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
@@ -230,22 +235,28 @@ export default function CategoriesPage() {
   };
 
   // Delete Category
-  const handleDelete = (id) => {
+  const handleDeleteClick = (id) => {
     const target = categories.find((c) => c.id === id);
     if (!target) return;
-    if (confirm(`Apakah Anda yakin ingin menghapus kategori "${target.name}"?`)) {
-      const updatedCategories = categories.filter((c) => c.id !== id);
-      setCategories(updatedCategories);
-      
-      // Handle page overflow after deletion
-      const newFilteredCount = updatedCategories.filter((c) => c.type === activeTab).length;
-      const newTotalPages = Math.max(1, Math.ceil(newFilteredCount / itemsPerPage));
-      if (currentPage > newTotalPages) {
-        setCurrentPage(newTotalPages);
-      }
-      
-      showToast(`Kategori "${target.name}" berhasil dihapus.`);
+    setDeletingCategory(target);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingCategory) return;
+    const updatedCategories = categories.filter((c) => c.id !== deletingCategory.id);
+    setCategories(updatedCategories);
+    
+    // Handle page overflow after deletion
+    const newFilteredCount = updatedCategories.filter((c) => c.type === activeTab).length;
+    const newTotalPages = Math.max(1, Math.ceil(newFilteredCount / itemsPerPage));
+    if (currentPage > newTotalPages) {
+      setCurrentPage(newTotalPages);
     }
+    
+    showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`);
+    setIsConfirmOpen(false);
+    setDeletingCategory(null);
   };
 
   // Quick Simulation Transaction Incrementor
@@ -361,7 +372,7 @@ export default function CategoriesPage() {
           <CategoriesGrid 
             categories={paginatedCategories}
             openEditModal={openEditModal}
-            handleDelete={handleDelete}
+            handleDelete={handleDeleteClick}
             openAddModal={openAddModal}
             viewMode={viewMode}
             showCreateCard={showCreateCard}
@@ -444,6 +455,16 @@ export default function CategoriesPage() {
         setFormIcon={setFormIcon}
         formColor={formColor}
         setFormColor={setFormColor}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Kategori?"
+        message={`Apakah Anda yakin ingin menghapus kategori "${deletingCategory?.name || ''}"? Seluruh statistik terkait kategori ini akan disesuaikan.`}
+        confirmText="Ya, Hapus"
       />
 
     </DashboardLayout>

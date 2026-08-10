@@ -16,13 +16,35 @@ export function formatCurrency(value: string | number): string {
   }).format(num);
 }
 
-/** Format an ISO date string to a readable locale date */
-export function formatDate(date: string): string {
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(date));
+/** Format an ISO date string to a readable locale date (e.g. "10 Agu 2026") */
+export function formatDate(dateStr: string, formatStyle: 'short' | 'long' = 'short'): string {
+  if (!dateStr) return '-';
+  try {
+    const rawDate = String(dateStr).split('T')[0];
+    const parts = rawDate.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+        const d = new Date(year, month, day);
+        return new Intl.DateTimeFormat('id-ID', {
+          day: 'numeric',
+          month: formatStyle === 'long' ? 'long' : 'short',
+          year: 'numeric',
+        }).format(d);
+      }
+    }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: formatStyle === 'long' ? 'long' : 'short',
+      year: 'numeric',
+    }).format(d);
+  } catch (e) {
+    return dateStr;
+  }
 }
 
 /** Return the month name from a number (1-indexed) */

@@ -1,4 +1,5 @@
 import { Pencil, Trash2, Banknote, Utensils, Car, ShoppingBag, TrendingUp, HelpCircle } from "lucide-react";
+import { formatDate } from "../../lib/utils";
 
 // Formatter Helpers
 function formatRupiah(n) {
@@ -93,7 +94,7 @@ export default function TransactionsTable({
 
                 return (
                   <tr key={t.id} className="txn-row border-b border-slate-100/60 hover:bg-[#f4faf9] transition-all duration-200 group">
-                    <td className="px-6 py-4 text-gray-500 font-semibold whitespace-nowrap">{t.transaction_date}</td>
+                    <td className="px-6 py-4 text-gray-500 font-semibold whitespace-nowrap">{formatDate(t.transaction_date)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span 
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-300 hover:scale-105"
