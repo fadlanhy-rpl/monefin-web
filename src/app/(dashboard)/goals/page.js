@@ -8,6 +8,7 @@ import GoalsStats from "../../../components/goals/GoalsStats";
 import AchievedGoals from "../../../components/goals/AchievedGoals";
 import GoalModal from "../../../components/goals/GoalModal";
 import DepositModal from "../../../components/goals/DepositModal";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { CheckCircle2 } from "lucide-react";
 
 export default function GoalsPage() {
@@ -62,10 +63,13 @@ export default function GoalsPage() {
   // Toast State
   const [toastMessage, setToastMessage] = useState("");
 
-  // Modal States - Add/Edit Goal
+  // Modal & Confirm States
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [editingGoal, setEditingGoal] = useState(null);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   // Form States - Goal
   const [formTitle, setFormTitle] = useState("");
@@ -125,11 +129,17 @@ export default function GoalsPage() {
   };
 
   // Delete Goal
-  const handleDelete = (id) => {
-    if (confirm("Apakah Anda yakin ingin menghapus target tabungan ini?")) {
-      setGoals(prev => prev.filter(g => g.id !== id));
-      triggerToast("Target tabungan berhasil dihapus.");
-    }
+  const handleDeleteClick = (id) => {
+    setDeletingId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingId) return;
+    setGoals(prev => prev.filter(g => g.id !== deletingId));
+    triggerToast("Target tabungan berhasil dihapus.");
+    setIsConfirmOpen(false);
+    setDeletingId(null);
   };
 
   // Submit Goal Form
@@ -233,7 +243,7 @@ export default function GoalsPage() {
           <GoalsGrid 
             goals={goals}
             openEditModal={openEditModal}
-            handleDelete={handleDelete}
+            handleDelete={handleDeleteClick}
             openDepositModal={openDepositModal}
           />
         </div>
@@ -299,6 +309,15 @@ export default function GoalsPage() {
         handleDepositSubmit={handleDepositSubmit}
       />
 
+      {/* Modern Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Target Tabungan?"
+        message="Apakah Anda yakin ingin menghapus target tabungan ini? Progress akumulasi dana akan dihentikan."
+        confirmText="Ya, Hapus"
+      />
     </DashboardLayout>
   );
 }

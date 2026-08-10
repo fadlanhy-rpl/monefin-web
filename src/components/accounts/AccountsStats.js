@@ -1,9 +1,9 @@
 import { Lightbulb } from "lucide-react";
 
 export default function AccountsStats({
-  bcaPercent,
-  mandiriPercent,
-  otherPercent
+  bankPercent,
+  ewalletPercent,
+  cashPercent
 }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
@@ -14,44 +14,44 @@ export default function AccountsStats({
           <a href="#" className="text-[#00685F] text-xs font-bold hover:underline">Lihat Detail</a>
         </div>
         <div className="space-y-6">
-          {/* BCA Bar */}
+          {/* Bank Bar */}
           <div className="space-y-2 group">
             <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700">
-              <span className="group-hover:text-[#00685F] transition-colors truncate">Bank BCA</span>
-              <span className="text-slate-900 font-extrabold shrink-0">{bcaPercent}%</span>
+              <span className="group-hover:text-[#00685F] transition-colors truncate">Akun Bank</span>
+              <span className="text-slate-900 font-extrabold shrink-0">{bankPercent}%</span>
             </div>
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
               <div 
                 className="bg-gradient-to-r from-[#00685F] to-[#008A7E] h-full rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${bcaPercent}%` }}
+                style={{ width: `${bankPercent}%` }}
               ></div>
             </div>
           </div>
           
-          {/* Mandiri Bar */}
+          {/* E-Wallet Bar */}
           <div className="space-y-2 group">
             <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700">
-              <span className="group-hover:text-neutral-800 transition-colors truncate">Bank Mandiri</span>
-              <span className="text-slate-900 font-extrabold shrink-0">{mandiriPercent}%</span>
+              <span className="group-hover:text-blue-600 transition-colors truncate">Dompet Digital (E-Wallet)</span>
+              <span className="text-slate-900 font-extrabold shrink-0">{ewalletPercent}%</span>
             </div>
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
               <div 
-                className="bg-gradient-to-r from-[#2D2D2D] to-neutral-600 h-full rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${mandiriPercent}%` }}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-1000 ease-out" 
+                style={{ width: `${ewalletPercent}%` }}
               ></div>
             </div>
           </div>
           
-          {/* Wallet / Cash Bar */}
+          {/* Cash Bar */}
           <div className="space-y-2 group">
             <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-700">
-              <span className="group-hover:text-slate-500 transition-colors truncate">E-Wallet & Cash</span>
-              <span className="text-slate-900 font-extrabold shrink-0">{otherPercent}%</span>
+              <span className="group-hover:text-amber-500 transition-colors truncate">Uang Tunai (Cash)</span>
+              <span className="text-slate-900 font-extrabold shrink-0">{cashPercent}%</span>
             </div>
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
               <div 
-                className="bg-gradient-to-r from-slate-300 to-slate-400 h-full rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${otherPercent}%` }}
+                className="bg-gradient-to-r from-amber-400 to-amber-500 h-full rounded-full transition-all duration-1000 ease-out" 
+                style={{ width: `${cashPercent}%` }}
               ></div>
             </div>
           </div>

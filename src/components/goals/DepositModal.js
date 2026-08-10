@@ -12,6 +12,19 @@ export default function DepositModal({
 }) {
   if (!isOpen || !goal) return null;
 
+  // Format thousand separator
+  const formatThousand = (val) => {
+    if (val === undefined || val === null || val === "") return "";
+    const raw = String(val).replace(/\D/g, "");
+    if (!raw) return "";
+    return new Intl.NumberFormat("id-ID").format(raw);
+  };
+
+  const handleDepositChange = (e) => {
+    const rawDigits = e.target.value.replace(/\D/g, "");
+    setDepositAmount(rawDigits);
+  };
+
   const handleQuickAdd = (amt) => {
     const currentVal = parseInt(depositAmount, 10) || 0;
     setDepositAmount(String(currentVal + amt));
@@ -45,12 +58,13 @@ export default function DepositModal({
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Masukkan Nominal Dana</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400">Rp</span>
+              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 required
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
+                value={formatThousand(depositAmount)}
+                onChange={handleDepositChange}
                 className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
                 placeholder="0"
                 autoFocus

@@ -6,78 +6,64 @@ import AccountsHeader from "../../../components/accounts/AccountsHeader";
 import AccountsGrid from "../../../components/accounts/AccountsGrid";
 import AccountsStats from "../../../components/accounts/AccountsStats";
 import AccountModal from "../../../components/accounts/AccountModal";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
+import { getAccounts, createAccount, updateAccount, deleteAccount, reorderAccounts } from "../../../services/account.service";
+import toast from "react-hot-toast";
 
 export default function AccountsPage() {
   const [isVisible, setIsVisible] = useState(false);
 
   // Accounts state-based data store
-  const [accounts, setAccounts] = useState([
-    {
-      id: 1,
-      name: "Bank BCA",
-      number: "xxxx 2376",
-      balance: 8500000,
-      holder: "AKHMAD MAARIZ",
-      type: "bank-primary"
-    },
-    {
-      id: 2,
-      name: "Bank Mandiri",
-      number: "xxxx 8891",
-      balance: 5200000,
-      status: "Active",
-      type: "bank-dark"
-    },
-    {
-      id: 3,
-      name: "Digital Wallet",
-      balance: 1050000,
-      label: "E-Wallet",
-      type: "wallet",
-      wallets: ["GP", "OV"]
-    },
-    {
-      id: 4,
-      name: "Uang Tunai",
-      balance: 500000,
-      label: "Cash",
-      type: "cash",
-      lastUpdated: "Hari ini, 08:45"
-    }
-  ]);
+  const [accounts, setAccounts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Modal states
+  // Modal & Confirm states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [editingAccount, setEditingAccount] = useState(null);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form states
   const [formName, setFormName] = useState("");
   const [formBalance, setFormBalance] = useState("");
   const [formNumber, setFormNumber] = useState("");
   const [formHolder, setFormHolder] = useState("");
-  const [formType, setFormType] = useState("bank-primary");
+  const [formType, setFormType] = useState("bank");
+  const [formTheme, setFormTheme] = useState("bank-primary");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchAccounts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAccounts();
+      setAccounts(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch accounts:", error);
+      toast.error("Gagal mengambil data akun");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     setIsVisible(true);
+    fetchAccounts();
   }, []);
 
   // Calculation summaries
-  const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+  const totalBalance = accounts.reduce((sum, acc) => sum + Number(acc.balance), 0);
 
   // Statistics calculation
-  const bcaBalance = accounts.reduce((sum, a) => a.name.toLowerCase().includes("bca") ? sum + a.balance : sum, 0);
-  const mandiriBalance = accounts.reduce((sum, a) => a.name.toLowerCase().includes("mandiri") ? sum + a.balance : sum, 0);
-  const otherBalance = accounts.reduce((sum, a) => {
-    if (!a.name.toLowerCase().includes("bca") && !a.name.toLowerCase().includes("mandiri")) {
-      return sum + a.balance;
-    }
-    return sum;
-  }, 0);
+  const bankBalance = accounts.reduce((sum, a) => a.type === "bank" ? sum + Number(a.balance) : sum, 0);
+  const ewalletBalance = accounts.reduce((sum, a) => a.type === "ewallet" ? sum + Number(a.balance) : sum, 0);
+  const cashBalance = accounts.reduce((sum, a) => a.type === "cash" ? sum + Number(a.balance) : sum, 0);
 
-  const bcaPercent = totalBalance > 0 ? ((bcaBalance / totalBalance) * 100).toFixed(1) : "0.0";
-  const mandiriPercent = totalBalance > 0 ? ((mandiriBalance / totalBalance) * 100).toFixed(1) : "0.0";
-  const otherPercent = totalBalance > 0 ? ((otherBalance / totalBalance) * 100).toFixed(1) : "0.0";
+  const bankPercent = totalBalance > 0 ? ((bankBalance / totalBalance) * 100).toFixed(1) : "0.0";
+  const ewalletPercent = totalBalance > 0 ? ((ewalletBalance / totalBalance) * 100).toFixed(1) : "0.0";
+  const cashPercent = totalBalance > 0 ? ((cashBalance / totalBalance) * 100).toFixed(1) : "0.0";
 
   // Trigger add modal
   const openAddModal = () => {
@@ -87,7 +73,8 @@ export default function AccountsPage() {
     setFormBalance("");
     setFormNumber("");
     setFormHolder("");
-    setFormType("bank-primary");
+    setFormType("bank");
+    setFormTheme("bank-primary");
     setIsModalOpen(true);
   };
 
@@ -97,55 +84,91 @@ export default function AccountsPage() {
     setEditingAccount(acc);
     setFormName(acc.name);
     setFormBalance(String(acc.balance));
-    setFormNumber(acc.number || "");
-    setFormHolder(acc.holder || "");
+    setFormNumber(acc.account_number || "");
+    setFormHolder(acc.account_holder || "");
     setFormType(acc.type);
+    setFormTheme(acc.color_theme || "bank-primary");
     setIsModalOpen(true);
   };
 
   // Handle delete
-  const handleDelete = (id) => {
-    if (confirm("Apakah Anda yakin ingin menghapus akun ini?")) {
-      setAccounts(prev => prev.filter(a => a.id !== id));
+  const handleDeleteClick = (id) => {
+    setDeletingId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingId) return;
+    try {
+      setIsDeleting(true);
+      await deleteAccount(deletingId);
+      toast.success("Akun berhasil dihapus");
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("Gagal menghapus akun");
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
+      setDeletingId(null);
     }
   };
 
   // Handle Form Submit
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const balanceVal = parseInt(formBalance, 10);
+    const balanceVal = parseFloat(formBalance);
 
     if (isNaN(balanceVal) || balanceVal < 0) {
-      alert("Saldo harus berupa angka positif!");
+      toast.error("Saldo harus berupa angka positif!");
       return;
     }
 
-    if (modalMode === "add") {
-      const newAcc = {
-        id: Date.now(),
-        name: formName,
-        balance: balanceVal,
-        type: formType,
-        number: formNumber || "**** " + Math.floor(1000 + Math.random() * 9000),
-        holder: formHolder || "AKHMAD MAARIZ",
-        status: "Active",
-        label: formType === "wallet" ? "E-Wallet" : "Cash",
-        wallets: ["GP", "OV"],
-        lastUpdated: "Hari ini, " + new Date().toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })
-      };
-      setAccounts(prev => [...prev, newAcc]);
-    } else {
-      setAccounts(prev => prev.map(a => a.id === editingAccount.id ? {
-        ...a,
-        name: formName,
-        balance: balanceVal,
-        type: formType,
-        number: formNumber || a.number,
-        holder: formHolder || a.holder
-      } : a));
-    }
+    setIsSubmitting(true);
+    const payload = {
+      name: formName,
+      type: formType,
+      balance: balanceVal,
+      account_number: formNumber,
+      account_holder: formHolder,
+      color_theme: formTheme,
+    };
 
-    setIsModalOpen(false);
+    try {
+      if (modalMode === "add") {
+        await createAccount(payload);
+        toast.success("Akun berhasil ditambahkan");
+      } else {
+        await updateAccount(editingAccount.id, payload);
+        toast.success("Akun berhasil diperbarui");
+      }
+      setIsModalOpen(false);
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error saving account:", error);
+      toast.error("Gagal menyimpan akun");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle Drag & Drop Reorder
+  const handleReorder = async (newAccounts) => {
+    // Optimistic update
+    setAccounts(newAccounts);
+
+    const payload = newAccounts.map((acc, index) => ({
+      id: acc.id,
+      sort_order: index,
+    }));
+
+    try {
+      await reorderAccounts(payload);
+    } catch (error) {
+      console.error("Failed to reorder accounts:", error);
+      toast.error("Gagal menyimpan urutan kartu");
+      fetchAccounts(); // Revert back
+    }
   };
 
   return (
@@ -160,19 +183,26 @@ export default function AccountsPage() {
 
         {/* Grid Cards Section */}
         <div className={`transition-all duration-700 delay-300 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-          <AccountsGrid 
-            accounts={accounts}
-            openEditModal={openEditModal}
-            handleDelete={handleDelete}
-          />
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00685F]"></div>
+            </div>
+          ) : (
+            <AccountsGrid 
+              accounts={accounts}
+              openEditModal={openEditModal}
+              handleDelete={handleDeleteClick}
+              onReorder={handleReorder}
+            />
+          )}
         </div>
 
         {/* Bottom Statistics and Saving Tip */}
         <div className={`transition-all duration-700 delay-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           <AccountsStats 
-            bcaPercent={bcaPercent}
-            mandiriPercent={mandiriPercent}
-            otherPercent={otherPercent}
+            bankPercent={bankPercent}
+            ewalletPercent={ewalletPercent}
+            cashPercent={cashPercent}
           />
         </div>
       </div>
@@ -193,6 +223,20 @@ export default function AccountsPage() {
         setFormHolder={setFormHolder}
         formType={formType}
         setFormType={setFormType}
+        formTheme={formTheme}
+        setFormTheme={setFormTheme}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* Modern Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Akun ini?"
+        message="Apakah Anda yakin ingin menghapus akun ini? Semua transaksi terkait akun ini tetap tersimpan tetapi sumber dana tidak dapat dipulihkan."
+        confirmText="Ya, Hapus"
+        isLoading={isDeleting}
       />
     </DashboardLayout>
   );

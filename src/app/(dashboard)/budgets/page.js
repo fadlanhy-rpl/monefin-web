@@ -6,7 +6,7 @@ import BudgetsHeader from "../../../components/budgets/BudgetsHeader";
 import BudgetsGrid from "../../../components/budgets/BudgetsGrid";
 import BudgetsOverview from "../../../components/budgets/BudgetsOverview";
 import BudgetModal from "../../../components/budgets/BudgetModal";
-import DeleteConfirmModal from "../../../components/budgets/DeleteConfirmModal";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { Utensils, Car, ShoppingBag, Zap, Film, PiggyBank, Info, Hash } from "lucide-react";
 import { getBudgets, createBudget, updateBudget, deleteBudget } from "../../../services/budget.service";
 import { getCategories } from "../../../services/category.service";
@@ -273,13 +273,16 @@ export default function BudgetsPage() {
       />
 
       {/* DELETE CONFIRMATION MODAL */}
-      <DeleteConfirmModal
+      <ConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
           setDeletingBudgetId(null);
         }}
         onConfirm={confirmDelete}
+        title="Hapus Anggaran?"
+        message="Apakah Anda yakin ingin menghapus anggaran ini? Batas pengeluaran bulanan untuk kategori ini akan dihapus."
+        confirmText="Ya, Hapus"
         isLoading={isDeleting}
       />
     </DashboardLayout>

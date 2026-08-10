@@ -6,11 +6,13 @@ import TransactionsStats from "../../../components/transactions/TransactionsStat
 import TransactionsFilters from "../../../components/transactions/TransactionsFilters";
 import TransactionsTable from "../../../components/transactions/TransactionsTable";
 import TransactionModal from "../../../components/transactions/TransactionModal";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "../../../services/transaction.service";
 import { getCategories } from "../../../services/category.service";
 import { getAccounts } from "../../../services/account.service";
+import { formatDate } from "../../../lib/utils";
 
 // Formatter Helpers
 function formatDateInput(dateStr) {
@@ -142,10 +144,14 @@ export default function TransactionsPage() {
   }, [page, categoryIdFilter, accountFilter, dateFilter, searchQuery]);
 
 
-  // Modal States
+  // Modal & Confirm States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [editingTransaction, setEditingTransaction] = useState(null);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form Field States
   const [formType, setFormType] = useState("expense");
@@ -188,15 +194,24 @@ export default function TransactionsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) {
-      try {
-        await deleteTransaction(id);
-        toast.success("Transaksi berhasil dihapus!");
-        fetchTransactionsData();
-      } catch (error) {
-        toast.error("Gagal menghapus transaksi.");
-      }
+  const handleDeleteClick = (id) => {
+    setDeletingId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingId) return;
+    try {
+      setIsDeleting(true);
+      await deleteTransaction(deletingId);
+      toast.success("Transaksi berhasil dihapus!");
+      fetchTransactionsData();
+    } catch (error) {
+      toast.error("Gagal menghapus transaksi.");
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
+      setDeletingId(null);
     }
   };
 
@@ -243,8 +258,153 @@ export default function TransactionsPage() {
   };
 
   const handleExport = () => {
-    // Ideally this hits the backend /api/reports/export endpoint
-    toast.success("Mengekspor data transaksi...");
+    if (!transactions || transactions.length === 0) {
+      toast.error("Tidak ada data transaksi untuk diekspor!");
+      return;
+    }
+
+    const sep = ";";
+
+    // Hitung total untuk ringkasan akuntansi
+    let totalIncome = 0;
+    let totalExpense = 0;
+    transactions.forEach(t => {
+      const amt = Math.abs(parseFloat(t.amount) || 0);
+      if (t.type === 'income') totalIncome += amt;
+      if (t.type === 'expense') totalExpense += amt;
+    });
+    const netCashflow = totalIncome - totalExpense;
+
+    const formatCurrencyNum = (num) => {
+      if (!num || num === 0) return "0";
+      return Math.round(num).toLocaleString('id-ID');
+    };
+
+    const nowStr = new Date().toLocaleString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }) + " WIB";
+
+    // Menghitung statistik per kategori
+    const categoryStats = {};
+    transactions.forEach(t => {
+      const catName = t.category?.name || "Lainnya";
+      const amt = parseFloat(t.amount) || 0;
+      if (!categoryStats[catName]) {
+        categoryStats[catName] = { income: 0, expense: 0, count: 0 };
+      }
+      categoryStats[catName].count += 1;
+      if (t.type === 'income') categoryStats[catName].income += amt;
+      if (t.type === 'expense') categoryStats[catName].expense += Math.abs(amt);
+    });
+
+    const categoryStatsRows = [
+      "",
+      `"STATISTIK PER KATEGORI"`,
+      `"Kategori"${sep}"Jml Transaksi"${sep}"Total Pemasukan (Rp)"${sep}"Total Pengeluaran (Rp)"`
+    ];
+    Object.keys(categoryStats).sort().forEach(cat => {
+      const stats = categoryStats[cat];
+      categoryStatsRows.push(
+        `"${cat}"${sep}"${stats.count}"${sep}"${formatCurrencyNum(stats.income)}"${sep}"${formatCurrencyNum(stats.expense)}"`
+      );
+    });
+
+    // Header Metadata Laporan Akuntan
+    const reportMetadata = [
+      "sep=" + sep,
+      `"LAPORAN MUTASI DAN RIWAYAT TRANSAKSI - MONEFIN"`,
+      "",
+      `"INFORMASI LAPORAN"`,
+      `"Tanggal Cetak"${sep}"${nowStr}"`,
+      `"Total Record"${sep}"${transactions.length} Transaksi"`,
+      "",
+      `"RINGKASAN KEUANGAN"`,
+      `"Total Pemasukan"${sep}"Rp ${formatCurrencyNum(totalIncome)}"`,
+      `"Total Pengeluaran"${sep}"Rp ${formatCurrencyNum(totalExpense)}"`,
+      `"Net Cashflow"${sep}"${netCashflow >= 0 ? '+' : '-'}Rp ${formatCurrencyNum(Math.abs(netCashflow))}"`
+    ];
+
+    // Header Tabel
+    const headers = [
+      "No.",
+      "Tanggal",
+      "Tipe Transaksi",
+      "Kategori",
+      "Akun / Sumber Dana",
+      "Keterangan / Catatan",
+      "Pemasukan (Rp)",
+      "Pengeluaran (Rp)",
+      "Nominal Net (Rp)"
+    ];
+
+    // Data Baris Transaksi
+    const dataRows = transactions.map((t, idx) => {
+      const isExpense = t.type === 'expense';
+      const amt = Math.abs(parseFloat(t.amount) || 0);
+      const dateFormatted = formatDate(t.transaction_date);
+      const categoryName = t.category?.name || "Lainnya";
+      const accountName = t.account?.name || "Utama";
+      const noteClean = (t.description || "-").replace(/"/g, '""');
+      const typeLabel = isExpense ? "Pengeluaran" : "Pemasukan";
+
+      const incomeVal = !isExpense ? formatCurrencyNum(amt) : "-";
+      const expenseVal = isExpense ? formatCurrencyNum(amt) : "-";
+      const netVal = (isExpense ? "-Rp " : "+Rp ") + formatCurrencyNum(amt);
+
+      return [
+        idx + 1,
+        `"${dateFormatted}"`,
+        `"${typeLabel}"`,
+        `"${categoryName}"`,
+        `"${accountName}"`,
+        `"${noteClean}"`,
+        `"${incomeVal}"`,
+        `"${expenseVal}"`,
+        `"${netVal}"`
+      ].join(sep);
+    });
+
+    // Baris Total Rekapitulasi Akuntansi
+    const summaryRow = [
+      `"TOTAL REKAPITULASI"`,
+      "",
+      "",
+      "",
+      "",
+      "",
+      `"Rp ${formatCurrencyNum(totalIncome)}"`,
+      `"Rp ${formatCurrencyNum(totalExpense)}"`,
+      `"${netCashflow >= 0 ? '+' : '-'}Rp ${formatCurrencyNum(Math.abs(netCashflow))}"`
+    ].join(sep);
+
+    const fullCsvContent = "\uFEFF" + [
+      ...reportMetadata,
+      ...categoryStatsRows,
+      "",
+      `"RINCIAN TRANSAKSI"`,
+      headers.join(sep),
+      ...dataRows,
+      "",
+      summaryRow
+    ].join("\n");
+
+    const blob = new Blob([fullCsvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    const todayStr = new Date().toISOString().split("T")[0];
+    link.setAttribute("download", `Laporan_Transaksi_MoneFin_${todayStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Berhasil mengunduh Laporan Transaksi (${transactions.length} data)!`);
   };
 
   const handlePageChange = (newPage) => {
@@ -304,7 +464,7 @@ export default function TransactionsPage() {
         <TransactionsTable 
           transactions={transactions}
           openEditModal={openEditModal}
-          handleDelete={handleDelete}
+          handleDelete={handleDeleteClick}
           isVisible={isVisible}
           paginationMeta={paginationMeta}
           onPageChange={handlePageChange}
@@ -332,6 +492,17 @@ export default function TransactionsPage() {
         setFormNote={setFormNote}
         categories={categories}
         accounts={accounts}
+      />
+
+      {/* Modern Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Transaksi ini?"
+        message="Apakah Anda yakin ingin menghapus catatan transaksi ini? Saldo pada rekening Anda akan secara otomatis disesuaikan."
+        confirmText="Ya, Hapus"
+        isLoading={isDeleting}
       />
     </DashboardLayout>
   );

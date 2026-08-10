@@ -1,4 +1,4 @@
-import { ChevronDown, Check, Search, Download, Filter } from "lucide-react";
+import { ChevronDown, Check, Search, Download } from "lucide-react";
 
 export default function TransactionsFilters({
   categoryIdFilter,
@@ -190,9 +190,6 @@ export default function TransactionsFilters({
           className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95 hover:scale-105 cursor-pointer"
         >
           <Download className="w-4 h-4" />
-        </button>
-        <button className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all active:scale-95 hover:scale-105 cursor-pointer">
-          <Filter className="w-4 h-4" />
         </button>
       </div>
     </div>
