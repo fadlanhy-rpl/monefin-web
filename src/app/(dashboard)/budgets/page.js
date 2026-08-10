@@ -6,7 +6,11 @@ import BudgetsHeader from "../../../components/budgets/BudgetsHeader";
 import BudgetsGrid from "../../../components/budgets/BudgetsGrid";
 import BudgetsOverview from "../../../components/budgets/BudgetsOverview";
 import BudgetModal from "../../../components/budgets/BudgetModal";
-import { Utensils, Car, ShoppingBag, Zap, Film, PiggyBank, Info } from "lucide-react";
+import DeleteConfirmModal from "../../../components/budgets/DeleteConfirmModal";
+import { Utensils, Car, ShoppingBag, Zap, Film, PiggyBank, Info, Hash } from "lucide-react";
+import { getBudgets, createBudget, updateBudget, deleteBudget } from "../../../services/budget.service";
+import { getCategories } from "../../../services/category.service";
+import { notifySuccess, notifyError } from "../../../lib/notify";
 
 // Helper to get category icon component
 function getCategoryIcon(iconType) {
@@ -17,47 +21,68 @@ function getCategoryIcon(iconType) {
     case "zap": return <Zap className="w-6 h-6" />;
     case "film": return <Film className="w-6 h-6" />;
     case "piggy-bank": return <PiggyBank className="w-6 h-6" />;
-    default: return <Info className="w-6 h-6" />;
+    default: return <Hash className="w-6 h-6" />;
   }
 }
 
 export default function BudgetsPage() {
   const [isVisible, setIsVisible] = useState(false);
   const [viewMode, setViewMode] = useState("card"); // "card" | "list"
-  const [monthIndex, setMonthIndex] = useState(2); // Default to July 2026
-  const months = ["May 2026", "June 2026", "July 2026"];
+  
+  // Date state
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
+  // Data states
+  const [budgets, setBudgets] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  // Monthly budgets data store
-  const [monthlyBudgets, setMonthlyBudgets] = useState({
-    "May 2026": [
-      { id: 1, category: "Food & Dining", description: "Daily meals and groceries", spent: 1500000, limit: 1800000, iconType: "utensils" },
-      { id: 2, category: "Transport", description: "Fuel, tolls, and public transit", spent: 800000, limit: 1200000, iconType: "car" },
-      { id: 3, category: "Shopping", description: "Clothing and personal items", spent: 1200000, limit: 1000000, iconType: "shopping-bag" }
-    ],
-    "June 2026": [
-      { id: 1, category: "Food & Dining", description: "Daily meals and groceries", spent: 1800000, limit: 2000000, iconType: "utensils" },
-      { id: 2, category: "Transport", description: "Fuel, tolls, and public transit", spent: 1100000, limit: 1500000, iconType: "car" },
-      { id: 3, category: "Shopping", description: "Clothing and personal items", spent: 900000, limit: 1000000, iconType: "shopping-bag" },
-      { id: 4, category: "Utilities", description: "Electricity, water, and internet", spent: 600000, limit: 1500000, iconType: "zap" }
-    ],
-    "July 2026": [
-      { id: 1, category: "Food & Dining", description: "Daily meals and groceries", spent: 1200000, limit: 2000000, iconType: "utensils" },
-      { id: 2, category: "Transport", description: "Fuel, tolls, and public transit", spent: 1600000, limit: 2000000, iconType: "car" },
-      { id: 3, category: "Shopping", description: "Clothing and personal items", spent: 1050000, limit: 1000000, iconType: "shopping-bag" },
-      { id: 4, category: "Utilities", description: "Electricity, water, and internet", spent: 450000, limit: 1500000, iconType: "zap" },
-      { id: 5, category: "Entertainment", description: "Streaming, cinema, and outings", spent: 720000, limit: 800000, iconType: "film" },
-      { id: 6, category: "Savings Goal", description: "Emergency fund & investment", spent: 5000000, limit: 5000000, iconType: "piggy-bank" },
-      { id: 7, category: "Education", description: "Books and learning resources", spent: 300000, limit: 1000000, iconType: "zap" },
-      { id: 8, category: "Health & Fitness", description: "Gym membership and medicines", spent: 250000, limit: 500000, iconType: "utensils" }
-    ]
-  });
+  // Delete modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingBudgetId, setDeletingBudgetId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const activeMonth = months[monthIndex];
-  const budgets = monthlyBudgets[activeMonth] || [];
+  // Fetch data
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const m = currentDate.getMonth() + 1;
+      const y = currentDate.getFullYear();
+      
+      const [budgetsRes, categoriesRes] = await Promise.all([
+        getBudgets(m, y),
+        getCategories('expense')
+      ]);
+      
+      // Map API data to UI structure
+      const formattedBudgets = budgetsRes.data.map(b => ({
+        id: b.id,
+        category_id: b.category_id,
+        category: b.category.name,
+        description: b.category.description || "Anggaran",
+        spent: parseFloat(b.spent_amount) || 0,
+        limit: parseFloat(b.limit_amount) || 0,
+        iconType: b.category.icon
+      }));
+      
+      setBudgets(formattedBudgets);
+      setCategories(categoriesRes.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      notifyError("Gagal memuat data anggaran");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setIsVisible(true);
+    fetchData();
+  }, [currentDate]);
 
   // Pagination parameters
   const totalPages = Math.ceil(budgets.length / itemsPerPage);
@@ -72,11 +97,6 @@ export default function BudgetsPage() {
     }
   }, [budgets.length, currentPage, totalPages]);
 
-  // Reset page when switching months
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [monthIndex]);
-
   // Calculation summaries
   const totalLimit = budgets.reduce((sum, b) => sum + b.limit, 0);
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
@@ -85,7 +105,7 @@ export default function BudgetsPage() {
   
   // Donut chart parameters
   const radius = 70;
-  const circumference = 2 * Math.PI * radius; // ~439.8
+  const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (circumference * Math.min(overallPercentage, 100)) / 100;
 
   // Modal states
@@ -94,99 +114,99 @@ export default function BudgetsPage() {
   const [editingBudget, setEditingBudget] = useState(null);
 
   // Form states
-  const [formCategory, setFormCategory] = useState("");
-  const [formDescription, setFormDescription] = useState("");
+  const [formCategoryId, setFormCategoryId] = useState("");
   const [formLimit, setFormLimit] = useState("");
-  const [formSpent, setFormSpent] = useState("");
-  const [formIcon, setFormIcon] = useState("utensils");
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   // Handlers for month change
   const handlePrevMonth = () => {
-    if (monthIndex > 0) {
-      setMonthIndex(monthIndex - 1);
-    }
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() - 1);
+      return newDate;
+    });
+    setCurrentPage(1);
   };
 
   const handleNextMonth = () => {
-    if (monthIndex < months.length - 1) {
-      setMonthIndex(monthIndex + 1);
-    }
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + 1);
+      return newDate;
+    });
+    setCurrentPage(1);
   };
+
+  const activeMonthStr = currentDate.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
 
   // Open Modal triggers
   const openAddModal = () => {
     setModalMode("add");
     setEditingBudget(null);
-    setFormCategory("");
-    setFormDescription("");
+    setFormCategoryId("");
     setFormLimit("");
-    setFormSpent("");
-    setFormIcon("utensils");
     setIsModalOpen(true);
   };
 
   const openEditModal = (b) => {
     setModalMode("edit");
     setEditingBudget(b);
-    setFormCategory(b.category);
-    setFormDescription(b.description);
+    setFormCategoryId(b.category_id);
     setFormLimit(String(b.limit));
-    setFormSpent(String(b.spent));
-    setFormIcon(b.iconType);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm("Apakah Anda yakin ingin menghapus anggaran kategori ini?")) {
-      setMonthlyBudgets(prev => ({
-        ...prev,
-        [activeMonth]: prev[activeMonth].filter(b => b.id !== id)
-      }));
+  // Open custom delete modal
+  const openDeleteModal = (id) => {
+    setDeletingBudgetId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Perform delete API call
+  const confirmDelete = async () => {
+    if (!deletingBudgetId) return;
+    try {
+      setIsDeleting(true);
+      await deleteBudget(deletingBudgetId);
+      notifySuccess("Anggaran berhasil dihapus");
+      setIsDeleteModalOpen(false);
+      setDeletingBudgetId(null);
+      fetchData();
+    } catch (error) {
+      notifyError("Gagal menghapus anggaran");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const limitVal = parseInt(formLimit, 10);
-    const spentVal = parseInt(formSpent, 10) || 0;
+    const limitVal = parseFloat(formLimit);
 
-    if (isNaN(limitVal) || limitVal <= 0) {
-      alert("Batas anggaran harus berupa angka positif!");
+    if (isNaN(limitVal) || limitVal <= 0 || !formCategoryId) {
+      notifyError("Data tidak valid!");
       return;
     }
 
-    if (modalMode === "add") {
-      const newBudget = {
-        id: Date.now(),
-        category: formCategory,
-        description: formDescription || "Anggaran bulanan kustom",
-        spent: spentVal,
-        limit: limitVal,
-        iconType: formIcon
-      };
-      setMonthlyBudgets(prev => ({
-        ...prev,
-        [activeMonth]: [...prev[activeMonth], newBudget]
-      }));
-    } else {
-      setMonthlyBudgets(prev => ({
-        ...prev,
-        [activeMonth]: prev[activeMonth].map(b => b.id === editingBudget.id ? {
-          ...b,
-          category: formCategory,
-          description: formDescription,
-          spent: spentVal,
-          limit: limitVal,
-          iconType: formIcon
-        } : b)
-      }));
+    try {
+      if (modalMode === "add") {
+        await createBudget({
+          category_id: formCategoryId,
+          month: currentDate.getMonth() + 1,
+          year: currentDate.getFullYear(),
+          limit_amount: limitVal
+        });
+        notifySuccess("Anggaran baru berhasil ditambahkan");
+      } else {
+        await updateBudget(editingBudget.id, {
+          limit_amount: limitVal
+        });
+        notifySuccess("Anggaran berhasil diperbarui");
+      }
+      setIsModalOpen(false);
+      fetchData();
+    } catch (error) {
+      notifyError(error?.data?.message || error?.message || "Terjadi kesalahan saat menyimpan");
     }
-
-    setIsModalOpen(false);
   };
 
   return (
@@ -195,9 +215,9 @@ export default function BudgetsPage() {
         {/* Header Title */}
         <BudgetsHeader 
           isVisible={isVisible}
-          activeMonth={activeMonth}
-          monthIndex={monthIndex}
-          monthsLength={months.length}
+          activeMonth={activeMonthStr}
+          monthIndex={currentDate.getMonth()}
+          monthsLength={12}
           handlePrevMonth={handlePrevMonth}
           handleNextMonth={handleNextMonth}
           viewMode={viewMode}
@@ -206,20 +226,26 @@ export default function BudgetsPage() {
         />
 
         {/* BUDGET CARDS GRID / LIST CONTAINER */}
-        <BudgetsGrid 
-          viewMode={viewMode}
-          monthIndex={monthIndex}
-          currentPage={currentPage}
-          paginatedBudgets={paginatedBudgets}
-          startIndex={startIndex}
-          endIndex={endIndex}
-          budgetsLength={budgets.length}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-          getCategoryIcon={getCategoryIcon}
-          openEditModal={openEditModal}
-          handleDelete={handleDelete}
-        />
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20 text-slate-400 font-medium">
+            Memuat Data Anggaran...
+          </div>
+        ) : (
+          <BudgetsGrid 
+            viewMode={viewMode}
+            monthIndex={currentDate.getMonth()}
+            currentPage={currentPage}
+            paginatedBudgets={paginatedBudgets}
+            startIndex={startIndex}
+            endIndex={endIndex}
+            budgetsLength={budgets.length}
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+            getCategoryIcon={getCategoryIcon}
+            openEditModal={openEditModal}
+            handleDelete={openDeleteModal}
+          />
+        )}
 
         {/* BOTTOM OVERVIEW SECTION */}
         <BudgetsOverview 
@@ -239,16 +265,22 @@ export default function BudgetsPage() {
         onClose={() => setIsModalOpen(false)}
         modalMode={modalMode}
         handleFormSubmit={handleFormSubmit}
-        formCategory={formCategory}
-        setFormCategory={setFormCategory}
-        formDescription={formDescription}
-        setFormDescription={setFormDescription}
+        formCategoryId={formCategoryId}
+        setFormCategoryId={setFormCategoryId}
         formLimit={formLimit}
         setFormLimit={setFormLimit}
-        formSpent={formSpent}
-        setFormSpent={setFormSpent}
-        formIcon={formIcon}
-        setFormIcon={setFormIcon}
+        categories={categories}
+      />
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeletingBudgetId(null);
+        }}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
       />
     </DashboardLayout>
   );
