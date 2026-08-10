@@ -9,114 +9,14 @@ import CategoriesStats from "../../../components/categories/CategoriesStats";
 import CategoryModal from "../../../components/categories/CategoryModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { getCategories, createCategory, updateCategory, deleteCategory } from "../../../services/category.service";
 
 export default function CategoriesPage() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Categories list state (pre-populated with mock data from categories.html)
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: "Makanan & Minuman",
-      description: "Restoran, kafe, dan bahan makanan bulanan.",
-      transactions: 42,
-      realization: 75,
-      type: "expense",
-      icon: "utensils",
-      color: "orange"
-    },
-    {
-      id: 2,
-      name: "Transportasi",
-      description: "Bahan bakar, parkir, dan transportasi umum.",
-      transactions: 18,
-      realization: 30,
-      type: "expense",
-      icon: "car",
-      color: "blue"
-    },
-    {
-      id: 3,
-      name: "Belanja",
-      description: "Pakaian, hobi, dan kebutuhan gaya hidup.",
-      transactions: 24,
-      realization: 92,
-      type: "expense",
-      icon: "shopping",
-      color: "purple"
-    },
-    {
-      id: 4,
-      name: "Hiburan",
-      description: "Film, konser, dan langganan digital.",
-      transactions: 12,
-      realization: 45,
-      type: "expense",
-      icon: "film",
-      color: "pink"
-    },
-    {
-      id: 5,
-      name: "Kesehatan",
-      description: "Obat-obatan, dokter, dan asuransi.",
-      transactions: 5,
-      realization: 15,
-      type: "expense",
-      icon: "medical",
-      color: "emerald"
-    },
-    {
-      id: 6,
-      name: "Rumah Tangga",
-      description: "Listrik, air, dan pemeliharaan rumah.",
-      transactions: 31,
-      realization: 62,
-      type: "expense",
-      icon: "home",
-      color: "teal"
-    },
-    {
-      id: 7,
-      name: "Pendidikan",
-      description: "Kursus online, buku, dan biaya sekolah.",
-      transactions: 8,
-      realization: 50,
-      type: "expense",
-      icon: "graduation",
-      color: "amber"
-    },
-    // Income Categories
-    {
-      id: 101,
-      name: "Gaji Utama",
-      description: "Gaji bulanan dari pekerjaan tetap.",
-      transactions: 1,
-      realization: 100,
-      type: "income",
-      icon: "briefcase",
-      color: "primary"
-    },
-    {
-      id: 102,
-      name: "Freelance",
-      description: "Proyek sampingan dan pekerjaan lepas.",
-      transactions: 3,
-      realization: 60,
-      type: "income",
-      icon: "dollar",
-      color: "emerald"
-    },
-    {
-      id: 103,
-      name: "Investasi",
-      description: "Dividen saham, bunga reksa dana, dll.",
-      transactions: 2,
-      realization: 40,
-      type: "income",
-      icon: "trending",
-      color: "orange"
-    }
-  ]);
+  // Categories list state
+  const [categories, setCategories] = useState([]);
 
   // Tab State: "expense" | "income"
   const [activeTab, setActiveTab] = useState("expense");
@@ -163,10 +63,24 @@ export default function CategoriesPage() {
   const [formIcon, setFormIcon] = useState("utensils");
   const [formColor, setFormColor] = useState("primary");
 
-  // Entrance animations
+  // Entrance animations & Fetch Data
   useEffect(() => {
     setIsVisible(true);
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const res = await getCategories();
+      setCategories(res.data || []);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      showToast("Gagal memuat data kategori.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Reset pagination on tab change with transition
   const handleTabChange = (tab) => {
@@ -224,13 +138,13 @@ export default function CategoriesPage() {
   const openEditModal = (cat) => {
     setModalMode("edit");
     setEditingCategory(cat);
-    setFormName(cat.name);
-    setFormDescription(cat.description);
-    setFormRealization(cat.realization);
-    setFormTransactions(cat.transactions);
-    setFormType(cat.type);
-    setFormIcon(cat.icon);
-    setFormColor(cat.color);
+    setFormName(cat.name || "");
+    setFormDescription(cat.description || "");
+    setFormRealization(cat.realization || 0);
+    setFormTransactions(cat.transactions || 0);
+    setFormType(cat.type || "expense");
+    setFormIcon(cat.icon || "utensils");
+    setFormColor(cat.color || "primary");
     setIsModalOpen(true);
   };
 
@@ -242,101 +156,88 @@ export default function CategoriesPage() {
     setIsConfirmOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deletingCategory) return;
-    const updatedCategories = categories.filter((c) => c.id !== deletingCategory.id);
-    setCategories(updatedCategories);
-    
-    // Handle page overflow after deletion
-    const newFilteredCount = updatedCategories.filter((c) => c.type === activeTab).length;
-    const newTotalPages = Math.max(1, Math.ceil(newFilteredCount / itemsPerPage));
-    if (currentPage > newTotalPages) {
-      setCurrentPage(newTotalPages);
-    }
-    
-    showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`);
-    setIsConfirmOpen(false);
-    setDeletingCategory(null);
-  };
-
-  // Quick Simulation Transaction Incrementor
-  const handleQuickTransaction = (id) => {
-    const updated = categories.map((c) => {
-      if (c.id === id) {
-        const nextRealization = Math.min(c.realization + 5, 100);
-        showToast(`Simulasi Transaksi: Kategori "${c.name}" +1 Transaksi (+5% Realisasi)`);
-        return {
-          ...c,
-          transactions: c.transactions + 1,
-          realization: nextRealization
-        };
+    try {
+      await deleteCategory(deletingCategory.id);
+      
+      const updatedCategories = categories.filter((c) => c.id !== deletingCategory.id);
+      setCategories(updatedCategories);
+      
+      // Handle page overflow after deletion
+      const newFilteredCount = updatedCategories.filter((c) => c.type === activeTab).length;
+      const newTotalPages = Math.max(1, Math.ceil(newFilteredCount / itemsPerPage));
+      if (currentPage > newTotalPages) {
+        setCurrentPage(newTotalPages);
       }
-      return c;
-    });
-    setCategories(updated);
+      
+      showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`);
+    } catch (error) {
+      console.error("Failed to delete category:", error);
+      showToast(error?.response?.data?.message || "Gagal menghapus kategori.");
+    } finally {
+      setIsConfirmOpen(false);
+      setDeletingCategory(null);
+    }
   };
 
   // Handle Form Submit (Add/Edit)
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async () => {
     if (!formName.trim()) return;
 
-    if (modalMode === "add") {
-      const newCategory = {
-        id: Date.now(),
-        name: formName,
-        description: formDescription,
-        transactions: formTransactions,
-        realization: formRealization,
-        type: formType,
-        icon: formIcon,
-        color: formColor
-      };
-      const updated = [...categories, newCategory];
-      setCategories(updated);
-      
-      // Switch tab and jump to the page containing the new item
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setActiveTab(formType);
-        const newFiltered = updated.filter((c) => c.type === formType);
-        const newTotalPages = Math.max(1, Math.ceil(newFiltered.length / itemsPerPage));
-        setCurrentPage(newTotalPages);
-        setIsTransitioning(false);
-      }, 200);
-      
-      showToast(`Kategori "${formName}" berhasil ditambahkan.`);
-    } else if (modalMode === "edit" && editingCategory) {
-      const updated = categories.map((c) =>
-        c.id === editingCategory.id
-          ? {
-              ...c,
-              name: formName,
-              description: formDescription,
-              transactions: formTransactions,
-              realization: formRealization,
-              type: formType,
-              icon: formIcon,
-              color: formColor
-            }
-          : c
-      );
-      setCategories(updated);
-      
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setActiveTab(formType);
-        // Recalculate page location if category type changed
-        if (editingCategory.type !== formType) {
+    const categoryData = {
+      name: formName,
+      description: formDescription,
+      type: formType,
+      icon: formIcon,
+      color: formColor
+    };
+
+    try {
+      if (modalMode === "add") {
+        const res = await createCategory(categoryData);
+        const newCategory = res.data;
+        const updated = [...categories, newCategory];
+        setCategories(updated);
+        
+        // Switch tab and jump to the page containing the new item
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setActiveTab(formType);
           const newFiltered = updated.filter((c) => c.type === formType);
           const newTotalPages = Math.max(1, Math.ceil(newFiltered.length / itemsPerPage));
           setCurrentPage(newTotalPages);
-        }
-        setIsTransitioning(false);
-      }, 200);
+          setIsTransitioning(false);
+        }, 200);
+        
+        showToast(`Kategori "${formName}" berhasil ditambahkan.`);
+      } else if (modalMode === "edit" && editingCategory) {
+        const res = await updateCategory(editingCategory.id, categoryData);
+        const newCategory = res.data;
+        const updated = categories.map((c) =>
+          c.id === editingCategory.id ? newCategory : c
+        );
+        setCategories(updated);
+        
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setActiveTab(formType);
+          // Recalculate page location if category type changed
+          if (editingCategory.type !== formType) {
+            const newFiltered = updated.filter((c) => c.type === formType);
+            const newTotalPages = Math.max(1, Math.ceil(newFiltered.length / itemsPerPage));
+            setCurrentPage(newTotalPages);
+          }
+          setIsTransitioning(false);
+        }, 200);
 
-      showToast(`Kategori "${formName}" berhasil diperbarui.`);
+        showToast(`Kategori "${formName}" berhasil diperbarui.`);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save category:", error);
+      showToast(error?.response?.data?.message || "Gagal menyimpan kategori.");
     }
-    setIsModalOpen(false);
   };
 
   // Count active categories (categories that have at least 1 transaction)
@@ -377,7 +278,6 @@ export default function CategoriesPage() {
             viewMode={viewMode}
             showCreateCard={showCreateCard}
             isTransitioning={isTransitioning}
-            handleQuickTransaction={handleQuickTransaction}
           />
         </div>
 

@@ -1,28 +1,30 @@
-import { X, Check } from "lucide-react";
+import { useState } from "react";
+import { X, Check, ChevronDown } from "lucide-react";
 import { 
-  Utensils, 
-  Car, 
-  ShoppingBag, 
-  Film, 
-  PlusSquare, 
-  Home, 
-  GraduationCap, 
-  Briefcase, 
-  DollarSign, 
-  TrendingUp 
+  Utensils, Car, ShoppingBag, Film, PlusSquare, Home, GraduationCap, 
+  Briefcase, DollarSign, TrendingUp, Banknote, Wallet, Gift, Coins, 
+  FileText, Gamepad2, HeartPulse, MoreHorizontal 
 } from "lucide-react";
 
 const icons = [
   { name: "utensils", label: "Makanan", icon: Utensils },
   { name: "car", label: "Transportasi", icon: Car },
-  { name: "shopping", label: "Belanja", icon: ShoppingBag },
+  { name: "shopping-bag", label: "Belanja", icon: ShoppingBag },
   { name: "film", label: "Hiburan", icon: Film },
   { name: "medical", label: "Kesehatan", icon: PlusSquare },
   { name: "home", label: "Rumah", icon: Home },
-  { name: "graduation", label: "Pendidikan", icon: GraduationCap },
+  { name: "graduation-cap", label: "Pendidikan", icon: GraduationCap },
   { name: "briefcase", label: "Pekerjaan", icon: Briefcase },
   { name: "dollar", label: "Finansial", icon: DollarSign },
-  { name: "trending", label: "Investasi", icon: TrendingUp }
+  { name: "trending-up", label: "Investasi", icon: TrendingUp },
+  { name: "banknote", label: "Uang Tunai", icon: Banknote },
+  { name: "wallet", label: "Dompet", icon: Wallet },
+  { name: "gift", label: "Hadiah", icon: Gift },
+  { name: "coins", label: "Koin", icon: Coins },
+  { name: "file-text", label: "Tagihan", icon: FileText },
+  { name: "gamepad-2", label: "Game", icon: Gamepad2 },
+  { name: "heart-pulse", label: "Medis", icon: HeartPulse },
+  { name: "more-horizontal", label: "Lainnya", icon: MoreHorizontal }
 ];
 
 const colors = [
@@ -56,6 +58,8 @@ export default function CategoryModal({
   formColor,
   setFormColor
 }) {
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+
   if (!isOpen) return null;
 
   return (
@@ -112,16 +116,40 @@ export default function CategoryModal({
           {/* Sibling columns for type & transactions */}
           <div className="grid grid-cols-2 gap-4">
             {/* Category Type */}
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Jenis Aliran</label>
-              <select
-                value={formType}
-                onChange={(e) => setFormType(e.target.value)}
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-semibold focus:border-[#00685F] focus:bg-white outline-none transition cursor-pointer"
+              <div 
+                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-semibold hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
               >
-                <option value="expense">Pengeluaran</option>
-                <option value="income">Pemasukan</option>
-              </select>
+                <span className={formType ? "text-slate-900" : "text-slate-400"}>
+                  {formType === "expense" ? "Pengeluaran" : formType === "income" ? "Pemasukan" : "Pilih Aliran"}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`} />
+              </div>
+
+              {isTypeDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsTypeDropdownOpen(false)}></div>
+                  <div className="absolute z-20 w-full top-full mt-1 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div 
+                      onClick={() => { setFormType("expense"); setIsTypeDropdownOpen(false); }}
+                      className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors group"
+                    >
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">Pengeluaran</span>
+                      {formType === "expense" && <Check className="w-4 h-4 text-[#00685F]" />}
+                    </div>
+                    <div className="border-t border-slate-50"></div>
+                    <div 
+                      onClick={() => { setFormType("income"); setIsTypeDropdownOpen(false); }}
+                      className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors group"
+                    >
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">Pemasukan</span>
+                      {formType === "income" && <Check className="w-4 h-4 text-[#00685F]" />}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Transactions count */}
