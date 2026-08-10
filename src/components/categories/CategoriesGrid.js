@@ -14,21 +14,40 @@ import {
   Briefcase,
   DollarSign,
   TrendingUp,
-  PlusCircle
+  PlusCircle,
+  Banknote,
+  Wallet,
+  Gift,
+  Coins,
+  FileText,
+  Gamepad2,
+  HeartPulse,
+  MoreHorizontal
 } from "lucide-react";
 import { useState } from "react";
 
 const iconMap = {
-  utensils: Utensils,
-  car: Car,
-  shopping: ShoppingBag,
-  film: Film,
-  medical: PlusSquare,
-  home: Home,
-  graduation: GraduationCap,
-  briefcase: Briefcase,
-  dollar: DollarSign,
-  trending: TrendingUp
+  "utensils": Utensils,
+  "car": Car,
+  "shopping-bag": ShoppingBag,
+  "shopping": ShoppingBag,
+  "film": Film,
+  "medical": PlusSquare,
+  "home": Home,
+  "graduation-cap": GraduationCap,
+  "graduation": GraduationCap,
+  "briefcase": Briefcase,
+  "dollar": DollarSign,
+  "trending-up": TrendingUp,
+  "trending": TrendingUp,
+  "banknote": Banknote,
+  "wallet": Wallet,
+  "gift": Gift,
+  "coins": Coins,
+  "file-text": FileText,
+  "gamepad-2": Gamepad2,
+  "heart-pulse": HeartPulse,
+  "more-horizontal": MoreHorizontal
 };
 
 const colorMap = {
@@ -49,8 +68,7 @@ export default function CategoriesGrid({
   openAddModal,
   viewMode,
   showCreateCard,
-  isTransitioning,
-  handleQuickTransaction
+  isTransitioning
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
 
@@ -129,12 +147,6 @@ export default function CategoriesGrid({
                 <div className="space-y-2 select-none pt-1">
                   <div className="flex justify-between items-center text-[10px] font-black">
                     <span className="text-gray-400 uppercase tracking-widest">Realisasi Anggaran</span>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleQuickTransaction(cat.id); }}
-                      className="text-[#00685F] hover:text-[#004D46] hover:underline flex items-center gap-0.5 cursor-pointer font-extrabold"
-                    >
-                      +1 Transaksi
-                    </button>
                   </div>
                   <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100/50">
                     <div 
@@ -210,24 +222,8 @@ export default function CategoriesGrid({
                     <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-xl border border-slate-100 select-none">
                       {cat.transactions} Transaksi
                     </span>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleQuickTransaction(cat.id); }}
-                      className="text-xs font-black text-[#00685F] hover:bg-[#E6F0EF] w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer border border-[#00685F]/15"
-                      title="Simulasi 1 Transaksi Tambahan"
-                    >
-                      +
-                    </button>
                   </div>
-
                   <div className="flex items-center gap-2 select-none">
-                    {/* Mobile transaction incrementor */}
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleQuickTransaction(cat.id); }}
-                      className="sm:hidden text-[9px] font-black text-[#00685F] bg-[#E6F0EF] px-2 py-1 rounded-lg border border-[#00685F]/10 cursor-pointer"
-                      title="Simulasi 1 Transaksi"
-                    >
-                      +1 Trans
-                    </button>
 
                     <div className="hidden sm:block w-28 bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100/50">
                       <div 
