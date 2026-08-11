@@ -213,11 +213,11 @@ export default function GoalsPage() {
       };
       
       if (depositActionType === "deposit") {
-        await depositGoal(activeDepositGoal.id, payload);
-        triggerToast(`Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${activeDepositGoal.name}! 💰`);
+        const res = await depositGoal(activeDepositGoal.id, payload);
+        triggerToast(res.message || `Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${activeDepositGoal.name}! 💰`);
       } else {
-        await withdrawGoal(activeDepositGoal.id, payload);
-        triggerToast(`Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${activeDepositGoal.name}! 🏧`);
+        const res = await withdrawGoal(activeDepositGoal.id, payload);
+        triggerToast(res.message || `Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${activeDepositGoal.name}! 🏧`);
       }
       
       fetchGoalsData();
