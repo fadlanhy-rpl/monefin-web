@@ -20,6 +20,7 @@ import {
   Home
 } from "lucide-react";
 import { getGoals } from "../../../../services/goal.service";
+import GoalDetailModal from "../../../../components/goals/GoalDetailModal";
 
 const iconMap = {
   laptop: Laptop,
@@ -37,6 +38,7 @@ export default function AchievedGoalsPage() {
   const [achievedGoals, setAchievedGoals] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selectedGoal, setSelectedGoal] = useState(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -176,7 +178,8 @@ export default function AchievedGoalsPage() {
                 return (
                   <div 
                     key={g.id}
-                    className="bg-white p-6 sm:p-7 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden flex flex-col justify-between space-y-5"
+                    onClick={() => setSelectedGoal(g)}
+                    className="bg-white p-6 sm:p-7 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden flex flex-col justify-between space-y-5 cursor-pointer select-none hover:border-[#00685F]/30"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -185,7 +188,7 @@ export default function AchievedGoalsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight">{g.name}</h3>
+                            <h3 className="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight group-hover:text-[#00685F] transition-colors">{g.name}</h3>
                           </div>
                           <p className="text-xs font-semibold text-slate-400 truncate mt-0.5">{g.description || "Target tabungan impian"}</p>
                         </div>
@@ -212,6 +215,13 @@ export default function AchievedGoalsPage() {
           )}
         </div>
       </div>
+
+      {/* Goal Detail Modal */}
+      <GoalDetailModal 
+        isOpen={Boolean(selectedGoal)}
+        onClose={() => setSelectedGoal(null)}
+        goal={selectedGoal}
+      />
     </DashboardLayout>
   );
 }

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { ChevronRight, Plane, GraduationCap, Trophy } from "lucide-react";
 import Link from "next/link";
+import GoalDetailModal from "./GoalDetailModal";
 
 // Icon mapper for achieved goals
 function getAchievedIcon(iconType) {
@@ -13,6 +15,8 @@ function getAchievedIcon(iconType) {
 export default function AchievedGoals({
   achievedGoals
 }) {
+  const [selectedGoal, setSelectedGoal] = useState(null);
+
   return (
     <div className="space-y-6 pt-4">
       <div className="flex justify-between items-center select-none">
@@ -36,14 +40,15 @@ export default function AchievedGoals({
           return (
           <div 
             key={mappedGoal.id} 
-            className="bg-white p-4 sm:p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between gap-3 group transition-all hover:border-[#00685F]/20 hover:shadow-sm"
+            onClick={() => setSelectedGoal(ag)}
+            className="bg-white p-4 sm:p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between gap-3 group transition-all hover:border-[#00685F]/30 hover:shadow-md cursor-pointer select-none"
           >
             <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
               <div className="w-11 h-11 sm:w-14 sm:h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-[#E6F0EF] group-hover:text-[#00685F] transition-all shrink-0">
                 {getAchievedIcon(mappedGoal.iconType)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-bold text-slate-900 text-sm sm:text-base truncate leading-tight">{mappedGoal.title}</p>
+                <p className="font-bold text-slate-900 text-sm sm:text-base truncate leading-tight group-hover:text-[#00685F] transition-colors">{mappedGoal.title}</p>
                 <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 italic truncate mt-0.5 select-none">Completed on {mappedGoal.completedDate}</p>
               </div>
             </div>
@@ -57,6 +62,13 @@ export default function AchievedGoals({
           );
         })}
       </div>
+
+      {/* Goal Detail Modal */}
+      <GoalDetailModal 
+        isOpen={Boolean(selectedGoal)}
+        onClose={() => setSelectedGoal(null)}
+        goal={selectedGoal}
+      />
     </div>
   );
 }
