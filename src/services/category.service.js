@@ -11,14 +11,14 @@ export const getCategories = async (type = "") => {
 export const createCategory = async (categoryData) => {
   return await fetchAPI("/categories", {
     method: "POST",
-    body: JSON.stringify(categoryData),
+    body: categoryData,
   });
 };
 
 export const updateCategory = async (id, categoryData) => {
   return await fetchAPI(`/categories/${id}`, {
     method: "PUT",
-    body: JSON.stringify(categoryData),
+    body: categoryData,
   });
 };
 

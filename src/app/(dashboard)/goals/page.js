@@ -10,55 +10,21 @@ import GoalModal from "../../../components/goals/GoalModal";
 import DepositModal from "../../../components/goals/DepositModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { CheckCircle2 } from "lucide-react";
+import { getGoals, createGoal, updateGoal, deleteGoal, depositGoal, withdrawGoal } from "../../../services/goal.service";
+import { getAccounts } from "../../../services/account.service";
 
 export default function GoalsPage() {
   const [isVisible, setIsVisible] = useState(false);
 
   // Active Goals State
-  const [goals, setGoals] = useState([
-    {
-      id: 1,
-      title: "Beli Laptop Baru",
-      subtitle: "Target Reward untuk Pencapaian Karier",
-      current: 3200000,
-      target: 5000000,
-      deadlineDate: "31 Des 2026",
-      deadlineText: "5 bln lagi",
-      type: "linear",
-      icon: "laptop"
-    },
-    {
-      id: 2,
-      title: "Dana Darurat",
-      tag: "Safety",
-      current: 7500000,
-      target: 10000000,
-      statusText: "Stable",
-      deadlineDate: "Ongoing",
-      type: "circular",
-      icon: "shield"
-    }
-  ]);
+  const [goals, setGoals] = useState([]);
 
   // Achieved Goals State
-  const [achievedGoals, setAchievedGoals] = useState([
-    {
-      id: 101,
-      title: "Liburan ke Jepang",
-      completedDate: "15 May 2024",
-      amount: 15000000,
-      badge: "VERIFIED",
-      iconType: "plane"
-    },
-    {
-      id: 102,
-      title: "Sertifikasi Cloud Arch",
-      completedDate: "02 Feb 2024",
-      amount: 3500000,
-      badge: "VERIFIED",
-      iconType: "graduation-cap"
-    }
-  ]);
+  const [achievedGoals, setAchievedGoals] = useState([]);
+
+  // Accounts State for Deposit / Withdraw
+  const [accounts, setAccounts] = useState([]);
+  const [selectedAccountId, setSelectedAccountId] = useState("");
 
   // Toast State
   const [toastMessage, setToastMessage] = useState("");
@@ -82,14 +48,41 @@ export default function GoalsPage() {
   const [formTag, setFormTag] = useState("Safety");
   const [formIcon, setFormIcon] = useState("target");
 
-  // Modal States - Deposit
+  // Modal States - Deposit & Withdraw
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  const [depositGoal, setDepositGoal] = useState(null);
+  const [activeDepositGoal, setActiveDepositGoal] = useState(null);
   const [depositAmount, setDepositAmount] = useState("");
+  const [depositActionType, setDepositActionType] = useState("deposit"); // "deposit" | "withdraw"
 
   useEffect(() => {
     setIsVisible(true);
+    fetchGoalsData();
+    fetchAccountsData();
   }, []);
+
+  const fetchGoalsData = async () => {
+    try {
+      const res = await getGoals();
+      const allGoals = res.data;
+      setGoals(allGoals.filter(g => !g.is_achieved));
+      setAchievedGoals(allGoals.filter(g => g.is_achieved));
+    } catch (error) {
+      console.error("Failed to fetch goals:", error);
+    }
+  };
+
+  const fetchAccountsData = async () => {
+    try {
+      const res = await getAccounts();
+      const accs = res.data || [];
+      setAccounts(accs);
+      if (accs.length > 0 && !selectedAccountId) {
+        setSelectedAccountId(String(accs[0].id));
+      }
+    } catch (error) {
+      console.error("Failed to fetch accounts:", error);
+    }
+  };
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -104,8 +97,7 @@ export default function GoalsPage() {
     setFormSubtitle("");
     setFormTarget("");
     setFormCurrent("");
-    setFormDeadlineDate("31 Des 2026");
-    setFormDeadlineText("5 bln lagi");
+    setFormDeadlineDate("");
     setFormType("linear");
     setFormTag("Safety");
     setFormIcon("target");
@@ -116,14 +108,13 @@ export default function GoalsPage() {
   const openEditModal = (g) => {
     setModalMode("edit");
     setEditingGoal(g);
-    setFormTitle(g.title);
-    setFormSubtitle(g.subtitle || "");
-    setFormTarget(String(g.target));
-    setFormCurrent(String(g.current));
-    setFormDeadlineDate(g.deadlineDate || "");
-    setFormDeadlineText(g.deadlineText || "");
-    setFormType(g.type);
-    setFormTag(g.tag || "Safety");
+    setFormTitle(g.name);
+    setFormSubtitle(g.description || "");
+    setFormTarget(String(g.target_amount));
+    setFormCurrent(String(g.current_amount));
+    setFormDeadlineDate(g.deadline || "");
+    setFormType(g.layout_type || "linear");
+    setFormTag(g.color || "blue");
     setFormIcon(g.icon || "target");
     setIsGoalModalOpen(true);
   };
@@ -134,97 +125,121 @@ export default function GoalsPage() {
     setIsConfirmOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deletingId) return;
-    setGoals(prev => prev.filter(g => g.id !== deletingId));
-    triggerToast("Target tabungan berhasil dihapus.");
-    setIsConfirmOpen(false);
-    setDeletingId(null);
+    try {
+      await deleteGoal(deletingId);
+      setGoals(prev => prev.filter(g => g.id !== deletingId));
+      triggerToast("Target tabungan berhasil dihapus.");
+    } catch (error) {
+      console.error("Failed to delete goal:", error);
+      triggerToast(error?.response?.data?.message || "Gagal menghapus goal.");
+    } finally {
+      setIsConfirmOpen(false);
+      setDeletingId(null);
+    }
   };
 
   // Submit Goal Form
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const targetVal = parseInt(formTarget, 10);
-    const currentVal = parseInt(formCurrent, 10) || 0;
+    const targetVal = parseFloat(formTarget) || 0;
+    const currentVal = parseFloat(formCurrent) || 0;
 
-    if (isNaN(targetVal) || targetVal <= 0) {
+    if (targetVal <= 0) {
       alert("Target nominal harus bernilai positif!");
       return;
     }
 
-    if (modalMode === "add") {
-      const newGoal = {
-        id: Date.now(),
-        title: formTitle,
-        subtitle: formSubtitle || "Target tabungan kustom",
-        current: currentVal,
-        target: targetVal,
-        deadlineDate: formDeadlineDate || "Ongoing",
-        deadlineText: formDeadlineText || "Ongoing",
-        type: formType,
-        tag: formTag || "Savings",
-        statusText: "Stable",
-        icon: formIcon
-      };
-      setGoals(prev => [...prev, newGoal]);
-      triggerToast("Target tabungan baru berhasil dibuat!");
-    } else {
-      setGoals(prev => prev.map(g => g.id === editingGoal.id ? {
-        ...g,
-        title: formTitle,
-        subtitle: formSubtitle,
-        current: currentVal,
-        target: targetVal,
-        deadlineDate: formDeadlineDate,
-        deadlineText: formDeadlineText,
-        type: formType,
-        tag: formTag,
-        icon: formIcon
-      } : g));
-      triggerToast("Target tabungan berhasil diperbarui!");
-    }
+    const payload = {
+      name: formTitle,
+      description: formSubtitle || "Target tabungan",
+      current_amount: currentVal,
+      target_amount: targetVal,
+      deadline: formDeadlineDate || null,
+      layout_type: formType,
+      color: formTag || "blue",
+      icon: formIcon
+    };
 
-    setIsGoalModalOpen(false);
+    try {
+      if (modalMode === "add") {
+        await createGoal(payload);
+        triggerToast("Target tabungan baru berhasil dibuat!");
+      } else {
+        await updateGoal(editingGoal.id, payload);
+        triggerToast("Target tabungan berhasil diperbarui!");
+      }
+      fetchGoalsData();
+      setIsGoalModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save goal:", error);
+      triggerToast(error?.response?.data?.message || "Gagal menyimpan goal.");
+    }
   };
 
-  // Open Deposit Modal
-  const openDepositModal = (g) => {
-    setDepositGoal(g);
+  // Open Deposit / Withdraw Modal
+  const openDepositModal = (g, mode = "deposit") => {
+    setActiveDepositGoal(g);
     setDepositAmount("");
+    setDepositActionType(mode);
+    if (accounts.length > 0 && !selectedAccountId) {
+      setSelectedAccountId(String(accounts[0].id));
+    }
     setIsDepositModalOpen(true);
   };
 
-  // Submit Deposit Form
-  const handleDepositSubmit = (e) => {
+  // Submit Deposit / Withdraw Form
+  const handleDepositSubmit = async (e) => {
     e.preventDefault();
-    const amt = parseInt(depositAmount, 10);
+    const amt = parseFloat(depositAmount) || 0;
 
-    if (isNaN(amt) || amt <= 0) {
-      alert("Jumlah deposit harus berupa angka positif!");
+    if (amt <= 0) {
+      alert("Nominal transaksi harus bernilai positif!");
       return;
     }
 
-    setGoals(prev => prev.map(g => {
-      if (g.id === depositGoal.id) {
-        const nextCurrent = g.current + amt;
-        
-        // If target achieved, we can trigger success message
-        if (nextCurrent >= g.target) {
-          triggerToast(`Selamat! Target "${g.title}" telah tercapai! 🎉`);
-        } else {
-          triggerToast(`Berhasil menyimpan Rp ${amt.toLocaleString("id-ID")} ke ${g.title}!`);
-        }
+    if (!selectedAccountId) {
+      alert("Pilih akun keuangan terlebih dahulu!");
+      return;
+    }
 
-        return {
-          ...g,
-          current: nextCurrent
-        };
+    if (!activeDepositGoal) return;
+
+    try {
+      const payload = {
+        account_id: selectedAccountId,
+        amount: amt
+      };
+      
+      if (depositActionType === "deposit") {
+        const res = await depositGoal(activeDepositGoal.id, payload);
+        triggerToast(res.message || `Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${activeDepositGoal.name}! 💰`);
+      } else {
+        const res = await withdrawGoal(activeDepositGoal.id, payload);
+        triggerToast(res.message || `Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${activeDepositGoal.name}! 🏧`);
       }
-      return g;
-    }));
+      
+      fetchGoalsData();
+      fetchAccountsData();
+      setIsDepositModalOpen(false);
+    } catch (error) {
+      console.error("Failed to process deposit/withdraw:", error);
+      triggerToast(error?.response?.data?.message || "Transaksi gagal.");
+    }
+  };
 
-    setIsDepositModalOpen(false);
+  // Toggle Pin Goal
+  const handleTogglePin = async (g) => {
+    try {
+      const newPinnedState = !g.is_pinned;
+      await updateGoal(g.id, { is_pinned: newPinnedState });
+      triggerToast(newPinnedState ? "Target disematkan di Halaman 1!" : "Sematkan target dilepas.");
+      fetchGoalsData();
+    } catch (error) {
+      console.error("Failed to toggle pin:", error);
+      triggerToast("Gagal mengubah status semat.");
+    }
   };
 
   return (
@@ -245,6 +260,7 @@ export default function GoalsPage() {
             openEditModal={openEditModal}
             handleDelete={handleDeleteClick}
             openDepositModal={openDepositModal}
+            handleTogglePin={handleTogglePin}
           />
         </div>
 
@@ -299,13 +315,18 @@ export default function GoalsPage() {
         setFormIcon={setFormIcon}
       />
 
-      {/* Deposit Modal */}
+      {/* Deposit & Withdraw Modal */}
       <DepositModal 
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
-        goal={depositGoal}
+        goal={activeDepositGoal}
+        accounts={accounts}
+        selectedAccountId={selectedAccountId}
+        setSelectedAccountId={setSelectedAccountId}
         depositAmount={depositAmount}
         setDepositAmount={setDepositAmount}
+        actionType={depositActionType}
+        setActionType={setDepositActionType}
         handleDepositSubmit={handleDepositSubmit}
       />
 

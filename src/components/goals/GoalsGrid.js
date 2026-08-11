@@ -17,9 +17,12 @@ import {
   CheckCircle,
   Sparkles,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  Pin
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const iconMap = {
   laptop: Laptop,
@@ -36,10 +39,12 @@ export default function GoalsGrid({
   goals,
   openEditModal,
   handleDelete,
-  openDepositModal
+  openDepositModal,
+  handleTogglePin
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [showInsightId, setShowInsightId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const toggleMenu = (id) => {
     setActiveMenuId(activeMenuId === id ? null : id);
@@ -68,11 +73,101 @@ export default function GoalsGrid({
     return `Dengan laju menabung rata-rata Rp 850.000/bln saat ini, Anda membutuhkan sekitar ${months} bulan lagi untuk mencapai target Rp ${g.target.toLocaleString("id-ID")}. Tetap semangat! 💪`;
   };
 
-  const leftGoal = goals[0];
-  const rightGoal = goals[1];
+  const getDeadlineText = (deadline) => {
+    if (!deadline) return "Ongoing";
+    const now = new Date();
+    const d = new Date(deadline);
+    const months = (d.getFullYear() - now.getFullYear()) * 12 + d.getMonth() - now.getMonth();
+    if (months <= 0) return "Bulan ini";
+    return `${months} bln lagi`;
+  };
+
+  const mapGoal = (g) => {
+    if (!g) return null;
+    return {
+      ...g,
+      title: g.name,
+      subtitle: g.description,
+      current: parseFloat(g.current_amount) || 0,
+      target: parseFloat(g.target_amount) || 0,
+      deadlineDate: g.deadline ? new Date(g.deadline).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : "Ongoing",
+      deadlineText: getDeadlineText(g.deadline),
+      type: g.layout_type || "linear",
+      tag: g.color || "Safety",
+      icon: g.icon || "target",
+      is_pinned: Boolean(g.is_pinned),
+      statusText: (parseFloat(g.current_amount) >= parseFloat(g.target_amount)) ? "Achieved" : "Stable"
+    };
+  };
+
+  const mappedGoals = goals.map(mapGoal);
+
+  // Pinning logic: Priority Page 1 slot assignment
+  const pinnedLinear = mappedGoals.find(g => g.is_pinned && g.type === "linear");
+  const pinnedCircular = mappedGoals.find(g => g.is_pinned && g.type === "circular");
+
+  // Page 1 slots
+  const page1Left = pinnedLinear || mappedGoals.find(g => g.type === "linear") || mappedGoals[0];
+  const page1Right = pinnedCircular || mappedGoals.find(g => g.id !== page1Left?.id && g.type === "circular") || mappedGoals.find(g => g.id !== page1Left?.id);
+
+  const page1Goals = [page1Left, page1Right].filter(Boolean);
+  const page1Ids = new Set(page1Goals.map(g => g.id));
+
+  // Remaining goals for page 2+
+  const otherGoals = mappedGoals.filter(g => !page1Ids.has(g.id));
+
+  const itemsPerPage = 2;
+  const totalPages = 1 + Math.ceil(otherGoals.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage >= totalPages && totalPages > 0) {
+      setCurrentPage(totalPages - 1);
+    }
+  }, [mappedGoals.length, totalPages, currentPage]);
+
+  let currentGoals = [];
+  if (currentPage === 0) {
+    currentGoals = page1Goals;
+  } else {
+    currentGoals = otherGoals.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  }
+
+  const leftGoal = currentGoals.find(g => g?.type === "linear") || currentGoals[0];
+  const rightGoal = currentGoals.find(g => g?.id !== leftGoal?.id);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+    <div className="space-y-4">
+      {/* Pagination Slider Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-1 select-none">
+          <div className="text-xs font-bold text-slate-400">
+            Menampilkan {currentPage * itemsPerPage + 1} - {Math.min((currentPage + 1) * itemsPerPage, mappedGoals.length)} dari {mappedGoals.length} Target Aktif
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button"
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              className={`p-2 rounded-xl border border-slate-200 transition flex items-center justify-center ${currentPage === 0 ? "opacity-40 cursor-not-allowed bg-slate-50 text-slate-300" : "bg-white text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs"}`}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-extrabold text-slate-800 px-1">
+              Halaman {currentPage + 1} / {totalPages}
+            </span>
+            <button 
+              type="button"
+              disabled={currentPage >= totalPages - 1}
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              className={`p-2 rounded-xl border border-slate-200 transition flex items-center justify-center ${currentPage >= totalPages - 1 ? "opacity-40 cursor-not-allowed bg-slate-50 text-slate-300" : "bg-white text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs"}`}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       {/* MAIN GOAL CARD (Left) */}
       {leftGoal ? (
         <div className="lg:col-span-2 bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6 sm:space-y-10 hover:shadow-md transition-all duration-300 relative group overflow-hidden">
@@ -83,7 +178,14 @@ export default function GoalsGrid({
                 {renderGoalIcon(leftGoal.icon || "laptop")}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate leading-tight">{leftGoal.title}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate leading-tight">{leftGoal.title}</h3>
+                  {leftGoal.is_pinned && (
+                    <span className="bg-amber-50 text-amber-600 text-[10px] font-black px-2 py-0.5 rounded-lg border border-amber-200/60 flex items-center gap-1 shrink-0 select-none">
+                      <Pin className="w-3 h-3 fill-amber-600 rotate-45" /> PINNED
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-400 font-semibold text-xs sm:text-sm truncate mt-0.5">{leftGoal.subtitle}</p>
               </div>
             </div>
@@ -108,7 +210,14 @@ export default function GoalsGrid({
                   <MoreHorizontal className="w-5 h-5" />
                 </button>
                 {activeMenuId === leftGoal.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                    <button 
+                      onClick={() => { handleTogglePin(leftGoal); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Pin className={`w-3.5 h-3.5 ${leftGoal.is_pinned ? "text-amber-500 fill-amber-500" : "text-slate-400"}`} /> 
+                      {leftGoal.is_pinned ? "Lepas Semat" : "Sematkan"}
+                    </button>
                     <button 
                       onClick={() => { openEditModal(leftGoal); setActiveMenuId(null); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
@@ -159,16 +268,22 @@ export default function GoalsGrid({
               ></div>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button 
-                onClick={() => openDepositModal(leftGoal)}
-                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2.5 transition-all duration-150 active:scale-[0.98] cursor-pointer shadow-md text-sm select-none"
+                onClick={() => openDepositModal(leftGoal, "deposit")}
+                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-md text-sm select-none"
               >
-                <CreditCard className="w-4.5 h-4.5" /> Deposit Savings
+                <CreditCard className="w-4.5 h-4.5" /> Setor Tabungan
+              </button>
+              <button 
+                onClick={() => openDepositModal(leftGoal, "withdraw")}
+                className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/70 px-4 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer text-sm select-none shrink-0"
+              >
+                Tarik Dana
               </button>
               <button 
                 onClick={() => toggleInsight(leftGoal.id)}
-                className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-900 px-6 py-3.5 rounded-2xl font-bold border border-slate-100 transition-colors active:scale-[0.98] cursor-pointer text-sm select-none"
+                className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-900 px-5 py-3.5 rounded-2xl font-bold border border-slate-100 transition-colors active:scale-[0.98] cursor-pointer text-sm select-none shrink-0"
               >
                 <BarChart2 className="w-4.5 h-4.5 text-[#00685F]" /> 
                 <span>Insight</span>
@@ -199,8 +314,17 @@ export default function GoalsGrid({
       {/* SIDE GOAL CARD (Right - Circular Progress Card) */}
       {rightGoal ? (
         <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 relative group overflow-hidden">
-          <div className="flex justify-between items-center gap-2">
-            <h3 className="font-extrabold text-slate-900 text-base sm:text-lg truncate flex-1">{rightGoal.title}</h3>
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0 flex-1 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h3 className="font-extrabold text-slate-900 text-base sm:text-lg truncate">{rightGoal.title}</h3>
+                {rightGoal.is_pinned && (
+                  <span className="bg-amber-50 text-amber-600 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-amber-200/60 flex items-center gap-0.5 shrink-0 select-none">
+                    <Pin className="w-2.5 h-2.5 fill-amber-600 rotate-45" /> PINNED
+                  </span>
+                )}
+              </div>
+            </div>
             <div className="flex items-center gap-1.5 shrink-0 select-none">
               <span className="bg-[#00685F]/5 text-[#00685F] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter">
                 {rightGoal.tag || "Safety"}
@@ -215,7 +339,14 @@ export default function GoalsGrid({
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {activeMenuId === rightGoal.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                    <button 
+                      onClick={() => { handleTogglePin(rightGoal); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Pin className={`w-3.5 h-3.5 ${rightGoal.is_pinned ? "text-amber-500 fill-amber-500" : "text-slate-400"}`} /> 
+                      {rightGoal.is_pinned ? "Lepas Semat" : "Sematkan"}
+                    </button>
                     <button 
                       onClick={() => { openEditModal(rightGoal); setActiveMenuId(null); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
@@ -290,12 +421,20 @@ export default function GoalsGrid({
               <span className="text-gray-400 font-bold">Deadline: {rightGoal.deadlineDate || "Ongoing"}</span>
               <span className="text-[#00685F] font-black uppercase tracking-wider text-[9px]">High Priority</span>
             </div>
-            <button 
-              onClick={() => openDepositModal(rightGoal)}
-              className="w-full border-2 border-[#00685F] text-[#00685F] hover:bg-[#00685F] hover:text-white py-3 rounded-xl font-bold transition-all active:scale-[0.97] cursor-pointer text-sm select-none"
-            >
-              Update Saldo
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button 
+                onClick={() => openDepositModal(rightGoal, "deposit")}
+                className="border-2 border-[#00685F] bg-[#00685F] text-white hover:bg-[#004D46] hover:border-[#004D46] py-2.5 rounded-xl font-bold transition-all active:scale-[0.97] cursor-pointer text-xs select-none"
+              >
+                Setor Tabungan
+              </button>
+              <button 
+                onClick={() => openDepositModal(rightGoal, "withdraw")}
+                className="border border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 py-2.5 rounded-xl font-bold transition-all active:scale-[0.97] cursor-pointer text-xs select-none"
+              >
+                Tarik Dana
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -303,6 +442,7 @@ export default function GoalsGrid({
           Belum ada Target Cadangan. Buat baru!
         </div>
       )}
+    </div>
     </div>
   );
 }
