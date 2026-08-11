@@ -17,9 +17,11 @@ import {
   CheckCircle,
   Sparkles,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const iconMap = {
   laptop: Laptop,
@@ -40,6 +42,9 @@ export default function GoalsGrid({
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [showInsightId, setShowInsightId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const itemsPerPage = 2;
 
   const toggleMenu = (id) => {
     setActiveMenuId(activeMenuId === id ? null : id);
@@ -95,11 +100,51 @@ export default function GoalsGrid({
   };
 
   const mappedGoals = goals.map(mapGoal);
-  const leftGoal = mappedGoals.find(g => g.type === "linear") || mappedGoals[0];
-  const rightGoal = mappedGoals.find(g => g.id !== leftGoal?.id) || mappedGoals[1];
+  const totalPages = Math.ceil(mappedGoals.length / itemsPerPage) || 1;
+
+  useEffect(() => {
+    if (currentPage >= totalPages && totalPages > 0) {
+      setCurrentPage(totalPages - 1);
+    }
+  }, [mappedGoals.length, totalPages, currentPage]);
+
+  const currentGoals = mappedGoals.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+  const leftGoal = currentGoals.find(g => g.type === "linear") || currentGoals[0];
+  const rightGoal = currentGoals.find(g => g.id !== leftGoal?.id);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+    <div className="space-y-4">
+      {/* Pagination Slider Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-1 select-none">
+          <div className="text-xs font-bold text-slate-400">
+            Menampilkan {currentPage * itemsPerPage + 1} - {Math.min((currentPage + 1) * itemsPerPage, mappedGoals.length)} dari {mappedGoals.length} Target Aktif
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button"
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              className={`p-2 rounded-xl border border-slate-200 transition flex items-center justify-center ${currentPage === 0 ? "opacity-40 cursor-not-allowed bg-slate-50 text-slate-300" : "bg-white text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs"}`}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-extrabold text-slate-800 px-1">
+              Halaman {currentPage + 1} / {totalPages}
+            </span>
+            <button 
+              type="button"
+              disabled={currentPage >= totalPages - 1}
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              className={`p-2 rounded-xl border border-slate-200 transition flex items-center justify-center ${currentPage >= totalPages - 1 ? "opacity-40 cursor-not-allowed bg-slate-50 text-slate-300" : "bg-white text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs"}`}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       {/* MAIN GOAL CARD (Left) */}
       {leftGoal ? (
         <div className="lg:col-span-2 bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6 sm:space-y-10 hover:shadow-md transition-all duration-300 relative group overflow-hidden">
@@ -330,6 +375,7 @@ export default function GoalsGrid({
           Belum ada Target Cadangan. Buat baru!
         </div>
       )}
+    </div>
     </div>
   );
 }
