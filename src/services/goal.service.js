@@ -24,3 +24,17 @@ export const deleteGoal = async (id) => {
     method: "DELETE",
   });
 };
+
+export const depositGoal = async (id, payload) => {
+  return await fetchAPI(`/goals/${id}/deposit`, {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const withdrawGoal = async (id, payload) => {
+  return await fetchAPI(`/goals/${id}/withdraw`, {
+    method: "POST",
+    body: payload,
+  });
+};

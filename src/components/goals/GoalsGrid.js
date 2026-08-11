@@ -268,16 +268,22 @@ export default function GoalsGrid({
               ></div>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button 
-                onClick={() => openDepositModal(leftGoal)}
-                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2.5 transition-all duration-150 active:scale-[0.98] cursor-pointer shadow-md text-sm select-none"
+                onClick={() => openDepositModal(leftGoal, "deposit")}
+                className="flex-1 bg-[#1A1A1A] hover:bg-black text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-md text-sm select-none"
               >
-                <CreditCard className="w-4.5 h-4.5" /> Deposit Savings
+                <CreditCard className="w-4.5 h-4.5" /> Setor Tabungan
+              </button>
+              <button 
+                onClick={() => openDepositModal(leftGoal, "withdraw")}
+                className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/70 px-4 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer text-sm select-none shrink-0"
+              >
+                Tarik Dana
               </button>
               <button 
                 onClick={() => toggleInsight(leftGoal.id)}
-                className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-900 px-6 py-3.5 rounded-2xl font-bold border border-slate-100 transition-colors active:scale-[0.98] cursor-pointer text-sm select-none"
+                className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-900 px-5 py-3.5 rounded-2xl font-bold border border-slate-100 transition-colors active:scale-[0.98] cursor-pointer text-sm select-none shrink-0"
               >
                 <BarChart2 className="w-4.5 h-4.5 text-[#00685F]" /> 
                 <span>Insight</span>
@@ -415,12 +421,20 @@ export default function GoalsGrid({
               <span className="text-gray-400 font-bold">Deadline: {rightGoal.deadlineDate || "Ongoing"}</span>
               <span className="text-[#00685F] font-black uppercase tracking-wider text-[9px]">High Priority</span>
             </div>
-            <button 
-              onClick={() => openDepositModal(rightGoal)}
-              className="w-full border-2 border-[#00685F] text-[#00685F] hover:bg-[#00685F] hover:text-white py-3 rounded-xl font-bold transition-all active:scale-[0.97] cursor-pointer text-sm select-none"
-            >
-              Update Saldo
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button 
+                onClick={() => openDepositModal(rightGoal, "deposit")}
+                className="border-2 border-[#00685F] bg-[#00685F] text-white hover:bg-[#004D46] hover:border-[#004D46] py-2.5 rounded-xl font-bold transition-all active:scale-[0.97] cursor-pointer text-xs select-none"
+              >
+                Setor Tabungan
+              </button>
+              <button 
+                onClick={() => openDepositModal(rightGoal, "withdraw")}
+                className="border border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 py-2.5 rounded-xl font-bold transition-all active:scale-[0.97] cursor-pointer text-xs select-none"
+              >
+                Tarik Dana
+              </button>
+            </div>
           </div>
         </div>
       ) : (
