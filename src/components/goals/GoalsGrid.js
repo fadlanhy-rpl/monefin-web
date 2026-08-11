@@ -68,8 +68,34 @@ export default function GoalsGrid({
     return `Dengan laju menabung rata-rata Rp 850.000/bln saat ini, Anda membutuhkan sekitar ${months} bulan lagi untuk mencapai target Rp ${g.target.toLocaleString("id-ID")}. Tetap semangat! 💪`;
   };
 
-  const leftGoal = goals[0];
-  const rightGoal = goals[1];
+  const getDeadlineText = (deadline) => {
+    if (!deadline) return "Ongoing";
+    const now = new Date();
+    const d = new Date(deadline);
+    const months = (d.getFullYear() - now.getFullYear()) * 12 + d.getMonth() - now.getMonth();
+    if (months <= 0) return "Bulan ini";
+    return `${months} bln lagi`;
+  };
+
+  const mapGoal = (g) => {
+    if (!g) return null;
+    return {
+      ...g,
+      title: g.name,
+      subtitle: g.description,
+      current: parseFloat(g.current_amount) || 0,
+      target: parseFloat(g.target_amount) || 0,
+      deadlineDate: g.deadline ? new Date(g.deadline).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : "Ongoing",
+      deadlineText: getDeadlineText(g.deadline),
+      type: g.layout_type || "linear",
+      tag: g.color || "Safety",
+      icon: g.icon || "target",
+      statusText: (parseFloat(g.current_amount) >= parseFloat(g.target_amount)) ? "Achieved" : "Stable"
+    };
+  };
+
+  const leftGoal = mapGoal(goals[0]);
+  const rightGoal = mapGoal(goals[1]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">

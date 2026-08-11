@@ -7,8 +7,16 @@ import {
   Shield, 
   Heart, 
   Car, 
-  Home 
+  Home,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Calendar as CalendarIcon,
+  BarChart2,
+  PieChart
 } from "lucide-react";
+import { useState } from "react";
 
 const iconsList = [
   { id: "laptop", label: "Laptop", icon: Laptop },
@@ -19,6 +27,11 @@ const iconsList = [
   { id: "heart", label: "Sosial", icon: Heart },
   { id: "car", label: "Kendaraan", icon: Car },
   { id: "home", label: "Properti", icon: Home }
+];
+
+const MONTH_NAMES = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
 export default function GoalModal({
@@ -36,8 +49,6 @@ export default function GoalModal({
   setFormCurrent,
   formDeadlineDate,
   setFormDeadlineDate,
-  formDeadlineText,
-  setFormDeadlineText,
   formType,
   setFormType,
   formTag,
@@ -45,6 +56,17 @@ export default function GoalModal({
   formIcon,
   setFormIcon
 }) {
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const [viewDate, setViewDate] = useState(() => {
+    if (formDeadlineDate) {
+      const d = new Date(formDeadlineDate);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return new Date();
+  });
+
   // Format thousand separator
   const formatThousand = (val) => {
     if (val === undefined || val === null || val === "") return "";
@@ -63,7 +85,34 @@ export default function GoalModal({
     setFormCurrent(rawDigits);
   };
 
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return dateStr;
+    const y = parts[0];
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    if (isNaN(m) || isNaN(d)) return dateStr;
+    return `${d} ${MONTH_NAMES[m]} ${y}`;
+  };
+
   if (!isOpen) return null;
+
+  // Calendar calculations
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDayIndex = new Date(year, month, 1).getDay(); // 0 = Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  const handlePrevMonth = () => {
+    setViewDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setViewDate(new Date(year, month + 1, 1));
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -74,6 +123,7 @@ export default function GoalModal({
             {modalMode === "add" ? "Buat Target Baru" : "Edit Target Tabungan"}
           </h3>
           <button 
+            type="button"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-xl cursor-pointer"
           >
@@ -108,7 +158,7 @@ export default function GoalModal({
             />
           </div>
 
-          {/* Icon Picker (Premium Interactive Element) */}
+          {/* Icon Picker */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Pilih Ikon Target</label>
             <div className="grid grid-cols-4 gap-2.5">
@@ -168,42 +218,157 @@ export default function GoalModal({
             </div>
           </div>
 
-          {/* Type Selector (Linear or Donut) */}
-          <div className="space-y-1.5">
+          {/* Custom Type Selector (Dropdown Menu) */}
+          <div className="space-y-1.5 relative">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Gaya Tampilan Visual</label>
-            <select
-              value={formType}
-              onChange={(e) => setFormType(e.target.value)}
-              className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800 cursor-pointer"
+            <div 
+              onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-800 hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
             >
-              <option value="linear">Linear Card (Bar Progres Lebar)</option>
-              <option value="circular">Circular Card (Donut Chart Kanan)</option>
-            </select>
+              <div className="flex items-center gap-2.5">
+                {formType === "circular" ? (
+                  <>
+                    <PieChart className="w-4.5 h-4.5 text-[#00685F]" />
+                    <span>Circular Card (Donut Chart Kanan)</span>
+                  </>
+                ) : (
+                  <>
+                    <BarChart2 className="w-4.5 h-4.5 text-[#00685F]" />
+                    <span>Linear Card (Bar Progres Lebar)</span>
+                  </>
+                )}
+              </div>
+              <ChevronDown className={`w-4.5 h-4.5 text-slate-400 transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`} />
+            </div>
+
+            {isTypeDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsTypeDropdownOpen(false)}></div>
+                <div className="absolute z-20 w-full top-full mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                  <div 
+                    onClick={() => { setFormType("linear"); setIsTypeDropdownOpen(false); }}
+                    className={`px-4 py-3 cursor-pointer flex items-center justify-between transition-colors ${formType === "linear" ? "bg-[#00685F]/5 text-[#00685F] font-bold" : "hover:bg-slate-50 text-slate-700 font-semibold"}`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <BarChart2 className="w-4 h-4 text-[#00685F]" />
+                      <span className="text-sm">Linear Card (Bar Progres Lebar)</span>
+                    </div>
+                    {formType === "linear" && <Check className="w-4 h-4 text-[#00685F]" />}
+                  </div>
+                  <div 
+                    onClick={() => { setFormType("circular"); setIsTypeDropdownOpen(false); }}
+                    className={`px-4 py-3 cursor-pointer flex items-center justify-between transition-colors ${formType === "circular" ? "bg-[#00685F]/5 text-[#00685F] font-bold" : "hover:bg-slate-50 text-slate-700 font-semibold"}`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <PieChart className="w-4 h-4 text-[#00685F]" />
+                      <span className="text-sm">Circular Card (Donut Chart Kanan)</span>
+                    </div>
+                    {formType === "circular" && <Check className="w-4 h-4 text-[#00685F]" />}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Type specific fields */}
           {formType === "linear" ? (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Tanggal Batas</label>
-                <input
-                  type="text"
-                  value={formDeadlineDate}
-                  onChange={(e) => setFormDeadlineDate(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-xs font-bold text-slate-800"
-                  placeholder="31 Des 2026"
-                />
+            /* Custom Modern Calendar Picker */
+            <div className="space-y-1.5 relative">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Tanggal Batas (Opsional)</label>
+              <div 
+                onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-bold hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
+              >
+                <span className={formDeadlineDate ? "text-slate-900" : "text-slate-400 font-semibold"}>
+                  {formDeadlineDate ? formatDisplayDate(formDeadlineDate) : "Pilih Tanggal Batas"}
+                </span>
+                <CalendarIcon className="w-4.5 h-4.5 text-[#00685F]" />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Durasi Sisa</label>
-                <input
-                  type="text"
-                  value={formDeadlineText}
-                  onChange={(e) => setFormDeadlineText(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-xs font-bold text-slate-800"
-                  placeholder="5 bln lagi"
-                />
-              </div>
+
+              {isCalendarOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsCalendarOpen(false)}></div>
+                  <div className="absolute z-20 w-full left-0 top-full mt-2 bg-white border border-slate-100 rounded-3xl shadow-2xl p-4.5 animate-in fade-in zoom-in-95 duration-200">
+                    {/* Header Month Year & Prev/Next */}
+                    <div className="flex items-center justify-between mb-3.5 px-1 select-none">
+                      <span className="font-extrabold text-sm text-slate-900">
+                        {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          type="button" 
+                          onClick={handlePrevMonth} 
+                          className="p-1.5 hover:bg-slate-100 rounded-xl transition text-slate-600 cursor-pointer"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={handleNextMonth} 
+                          className="p-1.5 hover:bg-slate-100 rounded-xl transition text-slate-600 cursor-pointer"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Days of week header */}
+                    <div className="grid grid-cols-7 gap-1 text-center mb-1.5 select-none">
+                      {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
+                        <span key={d} className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{d}</span>
+                      ))}
+                    </div>
+
+                    {/* Calendar Days Grid */}
+                    <div className="grid grid-cols-7 gap-1 text-center">
+                      {Array.from({ length: firstDayIndex }).map((_, i) => (
+                        <div key={`empty-${i}`} className="h-8" />
+                      ))}
+                      {Array.from({ length: daysInMonth }).map((_, i) => {
+                        const dayNum = i + 1;
+                        const dateIso = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                        const isSelected = formDeadlineDate === dateIso;
+                        const isToday = todayIso === dateIso;
+
+                        return (
+                          <button
+                            key={dayNum}
+                            type="button"
+                            onClick={() => { setFormDeadlineDate(dateIso); setIsCalendarOpen(false); }}
+                            className={`h-8 w-8 mx-auto flex items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              isSelected 
+                                ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105" 
+                                : isToday 
+                                ? "bg-emerald-50 text-[#00685F] border border-[#00685F]/30" 
+                                : "hover:bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {dayNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Footer Quick Options */}
+                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs font-bold select-none">
+                      <button 
+                        type="button" 
+                        onClick={() => { setFormDeadlineDate(""); setIsCalendarOpen(false); }}
+                        className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                      >
+                        Tanpa Batas
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => { setFormDeadlineDate(todayIso); setIsCalendarOpen(false); }}
+                        className="text-[#00685F] hover:underline cursor-pointer"
+                      >
+                        Set Hari Ini
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-1.5">
