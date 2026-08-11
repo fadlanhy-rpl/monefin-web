@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Trophy, Sparkles, CheckCircle2, Calendar, Target, Laptop, Plane, GraduationCap, Shield, Heart, Car, Home } from "lucide-react";
 
 const iconMap = {
@@ -12,7 +14,24 @@ const iconMap = {
 };
 
 export default function GoalDetailModal({ isOpen, onClose, goal }) {
-  if (!isOpen || !goal) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  if (!mounted || !isOpen || !goal) return null;
 
   const IconComp = iconMap[goal.icon] || Trophy;
   const targetAmount = parseFloat(goal.target_amount || goal.target || 0);
@@ -20,17 +39,19 @@ export default function GoalDetailModal({ isOpen, onClose, goal }) {
     ? new Date(goal.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     : (goal.completedDate || "Baru saja");
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200 relative select-none">
-        
+  const modalContent = (
+    <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto w-screen h-screen">
+      <div 
+        className="relative bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200 select-none my-auto max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Banner Glow Header */}
-        <div className="bg-gradient-to-br from-[#00685F] via-[#004D46] to-slate-900 p-7 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#00685F] via-[#004D46] to-slate-900 p-7 text-white relative overflow-hidden shrink-0">
           <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
           <button 
             type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition p-2 rounded-xl cursor-pointer"
+            className="absolute top-5 right-5 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition p-2 rounded-xl cursor-pointer z-20"
           >
             <X className="w-5 h-5" />
           </button>
@@ -49,8 +70,8 @@ export default function GoalDetailModal({ isOpen, onClose, goal }) {
           </div>
         </div>
 
-        {/* Modal Content */}
-        <div className="p-7 space-y-6">
+        {/* Modal Body (Scrollable if screen height is small) */}
+        <div className="p-6 sm:p-7 space-y-5 overflow-y-auto flex-1">
           {/* Realisasi Dana Box */}
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
             <div className="flex items-center justify-between">
@@ -58,7 +79,7 @@ export default function GoalDetailModal({ isOpen, onClose, goal }) {
               <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-100">100% Selesai</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-black text-slate-900 tracking-tight">Rp {targetAmount.toLocaleString("id-ID")}</h3>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Rp {targetAmount.toLocaleString("id-ID")}</h3>
             </div>
             
             {/* Full Progress Bar */}
@@ -102,8 +123,9 @@ export default function GoalDetailModal({ isOpen, onClose, goal }) {
             Tutup Detail
           </button>
         </div>
-
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
