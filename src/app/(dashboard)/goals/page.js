@@ -50,7 +50,7 @@ export default function GoalsPage() {
 
   // Modal States - Deposit & Withdraw
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  const [depositGoal, setDepositGoal] = useState(null);
+  const [activeDepositGoal, setActiveDepositGoal] = useState(null);
   const [depositAmount, setDepositAmount] = useState("");
   const [depositActionType, setDepositActionType] = useState("deposit"); // "deposit" | "withdraw"
 
@@ -180,7 +180,7 @@ export default function GoalsPage() {
 
   // Open Deposit / Withdraw Modal
   const openDepositModal = (g, mode = "deposit") => {
-    setDepositGoal(g);
+    setActiveDepositGoal(g);
     setDepositAmount("");
     setDepositActionType(mode);
     if (accounts.length > 0 && !selectedAccountId) {
@@ -204,6 +204,8 @@ export default function GoalsPage() {
       return;
     }
 
+    if (!activeDepositGoal) return;
+
     try {
       const payload = {
         account_id: selectedAccountId,
@@ -211,11 +213,11 @@ export default function GoalsPage() {
       };
       
       if (depositActionType === "deposit") {
-        await depositGoal(depositGoal.id, payload);
-        triggerToast(`Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${depositGoal.name}! 💰`);
+        await depositGoal(activeDepositGoal.id, payload);
+        triggerToast(`Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${activeDepositGoal.name}! 💰`);
       } else {
-        await withdrawGoal(depositGoal.id, payload);
-        triggerToast(`Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${depositGoal.name}! 🏧`);
+        await withdrawGoal(activeDepositGoal.id, payload);
+        triggerToast(`Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${activeDepositGoal.name}! 🏧`);
       }
       
       fetchGoalsData();
@@ -317,7 +319,7 @@ export default function GoalsPage() {
       <DepositModal 
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
-        goal={depositGoal}
+        goal={activeDepositGoal}
         accounts={accounts}
         selectedAccountId={selectedAccountId}
         setSelectedAccountId={setSelectedAccountId}
