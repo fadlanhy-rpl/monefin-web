@@ -197,6 +197,19 @@ export default function GoalsPage() {
     }
   };
 
+  // Toggle Pin Goal
+  const handleTogglePin = async (g) => {
+    try {
+      const newPinnedState = !g.is_pinned;
+      await updateGoal(g.id, { is_pinned: newPinnedState });
+      triggerToast(newPinnedState ? "Target disematkan di Halaman 1!" : "Sematkan target dilepas.");
+      fetchGoalsData();
+    } catch (error) {
+      console.error("Failed to toggle pin:", error);
+      triggerToast("Gagal mengubah status semat.");
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -215,6 +228,7 @@ export default function GoalsPage() {
             openEditModal={openEditModal}
             handleDelete={handleDeleteClick}
             openDepositModal={openDepositModal}
+            handleTogglePin={handleTogglePin}
           />
         </div>
 

@@ -19,7 +19,8 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Pin
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -38,13 +39,12 @@ export default function GoalsGrid({
   goals,
   openEditModal,
   handleDelete,
-  openDepositModal
+  openDepositModal,
+  handleTogglePin
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [showInsightId, setShowInsightId] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-
-  const itemsPerPage = 2;
 
   const toggleMenu = (id) => {
     setActiveMenuId(activeMenuId === id ? null : id);
@@ -95,12 +95,29 @@ export default function GoalsGrid({
       type: g.layout_type || "linear",
       tag: g.color || "Safety",
       icon: g.icon || "target",
+      is_pinned: Boolean(g.is_pinned),
       statusText: (parseFloat(g.current_amount) >= parseFloat(g.target_amount)) ? "Achieved" : "Stable"
     };
   };
 
   const mappedGoals = goals.map(mapGoal);
-  const totalPages = Math.ceil(mappedGoals.length / itemsPerPage) || 1;
+
+  // Pinning logic: Priority Page 1 slot assignment
+  const pinnedLinear = mappedGoals.find(g => g.is_pinned && g.type === "linear");
+  const pinnedCircular = mappedGoals.find(g => g.is_pinned && g.type === "circular");
+
+  // Page 1 slots
+  const page1Left = pinnedLinear || mappedGoals.find(g => g.type === "linear") || mappedGoals[0];
+  const page1Right = pinnedCircular || mappedGoals.find(g => g.id !== page1Left?.id && g.type === "circular") || mappedGoals.find(g => g.id !== page1Left?.id);
+
+  const page1Goals = [page1Left, page1Right].filter(Boolean);
+  const page1Ids = new Set(page1Goals.map(g => g.id));
+
+  // Remaining goals for page 2+
+  const otherGoals = mappedGoals.filter(g => !page1Ids.has(g.id));
+
+  const itemsPerPage = 2;
+  const totalPages = 1 + Math.ceil(otherGoals.length / itemsPerPage);
 
   useEffect(() => {
     if (currentPage >= totalPages && totalPages > 0) {
@@ -108,9 +125,15 @@ export default function GoalsGrid({
     }
   }, [mappedGoals.length, totalPages, currentPage]);
 
-  const currentGoals = mappedGoals.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
-  const leftGoal = currentGoals.find(g => g.type === "linear") || currentGoals[0];
-  const rightGoal = currentGoals.find(g => g.id !== leftGoal?.id);
+  let currentGoals = [];
+  if (currentPage === 0) {
+    currentGoals = page1Goals;
+  } else {
+    currentGoals = otherGoals.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  }
+
+  const leftGoal = currentGoals.find(g => g?.type === "linear") || currentGoals[0];
+  const rightGoal = currentGoals.find(g => g?.id !== leftGoal?.id);
 
   return (
     <div className="space-y-4">
@@ -155,7 +178,14 @@ export default function GoalsGrid({
                 {renderGoalIcon(leftGoal.icon || "laptop")}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate leading-tight">{leftGoal.title}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate leading-tight">{leftGoal.title}</h3>
+                  {leftGoal.is_pinned && (
+                    <span className="bg-amber-50 text-amber-600 text-[10px] font-black px-2 py-0.5 rounded-lg border border-amber-200/60 flex items-center gap-1 shrink-0 select-none">
+                      <Pin className="w-3 h-3 fill-amber-600 rotate-45" /> PINNED
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-400 font-semibold text-xs sm:text-sm truncate mt-0.5">{leftGoal.subtitle}</p>
               </div>
             </div>
@@ -180,7 +210,14 @@ export default function GoalsGrid({
                   <MoreHorizontal className="w-5 h-5" />
                 </button>
                 {activeMenuId === leftGoal.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                    <button 
+                      onClick={() => { handleTogglePin(leftGoal); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Pin className={`w-3.5 h-3.5 ${leftGoal.is_pinned ? "text-amber-500 fill-amber-500" : "text-slate-400"}`} /> 
+                      {leftGoal.is_pinned ? "Lepas Semat" : "Sematkan"}
+                    </button>
                     <button 
                       onClick={() => { openEditModal(leftGoal); setActiveMenuId(null); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
@@ -271,8 +308,17 @@ export default function GoalsGrid({
       {/* SIDE GOAL CARD (Right - Circular Progress Card) */}
       {rightGoal ? (
         <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 relative group overflow-hidden">
-          <div className="flex justify-between items-center gap-2">
-            <h3 className="font-extrabold text-slate-900 text-base sm:text-lg truncate flex-1">{rightGoal.title}</h3>
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0 flex-1 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h3 className="font-extrabold text-slate-900 text-base sm:text-lg truncate">{rightGoal.title}</h3>
+                {rightGoal.is_pinned && (
+                  <span className="bg-amber-50 text-amber-600 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-amber-200/60 flex items-center gap-0.5 shrink-0 select-none">
+                    <Pin className="w-2.5 h-2.5 fill-amber-600 rotate-45" /> PINNED
+                  </span>
+                )}
+              </div>
+            </div>
             <div className="flex items-center gap-1.5 shrink-0 select-none">
               <span className="bg-[#00685F]/5 text-[#00685F] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter">
                 {rightGoal.tag || "Safety"}
@@ -287,7 +333,14 @@ export default function GoalsGrid({
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {activeMenuId === rightGoal.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-20 text-slate-800 animate-in fade-in zoom-in-95 duration-155">
+                    <button 
+                      onClick={() => { handleTogglePin(rightGoal); setActiveMenuId(null); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Pin className={`w-3.5 h-3.5 ${rightGoal.is_pinned ? "text-amber-500 fill-amber-500" : "text-slate-400"}`} /> 
+                      {rightGoal.is_pinned ? "Lepas Semat" : "Sematkan"}
+                    </button>
                     <button 
                       onClick={() => { openEditModal(rightGoal); setActiveMenuId(null); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
