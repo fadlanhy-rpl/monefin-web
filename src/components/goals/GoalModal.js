@@ -273,7 +273,7 @@ export default function GoalModal({
           {/* Type specific fields */}
           {formType === "linear" ? (
             /* Custom Modern Calendar Picker */
-            <div className="space-y-1.5 relative">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Tanggal Batas (Opsional)</label>
               <div 
                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
@@ -286,88 +286,85 @@ export default function GoalModal({
               </div>
 
               {isCalendarOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsCalendarOpen(false)}></div>
-                  <div className="absolute z-20 w-full left-0 top-full mt-2 bg-white border border-slate-100 rounded-3xl shadow-2xl p-4.5 animate-in fade-in zoom-in-95 duration-200">
-                    {/* Header Month Year & Prev/Next */}
-                    <div className="flex items-center justify-between mb-3.5 px-1 select-none">
-                      <span className="font-extrabold text-sm text-slate-900">
-                        {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button 
-                          type="button" 
-                          onClick={handlePrevMonth} 
-                          className="p-1.5 hover:bg-slate-100 rounded-xl transition text-slate-600 cursor-pointer"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button 
-                          type="button" 
-                          onClick={handleNextMonth} 
-                          className="p-1.5 hover:bg-slate-100 rounded-xl transition text-slate-600 cursor-pointer"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Days of week header */}
-                    <div className="grid grid-cols-7 gap-1 text-center mb-1.5 select-none">
-                      {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
-                        <span key={d} className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{d}</span>
-                      ))}
-                    </div>
-
-                    {/* Calendar Days Grid */}
-                    <div className="grid grid-cols-7 gap-1 text-center">
-                      {Array.from({ length: firstDayIndex }).map((_, i) => (
-                        <div key={`empty-${i}`} className="h-8" />
-                      ))}
-                      {Array.from({ length: daysInMonth }).map((_, i) => {
-                        const dayNum = i + 1;
-                        const dateIso = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                        const isSelected = formDeadlineDate === dateIso;
-                        const isToday = todayIso === dateIso;
-
-                        return (
-                          <button
-                            key={dayNum}
-                            type="button"
-                            onClick={() => { setFormDeadlineDate(dateIso); setIsCalendarOpen(false); }}
-                            className={`h-8 w-8 mx-auto flex items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                              isSelected 
-                                ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105" 
-                                : isToday 
-                                ? "bg-emerald-50 text-[#00685F] border border-[#00685F]/30" 
-                                : "hover:bg-slate-100 text-slate-700"
-                            }`}
-                          >
-                            {dayNum}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Footer Quick Options */}
-                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs font-bold select-none">
+                <div className="mt-2.5 bg-slate-50 border border-slate-200/80 rounded-3xl p-4.5 animate-in fade-in zoom-in-95 duration-200">
+                  {/* Header Month Year & Prev/Next */}
+                  <div className="flex items-center justify-between mb-3.5 px-1 select-none">
+                    <span className="font-extrabold text-sm text-slate-900">
+                      {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
+                    </span>
+                    <div className="flex items-center gap-1">
                       <button 
                         type="button" 
-                        onClick={() => { setFormDeadlineDate(""); setIsCalendarOpen(false); }}
-                        className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                        onClick={handlePrevMonth} 
+                        className="p-1.5 hover:bg-white rounded-xl transition text-slate-600 cursor-pointer shadow-xs"
                       >
-                        Tanpa Batas
+                        <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button 
                         type="button" 
-                        onClick={() => { setFormDeadlineDate(todayIso); setIsCalendarOpen(false); }}
-                        className="text-[#00685F] hover:underline cursor-pointer"
+                        onClick={handleNextMonth} 
+                        className="p-1.5 hover:bg-white rounded-xl transition text-slate-600 cursor-pointer shadow-xs"
                       >
-                        Set Hari Ini
+                        <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                </>
+
+                  {/* Days of week header */}
+                  <div className="grid grid-cols-7 gap-1 text-center mb-1.5 select-none">
+                    {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
+                      <span key={d} className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{d}</span>
+                    ))}
+                  </div>
+
+                  {/* Calendar Days Grid */}
+                  <div className="grid grid-cols-7 gap-1 text-center">
+                    {Array.from({ length: firstDayIndex }).map((_, i) => (
+                      <div key={`empty-${i}`} className="h-8" />
+                    ))}
+                    {Array.from({ length: daysInMonth }).map((_, i) => {
+                      const dayNum = i + 1;
+                      const dateIso = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                      const isSelected = formDeadlineDate === dateIso;
+                      const isToday = todayIso === dateIso;
+
+                      return (
+                        <button
+                          key={dayNum}
+                          type="button"
+                          onClick={() => { setFormDeadlineDate(dateIso); setIsCalendarOpen(false); }}
+                          className={`h-8 w-8 mx-auto flex items-center justify-center rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            isSelected 
+                              ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105" 
+                              : isToday 
+                              ? "bg-emerald-100/80 text-[#00685F] border border-[#00685F]/30" 
+                              : "hover:bg-white text-slate-700 hover:shadow-xs"
+                          }`}
+                        >
+                          {dayNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Footer Quick Options */}
+                  <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-200/60 text-xs font-bold select-none">
+                    <button 
+                      type="button" 
+                      onClick={() => { setFormDeadlineDate(""); setIsCalendarOpen(false); }}
+                      className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    >
+                      Tanpa Batas
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => { setFormDeadlineDate(todayIso); setIsCalendarOpen(false); }}
+                      className="text-[#00685F] hover:underline cursor-pointer"
+                    >
+                      Set Hari Ini
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           ) : (
