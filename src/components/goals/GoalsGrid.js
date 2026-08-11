@@ -94,8 +94,9 @@ export default function GoalsGrid({
     };
   };
 
-  const leftGoal = mapGoal(goals[0]);
-  const rightGoal = mapGoal(goals[1]);
+  const mappedGoals = goals.map(mapGoal);
+  const leftGoal = mappedGoals.find(g => g.type === "linear") || mappedGoals[0];
+  const rightGoal = mappedGoals.find(g => g.id !== leftGoal?.id) || mappedGoals[1];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
