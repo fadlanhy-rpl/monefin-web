@@ -1,4 +1,4 @@
-import { fetchAPI } from "../lib/api";
+import { fetchAPI, getAuthToken } from "../lib/api";
 
 /**
  * Ambil data perbandingan income vs expense per bulan.
@@ -51,11 +51,8 @@ export const exportReportCSV = (params = {}) => {
   if (params.account_id)  qs.append("account_id",  params.account_id);
 
   // Build full API URL with auth token
-  const token = typeof window !== "undefined"
-    ? localStorage.getItem("token") || sessionStorage.getItem("token")
-    : null;
-
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const token = getAuthToken();
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
   const url = `${baseUrl}/reports/export?${qs.toString()}`;
 
   // Create link with Authorization header workaround via fetch + blob
