@@ -1,177 +1,300 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { ArrowUpRight, Search, ArrowUpDown, Sparkles } from "lucide-react";
+import { ArrowUpDown, Search, TrendingUp, TrendingDown, Award, AlertCircle, Minus } from "lucide-react";
 
-export default function ReportsTable({ monthlyData }) {
+const MONTH_ID = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+function monthLabel(ym) {
+  if (!ym) return ym;
+  const [y, m] = ym.split("-");
+  return (MONTH_ID[parseInt(m, 10) - 1] || m) + " " + y;
+}
+function monthLabelShort(ym) {
+  if (!ym) return ym;
+  const [y, m] = ym.split("-");
+  const MONTH_SHORT = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  return (MONTH_SHORT[parseInt(m, 10) - 1] || m) + " " + y.slice(2);
+}
+
+const fmt = (v) =>
+  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(v ?? 0);
+
+const fmtCompact = (val) => {
+  const abs = Math.abs(val ?? 0);
+  if (abs >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1) + "M";
+  if (abs >= 1_000_000) return (val / 1_000_000).toFixed(1) + "Jt";
+  if (abs >= 1_000) return (val / 1_000).toFixed(0) + "Rb";
+  return String(val ?? 0);
+};
+
+function BarCell({ value, max, color }) {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-[40px]">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <span className="text-[10px] font-bold text-slate-400 w-8 text-right">{pct.toFixed(0)}%</span>
+    </div>
+  );
+}
+
+function GrowthBadge({ current, previous }) {
+  if (previous === undefined || previous === null) return <span className="text-[10px] text-slate-300 font-bold">—</span>;
+  if (previous === 0) return <span className="text-[10px] text-slate-300 font-bold">—</span>;
+  const delta = ((current - previous) / previous) * 100;
+  const isUp = delta > 0;
+  const isFlat = Math.abs(delta) < 0.5;
+  if (isFlat) return <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-slate-400"><Minus className="w-2.5 h-2.5" />0%</span>;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[10px] font-black ${isUp ? "text-emerald-600" : "text-red-500"}`}>
+      {isUp ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+      {Math.abs(delta).toFixed(1)}%
+    </span>
+  );
+}
+
+export default function ReportsTable({ monthlyData = [], loading = false }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState(null); // null | "income" | "expense" | "cashflow"
-  const [sortOrder, setSortOrder] = useState("desc"); // "asc" | "desc"
+  const [sortField, setSortField] = useState(null);
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  const defaultData = [
-    { month: "Januari 2026", income: 8000000, expense: 3200000, cashflow: 4800000, status: "Surplus" },
-    { month: "Februari 2026", income: 8500000, expense: 4100000, cashflow: 4400000, status: "Surplus" },
-    { month: "Maret 2026", income: 7800000, expense: 5200000, cashflow: 2600000, status: "Surplus" },
-    { month: "April 2026", income: 9200000, expense: 4000000, cashflow: 5200000, status: "Surplus" },
-    { month: "Mei 2026", income: 8900000, expense: 3500000, cashflow: 5400000, status: "Surplus" },
-    { month: "Juni 2026", income: 10500000, expense: 6000000, cashflow: 4500000, status: "Surplus" },
-  ];
+  const rawData = monthlyData.map((d, i) => {
+    const prev = i > 0 ? monthlyData[i - 1] : null;
+    const cf = d.cashflow ?? (d.income - d.expense);
+    const expRatio = d.income > 0 ? Math.round((d.expense / d.income) * 100) : 0;
+    return {
+      month:    d.month,
+      income:   d.income  || 0,
+      expense:  d.expense || 0,
+      cashflow: cf,
+      expRatio,
+      status:   cf >= 0 ? "Surplus" : "Defisit",
+      prevIncome:  prev ? (prev.income  || 0) : null,
+      prevExpense: prev ? (prev.expense || 0) : null,
+    };
+  });
 
-  const rawData = monthlyData || defaultData;
-
-  // Filter rows based on search query
-  const filteredData = rawData.filter(row => 
-    row.month.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    row.status.toLowerCase().includes(searchQuery.toLowerCase())
+  const filtered = rawData.filter(
+    (r) =>
+      monthLabel(r.month).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Sort rows based on sortField
-  const sortedData = [...filteredData].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     if (!sortField) return 0;
-    const valA = a[sortField];
-    const valB = b[sortField];
-    return sortOrder === "asc" ? valA - valB : valB - valA;
+    return sortOrder === "asc" ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
   });
 
   const handleSort = (field) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("desc");
-    }
+    if (sortField === field) setSortOrder(o => o === "asc" ? "desc" : "asc");
+    else { setSortField(field); setSortOrder("desc"); }
   };
 
-  // Identify highest cashflow month
-  const maxCashflowVal = Math.max(...rawData.map(r => r.cashflow));
-
-  const totalIncome = rawData.reduce((acc, row) => acc + row.income, 0);
-  const totalExpense = rawData.reduce((acc, row) => acc + row.expense, 0);
+  const totalIncome   = rawData.reduce((s, r) => s + r.income,   0);
+  const totalExpense  = rawData.reduce((s, r) => s + r.expense,  0);
   const totalCashflow = totalIncome - totalExpense;
+  const maxIncome     = Math.max(...rawData.map(r => r.income),  1);
+  const maxExpense    = Math.max(...rawData.map(r => r.expense), 1);
+  const maxCashflow   = Math.max(...rawData.map(r => r.cashflow), 0);
+  const bestMonthRow  = rawData.reduce((best, r) => r.cashflow > (best?.cashflow ?? -Infinity) ? r : best, null);
+  const months        = rawData.length;
+  const surplusCount  = rawData.filter(r => r.cashflow >= 0).length;
 
-  const formatRupiah = (val) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0
-    }).format(val);
-  };
+  const SortBtn = ({ field, label }) => (
+    <button onClick={() => handleSort(field)} className="flex items-center gap-1 group cursor-pointer hover:text-[#00685F] transition-colors whitespace-nowrap">
+      {label}
+      <ArrowUpDown className={`w-3 h-3 ${sortField === field ? "text-[#00685F]" : "text-slate-300"} group-hover:text-[#00685F]`} />
+    </button>
+  );
 
   return (
-    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      {/* Table Header Row with Filter & Search */}
-      <div className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100">
-        <div>
-          <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Monthly Performance Summary</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Rincian arus kas bulanan dan performa finansial</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Table Search Bar */}
-          <div className="relative flex-1 md:w-56">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input 
-              type="text" 
-              placeholder="Cari bulan atau status..." 
+    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+      {/* Header */}
+      <div className="p-5 sm:p-7 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Rincian Bulanan</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Analisis arus kas, rasio pengeluaran & pertumbuhan per bulan</p>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Cari bulan atau status..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/80 rounded-xl py-1.5 pl-8 pr-3 text-xs focus:border-[#00685F] focus:outline-none transition-all placeholder:text-slate-400"
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#00685F]/20 focus:border-[#00685F] transition"
             />
           </div>
-
-          <button 
-            onClick={() => alert("Membuka Buku Kas Detail (Ledger)...")}
-            className="text-xs font-extrabold text-[#00685F] hover:underline flex items-center gap-1 cursor-pointer select-none"
-          >
-            <span>Detailed Ledger</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
         </div>
+
+        {/* Summary pills */}
+        {!loading && months > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-black px-3 py-1.5 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-slate-400" />{months} bulan
+            </span>
+            <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1.5 rounded-full">
+              <Award className="w-3 h-3" />{surplusCount} Surplus
+            </span>
+            <span className={`inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full border ${(months - surplusCount) > 0 ? "bg-red-50 border-red-100 text-red-600" : "bg-slate-50 border-slate-100 text-slate-500"}`}>
+              <AlertCircle className="w-3 h-3" />{months - surplusCount} Defisit
+            </span>
+            {bestMonthRow && (
+              <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-100 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-full">
+                Best: {monthLabelShort(bestMonthRow.month)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Table Content */}
+      {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50/70 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 select-none">
-            <tr>
-              <th className="px-6 py-4">Bulan</th>
-              <th 
-                onClick={() => handleSort("income")}
-                className="px-6 py-4 hover:text-[#00685F] cursor-pointer transition-colors"
-              >
-                <div className="flex items-center gap-1">
-                  <span>Pemasukan (Income)</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
-                </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50/60">
+              <th className="text-left px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">Bulan</th>
+              <th className="text-right px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                <SortBtn field="income" label="Pemasukan" />
               </th>
-              <th 
-                onClick={() => handleSort("expense")}
-                className="px-6 py-4 text-red-500/80 hover:text-red-600 cursor-pointer transition-colors"
-              >
-                <div className="flex items-center gap-1">
-                  <span>Pengeluaran (Expense)</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
-                </div>
+              <th className="text-right px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                <SortBtn field="expense" label="Pengeluaran" />
               </th>
-              <th 
-                onClick={() => handleSort("cashflow")}
-                className="px-6 py-4 hover:text-[#00685F] cursor-pointer transition-colors"
-              >
-                <div className="flex items-center gap-1">
-                  <span>Net Cashflow</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
-                </div>
+              <th className="text-left px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider min-w-[120px]">Rasio Pengeluaran</th>
+              <th className="text-right px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                <SortBtn field="cashflow" label="Net Cashflow" />
               </th>
-              <th className="px-6 py-4">Status</th>
+              <th className="text-center px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Growth</th>
+              <th className="text-center px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Status</th>
             </tr>
           </thead>
-          <tbody className="text-xs font-medium divide-y divide-slate-50">
-            {sortedData.length > 0 ? (
-              sortedData.map((row) => {
-                const isMaxCashflow = row.cashflow === maxCashflowVal;
+          <tbody>
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b border-slate-50 animate-pulse">
+                  {Array.from({ length: 7 }).map((__, j) => (
+                    <td key={j} className="px-5 py-4"><div className="h-3 bg-slate-100 rounded w-full" /></td>
+                  ))}
+                </tr>
+              ))
+            ) : sorted.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-14 text-center text-slate-300 text-xs font-bold">
+                  {searchQuery ? `Tidak ditemukan: "${searchQuery}"` : "Belum ada data pada periode ini"}
+                </td>
+              </tr>
+            ) : (
+              sorted.map((row) => {
+                const isBest = row.month === bestMonthRow?.month;
+                const isPositive = row.cashflow >= 0;
                 return (
-                  <tr key={row.month} className={`transition-colors ${isMaxCashflow ? 'bg-[#E6F0EF]/30' : 'hover:bg-slate-50/60'}`}>
-                    <td className="px-6 py-4 text-slate-700 font-bold flex items-center gap-2">
-                      <span>{row.month}</span>
-                      {isMaxCashflow && (
-                        <span className="bg-[#00685F] text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-xs animate-pulse">
-                          <Sparkles className="w-2.5 h-2.5" /> Best
-                        </span>
-                      )}
+                  <tr key={row.month} className={`border-b border-slate-50 hover:bg-slate-50/60 transition-colors group ${isBest ? "bg-[#E6F0EF]/20" : ""}`}>
+                    {/* Month */}
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        {isBest && <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                        <div>
+                          <p className="font-bold text-slate-800 text-xs whitespace-nowrap">{monthLabel(row.month)}</p>
+                          {isBest && <p className="text-[9px] text-amber-600 font-black">Best Month</p>}
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-[#00685F] font-extrabold">{formatRupiah(row.income)}</td>
-                    <td className="px-6 py-4 text-red-500/80 font-extrabold">{formatRupiah(row.expense)}</td>
-                    <td className="px-6 py-4 font-black text-slate-900">+{formatRupiah(row.cashflow)}</td>
-                    <td className="px-6 py-4 select-none">
-                      <span className="bg-emerald-100/80 text-emerald-800 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border border-emerald-200/50">
+
+                    {/* Income */}
+                    <td className="px-5 py-3.5 text-right">
+                      <p className="text-xs font-bold text-emerald-700 whitespace-nowrap">{fmtCompact(row.income)}</p>
+                      <p className="text-[9px] text-slate-400 font-semibold">{fmt(row.income)}</p>
+                    </td>
+
+                    {/* Expense */}
+                    <td className="px-5 py-3.5 text-right">
+                      <p className="text-xs font-bold text-red-500 whitespace-nowrap">{fmtCompact(row.expense)}</p>
+                      <p className="text-[9px] text-slate-400 font-semibold">{fmt(row.expense)}</p>
+                    </td>
+
+                    {/* Expense Ratio bar */}
+                    <td className="px-5 py-3.5 min-w-[140px]">
+                      <BarCell value={row.expense} max={row.income > 0 ? row.income : maxExpense} color={row.expRatio > 80 ? "#ef4444" : row.expRatio > 60 ? "#f59e0b" : "#00685F"} />
+                    </td>
+
+                    {/* Net Cashflow */}
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {isPositive
+                          ? <TrendingUp className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          : <TrendingDown className="w-3.5 h-3.5 text-red-500 shrink-0" />}
+                        <div>
+                          <p className={`text-xs font-black whitespace-nowrap ${isPositive ? "text-emerald-700" : "text-red-500"}`}>
+                            {isPositive ? "+" : "-"}{fmtCompact(Math.abs(row.cashflow))}
+                          </p>
+                          <p className="text-[9px] text-slate-400 font-semibold">{fmt(Math.abs(row.cashflow))}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Growth vs prev */}
+                    <td className="px-5 py-3.5 text-center">
+                      <div className="flex flex-col items-center gap-0.5">
+                        <GrowthBadge current={row.income} previous={row.prevIncome} />
+                        <p className="text-[8px] text-slate-300 font-semibold">income</p>
+                      </div>
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-5 py-3.5 text-center">
+                      <span className={`text-[9px] font-black px-2.5 py-1 rounded-full border select-none whitespace-nowrap ${isPositive ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>
                         {row.status}
                       </span>
                     </td>
                   </tr>
                 );
               })
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center py-8 text-slate-400 text-xs font-bold">
-                  Tidak ada data bulan yang cocok dengan pencarian "{searchQuery}".
-                </td>
-              </tr>
             )}
           </tbody>
-          <tfoot className="bg-slate-100/40 text-xs sm:text-sm font-bold border-t-2 border-slate-100 select-none">
-            <tr>
-              <td className="px-6 py-5 text-slate-700 italic font-black">Semester Total</td>
-              <td className="px-6 py-5 text-[#00685F] font-black">{formatRupiah(totalIncome)}</td>
-              <td className="px-6 py-5 text-red-500/80 font-black">{formatRupiah(totalExpense)}</td>
-              <td className="px-6 py-5 text-[#00685F] font-black">{formatRupiah(totalCashflow)}</td>
-              <td className="px-6 py-5">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-xs animate-pulse"></span>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Optimal Growth</span>
-                </div>
-              </td>
-            </tr>
-          </tfoot>
+
+          {/* Footer */}
+          {!loading && sorted.length > 0 && (
+            <tfoot>
+              <tr className="border-t-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                <td className="px-5 py-4">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Total Periode</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{months} bulan</p>
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <p className="text-xs font-black text-emerald-700 whitespace-nowrap">{fmtCompact(totalIncome)}</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{fmt(totalIncome)}</p>
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <p className="text-xs font-black text-red-500 whitespace-nowrap">{fmtCompact(totalExpense)}</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{fmt(totalExpense)}</p>
+                </td>
+                <td className="px-5 py-4">
+                  <BarCell value={totalExpense} max={totalIncome > 0 ? totalIncome : maxExpense} color={totalExpense / totalIncome > 0.8 ? "#ef4444" : "#00685F"} />
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    {totalCashflow >= 0 ? <TrendingUp className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <TrendingDown className="w-3.5 h-3.5 text-red-500 shrink-0" />}
+                    <div>
+                      <p className={`text-xs font-black whitespace-nowrap ${totalCashflow >= 0 ? "text-emerald-700" : "text-red-500"}`}>
+                        {totalCashflow >= 0 ? "+" : "-"}{fmtCompact(Math.abs(totalCashflow))}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-semibold">{fmt(Math.abs(totalCashflow))}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-5 py-4 text-center">
+                  <span className="text-[9px] text-slate-400 font-bold">—</span>
+                </td>
+                <td className="px-5 py-4 text-center">
+                  <span className={`text-[9px] font-black px-2.5 py-1 rounded-full border ${totalCashflow >= 0 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>
+                    {totalCashflow >= 0 ? "Surplus" : "Defisit"}
+                  </span>
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </div>

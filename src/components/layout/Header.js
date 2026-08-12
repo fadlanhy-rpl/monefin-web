@@ -82,7 +82,7 @@ export default function Header({ setMobileOpen }) {
   };
 
   return (
-    <header ref={headerRef} className="sticky top-0 z-35 bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
+    <header ref={headerRef} className="sticky top-0 z-[35] bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
       {/* LEFT GROUP: menu + search */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <button 
@@ -137,7 +137,9 @@ export default function Header({ setMobileOpen }) {
           )}
 
           {/* Shortcut key "/" */}
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
+          {!searchQuery && (
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
+          )}
 
           {/* Clear button inside input */}
           {isExpanded && searchQuery && (

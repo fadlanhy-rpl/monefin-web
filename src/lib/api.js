@@ -118,6 +118,7 @@ export async function fetchAPI(endpoint, options = {}) {
       data: returnData,
       message: payload?.message ?? "Success",
       meta,
+      summary: payload?.summary ?? null,
     };
   } catch (error) {
     if (error.status) throw error;

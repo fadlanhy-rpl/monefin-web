@@ -3,284 +3,262 @@
 import { useState } from "react";
 import { LineChart, BarChart2 } from "lucide-react";
 
-export default function ReportsCharts() {
-  const [hoveredPoint, setHoveredPoint] = useState(null);
-  const [chartType, setChartType] = useState("line"); // "line" | "bar"
+const PALETTE = [
+  "#00685F", "#2dd4bf", "#34d399", "#6ee7b7", "#a7f3d0",
+  "#0d9488", "#0891b2", "#7c3aed", "#db2777", "#f59e0b",
+  "#ef4444", "#64748b", "#8b5cf6", "#ec4899", "#14b8a6",
+];
+
+function monthLabel(ym) {
+  if (!ym) return "";
+  const [y, m] = ym.split("-");
+  const names = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  return (names[parseInt(m, 10) - 1] || m) + " " + y.slice(2);
+}
+
+export default function ReportsCharts({ monthlyData = [], categoryData = [], loading = false }) {
+  const [chartType, setChartType] = useState("line");
   const [activeLegend, setActiveLegend] = useState(null);
 
-  // Income vs Expense trend data
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-  const incomeData = [45, 52, 48, 60, 55, 65]; // in millions
-  const expenseData = [30, 35, 40, 32, 28, 42];
+  const months    = monthlyData.map((d) => monthLabel(d.month));
+  const incomeArr = monthlyData.map((d) => (d.income  || 0) / 1_000_000);
+  const expenseArr= monthlyData.map((d) => (d.expense || 0) / 1_000_000);
 
-  // Spending distribution data
-  const distribution = [
-    { label: "Food", percentage: 40, color: "bg-[#00685F]", strokeColor: "#00685F", dashArray: "40 60", dashOffset: "0", amount: "Rp 10.4M" },
-    { label: "Bills", percentage: 25, color: "bg-teal-400", strokeColor: "#2dd4bf", dashArray: "25 75", dashOffset: "-40", amount: "Rp 6.5M" },
-    { label: "Shopping", percentage: 20, color: "bg-teal-200", strokeColor: "#99f6e4", dashArray: "20 80", dashOffset: "-65", amount: "Rp 5.2M" },
-    { label: "Transport", percentage: 15, color: "bg-slate-200", strokeColor: "#cbd5e1", dashArray: "15 85", dashOffset: "-85", amount: "Rp 3.9M" }
-  ];
+  const hasData = monthlyData.length > 0;
+  const maxVal  = Math.max(...incomeArr, ...expenseArr, 1);
+  const minVal  = 0;
 
-  // Calculate SVG coordinates with adequate padding to prevent label truncation
-  const svgWidth = 500;
-  const svgHeight = 200;
-  const paddingX = 35;
-  const paddingY = 25;
+  const count     = months.length;
+  const labelStep = count > 120 ? 24 : count > 60 ? 12 : count > 24 ? 6 : count > 12 ? 2 : 1;
 
-  const minVal = 20;
-  const maxVal = 70;
+  // Dedicated scrollable pixel width per month item (35px per month slot)
+  const svgWidth  = Math.max(500, count * 35);
+  const svgHeight = 210;
+  const padX      = 35;
+  const padY      = 25;
 
-  const getX = (index) => paddingX + (index * (svgWidth - 2 * paddingX)) / (months.length - 1);
-  const getY = (val) => svgHeight - paddingY - ((val - minVal) * (svgHeight - 2 * paddingY)) / (maxVal - minVal);
+  const getX = (i) => padX + (i * (svgWidth - 2 * padX)) / Math.max(months.length - 1, 1);
+  const getY = (v) => svgHeight - padY - ((v - minVal) * (svgHeight - 2 * padY)) / (maxVal - minVal);
 
-  const createPath = (data) => {
-    return data.reduce((acc, val, i, arr) => {
-      const x = getX(i);
-      const y = getY(val);
+  const createPath = (data) =>
+    data.reduce((acc, v, i, arr) => {
+      const x = getX(i), y = getY(v);
       if (i === 0) return `M ${x} ${y}`;
-      const prevX = getX(i - 1);
-      const prevY = getY(arr[i - 1]);
-      const cpX1 = prevX + (x - prevX) / 2;
-      const cpX2 = prevX + (x - prevX) / 2;
-      return `${acc} C ${cpX1} ${prevY}, ${cpX2} ${y}, ${x} ${y}`;
+      const px = getX(i - 1), py = getY(arr[i - 1]);
+      const cx = px + (x - px) / 2;
+      return `${acc} C ${cx} ${py}, ${cx} ${y}, ${x} ${y}`;
     }, "");
-  };
 
-  const incomePath = createPath(incomeData);
-  const expensePath = createPath(expenseData);
+  const incomePath  = createPath(incomeArr);
+  const expensePath = createPath(expenseArr);
+  const incomeArea  = `${incomePath} L ${getX(months.length - 1)} ${svgHeight - padY} L ${getX(0)} ${svgHeight - padY} Z`;
+  const expenseArea = `${expensePath} L ${getX(months.length - 1)} ${svgHeight - padY} L ${getX(0)} ${svgHeight - padY} Z`;
 
-  const incomeArea = `${incomePath} L ${getX(months.length - 1)} ${svgHeight - paddingY} L ${getX(0)} ${svgHeight - paddingY} Z`;
-  const expenseArea = `${expensePath} L ${getX(months.length - 1)} ${svgHeight - paddingY} L ${getX(0)} ${svgHeight - paddingY} Z`;
+  // Donut chart data
+  const catData   = categoryData.filter((c) => c.total > 0);
+  const grandTotal= catData.reduce((s, c) => s + c.total, 0);
+
+  // SVG donut segments
+  let offset = 0;
+  const segments = catData.map((cat, i) => {
+    const pct = grandTotal > 0 ? (cat.total / grandTotal) * 100 : 0;
+    const dash = `${pct} ${100 - pct}`;
+    const seg  = { ...cat, pct, dashArray: dash, dashOffset: -offset, color: PALETTE[i % PALETTE.length] };
+    offset += pct;
+    return seg;
+  });
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Income vs Expense Trends Chart */}
-      <div className="lg:col-span-2 bg-white p-5 sm:p-7 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300">
-        
-        {/* Header Row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-3 select-none">
+      {/* ── Income vs Expense Trend Chart ── */}
+      <div className="lg:col-span-2 bg-white p-5 sm:p-7 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 select-none">
           <div>
-            <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Income vs Expense Trends</h3>
-            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Tren arus kas bulanan semester ini</p>
+            <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Tren Pemasukan vs Pengeluaran</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Arus kas bulanan periode yang dipilih</p>
           </div>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Chart Type Switcher (Line vs Bar) */}
-            <div className="bg-slate-50 p-1 rounded-xl flex gap-1 border border-slate-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="bg-slate-50 p-1 rounded-xl flex gap-1 border border-slate-100">
               <button
                 onClick={() => setChartType("line")}
-                className={`p-1.5 rounded-lg transition-all text-xs font-bold flex items-center gap-1 cursor-pointer ${
-                  chartType === "line" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"
-                }`}
                 title="Tampilan Grafik Garis"
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${chartType === "line" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"}`}
               >
                 <LineChart className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setChartType("bar")}
-                className={`p-1.5 rounded-lg transition-all text-xs font-bold flex items-center gap-1 cursor-pointer ${
-                  chartType === "bar" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"
-                }`}
                 title="Tampilan Grafik Batang"
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${chartType === "bar" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"}`}
               >
                 <BarChart2 className="w-3.5 h-3.5" />
               </button>
             </div>
-
-            {/* Legend indicators */}
-            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 bg-[#00685F] rounded-full shadow-xs"></span> Income
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 bg-red-500 rounded-full shadow-xs"></span> Expense
-              </span>
-            </div>
           </div>
         </div>
 
-        {/* Dynamic Canvas / SVG Chart Area */}
-        <div className="relative w-full h-56 sm:h-64 flex flex-col justify-end">
-          {chartType === "line" ? (
-            /* LINE CHART VIEW */
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-full overflow-visible">
-              <defs>
-                <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00685F" stopOpacity="0.22" />
-                  <stop offset="100%" stopColor="#00685F" stopOpacity="0.0" />
-                </linearGradient>
-                <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Area Fills */}
-              <path d={incomeArea} fill="url(#incomeGradient)" />
-              <path d={expenseArea} fill="url(#expenseGradient)" />
-
-              {/* Line Paths */}
-              <path d={incomePath} fill="none" stroke="#00685F" strokeWidth="3" strokeLinecap="round" className="transition-all duration-500" />
-              <path d={expensePath} fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" className="transition-all duration-500" />
-
-              {/* Data Points */}
-              {months.map((m, i) => {
-                const x = getX(i);
-                const yInc = getY(incomeData[i]);
-                const yExp = getY(expenseData[i]);
-                const isHovered = hoveredPoint === i;
-
-                return (
-                  <g key={m} className="cursor-pointer" onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)}>
-                    {isHovered && (
-                      <line x1={x} y1={paddingY} x2={x} y2={svgHeight - paddingY} stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="3 3" />
-                    )}
-                    <circle cx={x} cy={yInc} r={isHovered ? 6 : 4} fill="white" stroke="#00685F" strokeWidth="3" className="transition-all duration-200" />
-                    <circle cx={x} cy={yExp} r={isHovered ? 6 : 4} fill="white" stroke="#ef4444" strokeWidth="3" className="transition-all duration-200" />
-                  </g>
-                );
-              })}
-            </svg>
-          ) : (
-            /* BAR CHART VIEW */
-            <div className="flex justify-between items-end h-44 sm:h-48 px-4 sm:px-8 pt-4 pb-2 border-b border-slate-100">
-              {months.map((m, i) => {
-                const incHeight = (incomeData[i] / 70) * 100;
-                const expHeight = (expenseData[i] / 70) * 100;
-                const isHovered = hoveredPoint === i;
-
-                return (
-                  <div 
-                    key={m} 
-                    className="flex items-end gap-1 sm:gap-1.5 h-full group cursor-pointer relative"
-                    onMouseEnter={() => setHoveredPoint(i)}
-                    onMouseLeave={() => setHoveredPoint(null)}
-                  >
-                    <div 
-                      className={`w-3 sm:w-4 bg-[#00685F] rounded-t-lg transition-all duration-300 ${isHovered ? 'brightness-110 scale-105' : ''}`}
-                      style={{ height: `${incHeight}%` }}
-                    ></div>
-                    <div 
-                      className={`w-3 sm:w-4 bg-red-500 rounded-t-lg transition-all duration-300 ${isHovered ? 'brightness-110 scale-105' : ''}`}
-                      style={{ height: `${expHeight}%` }}
-                    ></div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Month Labels */}
-          <div className="flex justify-between px-3 sm:px-7 pt-3 border-t border-slate-100 text-[10px] sm:text-xs font-bold text-slate-400 select-none">
-            {months.map((m, i) => (
-              <span key={m} className={`transition-colors ${hoveredPoint === i ? 'text-[#00685F] font-black' : ''}`}>
-                {m}
-              </span>
-            ))}
+        {loading ? (
+          <div className="flex-1 animate-pulse bg-slate-50 rounded-2xl min-h-[180px]"></div>
+        ) : !hasData ? (
+          <div className="flex-1 flex items-center justify-center text-slate-300 text-sm font-bold min-h-[180px]">
+            Belum ada data transaksi pada periode ini
           </div>
+        ) : (
+          <div className="w-full overflow-x-auto pb-3 pt-1 border-b border-slate-50">
+            <div style={{ width: svgWidth, minWidth: "100%" }}>
+              <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full" style={{ height: 210 }}>
+                <defs>
+                  <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00685F" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="#00685F" stopOpacity="0" />
+                  </linearGradient>
+                  <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.12" />
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
 
-          {/* Interactive Hover Tooltip */}
-          {hoveredPoint !== null && (
-            <div 
-              className="absolute top-2 bg-slate-900/95 backdrop-blur-md text-white text-[11px] px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl shadow-xl border border-slate-800 pointer-events-none z-30 transition-all transform -translate-x-1/2 animate-in fade-in duration-150"
-              style={{ left: `${(hoveredPoint / (months.length - 1)) * 80 + 10}%` }}
-            >
-              <p className="font-black text-slate-300 text-center border-b border-slate-800 pb-0.5 mb-1">{months[hoveredPoint]} 2026</p>
-              <div className="space-y-0.5 font-bold text-[10px] sm:text-xs">
-                <p className="text-emerald-400 flex items-center justify-between gap-3">
-                  <span>Pemasukan:</span>
-                  <span>Rp {incomeData[hoveredPoint]}.000.000</span>
-                </p>
-                <p className="text-red-400 flex items-center justify-between gap-3">
-                  <span>Pengeluaran:</span>
-                  <span>Rp {expenseData[hoveredPoint]}.000.000</span>
-                </p>
-              </div>
+                {/* Y-axis grid lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((f) => {
+                  const y = padY + f * (svgHeight - 2 * padY);
+                  const v = (maxVal * (1 - f)).toFixed(1);
+                  return (
+                    <g key={f}>
+                      <line x1={padX} y1={y} x2={svgWidth - padX} y2={y} stroke="#f1f5f9" strokeWidth="1" />
+                      <text x={padX - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#94a3b8">{v}M</text>
+                    </g>
+                  );
+                })}
+
+                {/* Line or Bar rendering */}
+                {chartType === "line" ? (
+                  <>
+                    <path d={incomeArea}  fill="url(#incomeGrad)" />
+                    <path d={expenseArea} fill="url(#expenseGrad)" />
+                    <path d={incomePath}  fill="none" stroke="#00685F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={expensePath} fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    {incomeArr.map((v, i) => {
+                      if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
+                      return <circle key={`i${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#00685F" stroke="#fff" strokeWidth="1.5" />;
+                    })}
+                    {expenseArr.map((v, i) => {
+                      if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
+                      return <circle key={`e${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#ef4444" stroke="#fff" strokeWidth="1.5" />;
+                    })}
+                  </>
+                ) : (
+                  months.map((_, i) => {
+                    const bw = Math.min(12, Math.max(3, (svgWidth / count) * 0.25));
+                    const cx = getX(i);
+                    const incH = incomeArr[i] > 0 ? Math.max(3, ((incomeArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY)) : 0;
+                    const expH = expenseArr[i] > 0 ? Math.max(3, ((expenseArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY)) : 0;
+                    return (
+                      <g key={i}>
+                        {incH > 0 && (
+                          <rect x={cx - bw - 1} y={svgHeight - padY - incH} width={bw} height={incH}
+                            fill="#00685F" rx="2" fillOpacity="0.85" />
+                        )}
+                        {expH > 0 && (
+                          <rect x={cx + 1} y={svgHeight - padY - expH} width={bw} height={expH}
+                            fill="#ef4444" rx="2" fillOpacity="0.75" />
+                        )}
+                      </g>
+                    );
+                  })
+                )}
+
+                {/* X-axis sampled labels */}
+                {months.map((label, i) => {
+                  if (i % labelStep !== 0 && i !== count - 1 && i !== 0) return null;
+                  const displayLabel = count > 60 && monthlyData[i]?.month
+                    ? monthlyData[i].month.split("-")[0]
+                    : label;
+                  return (
+                    <text key={i} x={getX(i)} y={svgHeight - 5} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#94a3b8">
+                      {displayLabel}
+                    </text>
+                  );
+                })}
+              </svg>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="flex items-center gap-5 mt-3 select-none flex-wrap">
+          {[{ color: "#00685F", label: "Pemasukan" }, { color: "#ef4444", label: "Pengeluaran" }].map((l) => (
+            <div key={l.label} className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ background: l.color }}></span>
+              <span className="text-xs font-bold text-slate-600">{l.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Spending Distribution Donut Chart */}
-      <div className="bg-white p-5 sm:p-7 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300">
-        <div>
-          <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Spending Distribution</h3>
-          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Proporsi pengeluaran berdasarkan kategori</p>
+      {/* ── Category Distribution Donut ── */}
+      <div className="bg-white p-5 sm:p-7 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
+        <div className="mb-4 select-none">
+          <h3 className="font-black text-slate-900 text-base tracking-tight">Distribusi Pengeluaran</h3>
+          <p className="text-[11px] text-slate-400 mt-0.5">Breakdown per kategori</p>
         </div>
 
-        {/* SVG Donut Chart */}
-        <div 
-          className="h-44 sm:h-52 relative my-2 flex items-center justify-center"
-          onMouseLeave={() => setActiveLegend(null)}
-        >
-          <svg viewBox="0 0 42 42" className="w-36 h-36 sm:w-44 sm:h-44 transform -rotate-90">
-            {distribution.map((item, idx) => {
-              const isSelected = activeLegend === item.label;
-              return (
-                <circle
-                  key={idx}
-                  cx="21"
-                  cy="21"
-                  r="15.91549430918954"
-                  fill="transparent"
-                  stroke={item.strokeColor}
-                  strokeWidth={isSelected ? "6" : "4.5"}
-                  strokeDasharray={item.dashArray}
-                  strokeDashoffset={item.dashOffset}
-                  style={{ pointerEvents: "stroke" }}
-                  className="transition-all duration-300 hover:opacity-90 cursor-pointer"
-                  onMouseEnter={(e) => {
-                    e.stopPropagation();
-                    setActiveLegend(item.label);
-                  }}
-                />
-              );
-            })}
-          </svg>
-
-          {/* Donut Center Label (Compact & Clean Sizing) */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none px-2">
-            {activeLegend ? (
-              <div className="text-center animate-in fade-in max-w-[100px] leading-tight">
-                <p className="text-[9px] font-black text-[#00685F] uppercase tracking-wider truncate">{activeLegend}</p>
-                <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 truncate mt-0.5">
-                  {distribution.find(d => d.label === activeLegend)?.amount}
-                </h4>
-                <p className="text-[9px] font-bold text-slate-400">
-                  ({distribution.find(d => d.label === activeLegend)?.percentage}%)
-                </p>
-              </div>
-            ) : (
-              <div className="text-center leading-tight">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</p>
-                <h4 className="text-xl sm:text-2xl font-black text-slate-800 mt-0.5">100%</h4>
-              </div>
-            )}
+        {loading ? (
+          <div className="animate-pulse space-y-3 flex-1">
+            <div className="w-32 h-32 bg-slate-100 rounded-full mx-auto"></div>
+            <div className="space-y-2 mt-4">
+              {[1,2,3].map(i => <div key={i} className="h-3 bg-slate-100 rounded w-full"></div>)}
+            </div>
           </div>
-        </div>
+        ) : catData.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-slate-300 text-xs font-bold">
+            Belum ada data pengeluaran
+          </div>
+        ) : (
+          <>
+            {/* Donut SVG */}
+            <div className="flex justify-center mb-4">
+              <svg viewBox="0 0 100 100" className="w-32 h-32 -rotate-90">
+                {segments.map((seg, i) => (
+                  <circle
+                    key={i}
+                    cx="50" cy="50" r="40"
+                    fill="none"
+                    stroke={seg.color}
+                    strokeWidth={activeLegend === null || activeLegend === i ? 13 : 9}
+                    strokeDasharray={seg.dashArray}
+                    strokeDashoffset={seg.dashOffset}
+                    style={{ transition: "stroke-width 0.2s" }}
+                    className="cursor-pointer"
+                    onMouseEnter={() => setActiveLegend(i)}
+                    onMouseLeave={() => setActiveLegend(null)}
+                  />
+                ))}
+                {/* Center hole */}
+                <circle cx="50" cy="50" r="28" fill="white" />
+              </svg>
+            </div>
 
-        {/* Categories Legend List with hover highlight */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-50 select-none">
-          {distribution.map((item) => {
-            const isHovered = activeLegend === item.label;
-            return (
-              <div 
-                key={item.label} 
-                onMouseEnter={() => setActiveLegend(item.label)}
-                onMouseLeave={() => setActiveLegend(null)}
-                className={`flex justify-between items-center text-xs p-1.5 rounded-xl transition-all cursor-pointer ${
-                  isHovered ? "bg-[#E6F0EF]/60 font-bold" : "hover:bg-slate-50"
-                }`}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className={`w-2.5 h-2.5 rounded-full ${item.color} shrink-0 shadow-xs`}></span>
-                  <span className={`font-semibold truncate ${isHovered ? 'text-[#00685F]' : 'text-slate-600'}`}>{item.label}</span>
+            {/* Category Legend List */}
+            <div className="space-y-1.5 overflow-y-auto max-h-48 flex-1 pr-1">
+              {segments.map((seg, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-xl cursor-pointer transition-all ${activeLegend === i ? "bg-slate-50" : "hover:bg-slate-50/60"}`}
+                  onMouseEnter={() => setActiveLegend(i)}
+                  onMouseLeave={() => setActiveLegend(null)}
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: seg.color }}></span>
+                    <span className="text-xs font-bold text-slate-700 truncate">{seg.category_name}</span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-black text-slate-500">{seg.pct.toFixed(1)}%</span>
+                  </div>
                 </div>
-                <span className="font-extrabold text-slate-900 shrink-0">{item.percentage}%</span>
-              </div>
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
