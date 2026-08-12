@@ -33,7 +33,7 @@ export const getReportCategoryBreakdown = async (params = {}) => {
 };
 
 /**
- * Trigger export CSV laporan keuangan dari backend.
+ * Trigger export Excel (.xlsx) laporan keuangan dari backend.
  * Membuka URL download langsung di tab baru.
  * @param {Object} params
  * @param {string} [params.start_date]
@@ -72,13 +72,13 @@ export const exportReportCSV = (params = {}) => {
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
-      a.download = `MoneFin_LaporanKeuangan_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `MoneFin_LaporanKeuangan_${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
     })
     .catch((err) => {
-      console.error("Export CSV error:", err);
+      console.error("Export Excel error:", err);
     });
 };

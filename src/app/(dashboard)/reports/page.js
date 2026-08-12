@@ -113,9 +113,9 @@ export default function ReportsPage() {
     fetchReportData(range);
   };
 
-  // ── Export CSV ────────────────────────────────────────────────────────────────
+  // ── Export Excel (.xlsx) ──────────────────────────────────────────────────────
   const handleExportCSV = () => {
-    showToast("Menyiapkan file laporan CSV profesional...");
+    showToast("Menyiapkan file Excel laporan keuangan profesional...");
     exportReportCSV({
       start_date: filterRange.start_month ? filterRange.start_month + "-01" : undefined,
       end_date:   filterRange.end_month   ? filterRange.end_month   + "-31" : undefined,
