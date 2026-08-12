@@ -28,7 +28,10 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
   const maxVal  = Math.max(...incomeArr, ...expenseArr, 1);
   const minVal  = 0;
 
-  const svgWidth  = 500;
+  const count     = months.length;
+  const labelStep = count > 120 ? 24 : count > 60 ? 12 : count > 24 ? 6 : count > 12 ? 2 : 1;
+
+  const svgWidth  = Math.max(500, count * (count > 60 ? 12 : count > 24 ? 22 : 35));
   const svgHeight = 200;
   const padX      = 35;
   const padY      = 25;
@@ -100,7 +103,7 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
             Belum ada data transaksi pada periode ini
           </div>
         ) : (
-          <div className="w-full overflow-x-auto">
+          <div className="w-full overflow-x-auto pb-2">
             <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full min-w-[300px]" style={{ height: 200 }}>
               <defs>
                 <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
@@ -131,36 +134,45 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
                   <path d={expenseArea} fill="url(#expenseGrad)" />
                   <path d={incomePath}  fill="none" stroke="#00685F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   <path d={expensePath} fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  {incomeArr.map((v, i) => (
-                    <circle key={`i${i}`} cx={getX(i)} cy={getY(v)} r="4" fill="#00685F" stroke="#fff" strokeWidth="2" />
-                  ))}
-                  {expenseArr.map((v, i) => (
-                    <circle key={`e${i}`} cx={getX(i)} cy={getY(v)} r="4" fill="#ef4444" stroke="#fff" strokeWidth="2" />
-                  ))}
+                  {incomeArr.map((v, i) => {
+                    if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
+                    return <circle key={`i${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#00685F" stroke="#fff" strokeWidth="1.5" />;
+                  })}
+                  {expenseArr.map((v, i) => {
+                    if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
+                    return <circle key={`e${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#ef4444" stroke="#fff" strokeWidth="1.5" />;
+                  })}
                 </>
               ) : (
                 months.map((_, i) => {
-                  const bw = (svgWidth - 2 * padX) / months.length * 0.35;
+                  if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
+                  const bw = Math.max(3, ((svgWidth - 2 * padX) / count) * 0.4);
                   const cx = getX(i);
                   const incH = ((incomeArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY);
                   const expH = ((expenseArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY);
                   return (
                     <g key={i}>
-                      <rect x={cx - bw - 2} y={svgHeight - padY - incH} width={bw} height={incH}
-                        fill="#00685F" rx="3" fillOpacity="0.85" />
-                      <rect x={cx + 2}      y={svgHeight - padY - expH} width={bw} height={expH}
-                        fill="#ef4444" rx="3" fillOpacity="0.75" />
+                      <rect x={cx - bw - 1} y={svgHeight - padY - incH} width={bw} height={incH}
+                        fill="#00685F" rx="2" fillOpacity="0.85" />
+                      <rect x={cx + 1}      y={svgHeight - padY - expH} width={bw} height={expH}
+                        fill="#ef4444" rx="2" fillOpacity="0.75" />
                     </g>
                   );
                 })
               )}
 
-              {/* X-axis labels */}
-              {months.map((label, i) => (
-                <text key={i} x={getX(i)} y={svgHeight - 5} textAnchor="middle" fontSize="9" fill="#94a3b8">
-                  {label}
-                </text>
-              ))}
+              {/* X-axis sampled labels */}
+              {months.map((label, i) => {
+                if (i % labelStep !== 0 && i !== count - 1 && i !== 0) return null;
+                const displayLabel = count > 60 && monthlyData[i]?.month
+                  ? monthlyData[i].month.split("-")[0]
+                  : label;
+                return (
+                  <text key={i} x={getX(i)} y={svgHeight - 5} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#94a3b8">
+                    {displayLabel}
+                  </text>
+                );
+              })}
             </svg>
           </div>
         )}

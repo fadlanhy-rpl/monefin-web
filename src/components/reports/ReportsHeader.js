@@ -310,13 +310,6 @@ export default function ReportsHeader({
             </div>
           )}
         </div>
-
-        {/* Active period badge */}
-        {activePreset === "custom" && customStart && customEnd && (
-          <span className="text-[10px] font-bold text-[#00685F] bg-[#00685F]/5 px-2.5 py-1 rounded-lg border border-[#00685F]/10 select-none">
-            {formatMY(customStart)} → {formatMY(customEnd)}
-          </span>
-        )}
       </div>
     </div>
   );
