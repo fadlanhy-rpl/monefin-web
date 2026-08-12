@@ -82,7 +82,7 @@ export default function Header({ setMobileOpen }) {
   };
 
   return (
-    <header ref={headerRef} className="sticky top-0 z-35 bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
+    <header ref={headerRef} className="sticky top-0 z-[35] bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
       {/* LEFT GROUP: menu + search */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <button 

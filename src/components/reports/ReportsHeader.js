@@ -86,7 +86,7 @@ export default function ReportsHeader({
   };
 
   return (
-    <div className={`transition-all duration-700 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"} flex flex-col gap-5 relative z-50`}>
+    <div className={`transition-all duration-700 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"} flex flex-col gap-5 relative z-20`}>
       {/* Top Row: Title + Action Buttons */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div className="flex items-center gap-3">
@@ -121,7 +121,7 @@ export default function ReportsHeader({
       </div>
 
       {/* Filter Bar: Quick Preset Chips + Custom Range Picker */}
-      <div className="flex flex-wrap items-center gap-2.5 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm relative z-50">
+      <div className="flex flex-wrap items-center gap-2.5 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm relative z-20">
         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 flex items-center gap-1">
           <Calendar className="w-3.5 h-3.5" /> Periode:
         </span>
@@ -142,7 +142,7 @@ export default function ReportsHeader({
         ))}
 
         {/* Custom Range Picker */}
-        <div className="relative z-50" ref={pickerRef}>
+        <div className="relative" ref={pickerRef}>
           <button
             onClick={() => setShowCustomPicker(!showCustomPicker)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shrink-0 flex items-center gap-1.5 ${
@@ -158,7 +158,7 @@ export default function ReportsHeader({
           </button>
 
           {showCustomPicker && (
-            <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 z-[9999] w-72 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 z-30 w-72 space-y-4 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-black text-slate-700">Pilih Rentang Bulan</h4>
                 <button onClick={() => setShowCustomPicker(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">

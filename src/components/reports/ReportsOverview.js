@@ -52,7 +52,7 @@ export default function ReportsOverview({
   const rateGood  = savingRate >= 20;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
       {/* Net Savings */}
       <div className={`bg-gradient-to-br ${isDeficit ? "from-red-600 to-rose-700" : "from-[#00685F] to-[#004D46]"} text-white p-5 rounded-2xl shadow-lg ${isDeficit ? "shadow-red-500/20" : "shadow-[#00685F]/20"} relative overflow-hidden group col-span-2 lg:col-span-1`}>
         <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
