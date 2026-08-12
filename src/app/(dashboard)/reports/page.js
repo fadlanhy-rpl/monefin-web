@@ -151,6 +151,7 @@ export default function ReportsPage() {
             totalExpense={summary.total_expense}
             netSavings={summary.net_savings}
             savingRate={summary.saving_rate}
+            monthlyData={monthlyData}
             loading={loading}
           />
         </div>
