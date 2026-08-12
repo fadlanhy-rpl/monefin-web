@@ -137,7 +137,9 @@ export default function Header({ setMobileOpen }) {
           )}
 
           {/* Shortcut key "/" */}
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
+          {!searchQuery && (
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
+          )}
 
           {/* Clear button inside input */}
           {isExpanded && searchQuery && (
