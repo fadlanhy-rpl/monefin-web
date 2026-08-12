@@ -1,89 +1,134 @@
-import { TrendingUp, PiggyBank, PlusCircle, ShieldCheck } from "lucide-react";
+import { TrendingUp, TrendingDown, PiggyBank, ShieldCheck, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
-export default function ReportsOverview({
-  netSavings = 4800000,
-  savingRate = 60,
-  growthPercentage = 12.5,
-  onSimulateSavings
-}) {
-  const formatRupiah = (val) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0
-    }).format(val);
-  };
+const fmt = (val) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(val);
+
+function StatCard({ title, value, sub, badge, icon: Icon, iconBg, iconColor, trend, loading }) {
+  if (loading) {
+    return (
+      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-pulse">
+        <div className="h-3 bg-slate-100 rounded w-1/3 mb-3"></div>
+        <div className="h-8 bg-slate-100 rounded w-2/3 mb-2"></div>
+        <div className="h-2.5 bg-slate-100 rounded w-1/2"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 bg-white p-5 sm:p-7 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm relative z-10 overflow-hidden group hover:shadow-md transition-all duration-300">
-      
-      {/* Left Column: Net Savings */}
-      <div className="space-y-2 z-10">
-        <div className="flex items-center gap-2 select-none">
-          <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Net Savings</p>
-          <span className="bg-emerald-50 text-emerald-700 text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            Verified
-          </span>
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest select-none">{title}</p>
+          <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-1.5 truncate">{value}</h3>
+          {sub && <p className="text-[11px] font-semibold text-slate-400 mt-1">{sub}</p>}
         </div>
-        
-        <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#00685F] tracking-tight count-up">
-          {formatRupiah(netSavings)}
-        </h2>
-        
-        <p className="text-[11px] sm:text-xs font-bold text-emerald-600 flex items-center gap-1.5 pt-0.5 select-none">
-          <span className="bg-emerald-100/80 p-1 rounded-lg">
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
-          </span>
-          <span>+{growthPercentage}% vs previous semester</span>
-        </p>
+        <div className={`w-11 h-11 rounded-2xl ${iconBg} flex items-center justify-center ${iconColor} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      {badge && (
+        <div className="mt-3 flex items-center gap-1.5">
+          {trend === "up" && <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600" />}
+          {trend === "down" && <ArrowDownRight className="w-3.5 h-3.5 text-red-500" />}
+          <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border ${badge}`}>{sub}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function ReportsOverview({
+  totalIncome  = 0,
+  totalExpense = 0,
+  netSavings   = 0,
+  savingRate   = 0,
+  loading      = false,
+}) {
+  const isDeficit = netSavings < 0;
+  const rateGood  = savingRate >= 20;
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Net Savings */}
+      <div className={`bg-gradient-to-br ${isDeficit ? "from-red-600 to-rose-700" : "from-[#00685F] to-[#004D46]"} text-white p-5 rounded-2xl shadow-lg ${isDeficit ? "shadow-red-500/20" : "shadow-[#00685F]/20"} relative overflow-hidden group col-span-2 lg:col-span-1`}>
+        <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        {loading ? (
+          <div className="animate-pulse space-y-2">
+            <div className="h-3 bg-white/30 rounded w-1/2"></div>
+            <div className="h-8 bg-white/30 rounded w-3/4"></div>
+            <div className="h-2.5 bg-white/30 rounded w-1/3"></div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 select-none">
+              <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Net Savings</p>
+              <span className="bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" /> {isDeficit ? "Defisit" : "Surplus"}
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-2">
+              {fmt(Math.abs(netSavings))}
+            </h2>
+            <p className="text-[11px] font-semibold text-white/70 mt-1 flex items-center gap-1">
+              {isDeficit
+                ? <><TrendingDown className="w-3.5 h-3.5" /> Pengeluaran melebihi pemasukan</>
+                : <><TrendingUp className="w-3.5 h-3.5" /> Keuangan dalam kondisi sehat</>}
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Right Column: Saving Rate Progress & Quick Action */}
-      <div className="flex items-center justify-between gap-3 sm:gap-6 z-10 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-        <div className="flex-1 min-w-0 space-y-2.5">
-          
-          <div className="flex items-end justify-between gap-2 select-none flex-wrap">
-            <div className="space-y-1">
-              <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Saving Rate</p>
-              <button 
-                onClick={onSimulateSavings}
-                className="text-[9px] sm:text-[10px] font-extrabold text-[#00685F] hover:text-[#004D46] bg-[#00685F]/5 hover:bg-[#00685F]/15 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer select-none border border-[#00685F]/10 active:scale-95 whitespace-nowrap"
-                title="Simulasi Tambah Tabungan +Rp 500.000"
-              >
-                <PlusCircle className="w-3 h-3 text-[#00685F] shrink-0" />
-                <span>+ Rp 500rb Tabungan</span>
-              </button>
-            </div>
-            
-            <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-orange-600/80 tracking-tighter leading-none shrink-0">
+      {/* Saving Rate */}
+      {loading ? (
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-pulse">
+          <div className="h-3 bg-slate-100 rounded w-1/3 mb-3"></div>
+          <div className="h-8 bg-slate-100 rounded w-1/2 mb-3"></div>
+          <div className="h-3 bg-slate-100 rounded w-full"></div>
+        </div>
+      ) : (
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest select-none">Saving Rate</p>
+          <div className="flex items-end gap-2 mt-1.5">
+            <h3 className={`text-2xl sm:text-3xl font-black tracking-tighter ${rateGood ? "text-[#00685F]" : "text-orange-500"}`}>
               {savingRate}%
+            </h3>
+            <span className={`text-[10px] font-black mb-1.5 px-2 py-0.5 rounded-lg border ${rateGood ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-orange-50 text-orange-600 border-orange-100"}`}>
+              {rateGood ? "Baik ✓" : "Perlu Ditingkatkan"}
             </span>
           </div>
-
-          {/* Animated Progress Bar */}
-          <div className="w-full bg-slate-100 h-2.5 sm:h-3 rounded-full overflow-hidden border border-slate-200/50 p-0.5">
-            <div 
-              className="bg-gradient-to-r from-[#00685F] to-emerald-500 h-full rounded-full transition-all duration-1000 ease-out shadow-xs relative" 
+          <div className="mt-3 w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/50">
+            <div
+              className={`h-full rounded-full transition-all duration-1000 ease-out ${rateGood ? "bg-gradient-to-r from-[#00685F] to-emerald-500" : "bg-gradient-to-r from-orange-400 to-amber-500"}`}
               style={{ width: `${Math.min(savingRate, 100)}%` }}
-            >
-              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/60 rounded-full blur-[1px] animate-pulse"></div>
-            </div>
+            />
           </div>
+          <p className="text-[10px] text-slate-400 font-semibold mt-1.5 select-none">Target: ≥ 20%</p>
         </div>
+      )}
 
-        {/* Piggy Bank Icon Box */}
-        <div 
-          onClick={onSimulateSavings}
-          className="w-12 h-12 sm:w-14 sm:h-14 bg-[#E6F0EF] rounded-2xl flex items-center justify-center text-[#00685F] shrink-0 shadow-inner group-hover:scale-105 group-hover:bg-[#00685F] group-hover:text-white transition-all duration-300 cursor-pointer"
-          title="Klik untuk Simulasi Tabungan"
-        >
-          <PiggyBank className="w-6 h-6 sm:w-7 sm:h-7 transition-transform duration-300 group-hover:rotate-12" />
-        </div>
-      </div>
+      {/* Total Income */}
+      <StatCard
+        title="Total Pemasukan"
+        value={fmt(totalIncome)}
+        icon={TrendingUp}
+        iconBg="bg-emerald-50"
+        iconColor="text-emerald-600"
+        loading={loading}
+      />
 
-      {/* Decorative Overlay Icon */}
-      <PiggyBank className="absolute right-[-20px] bottom-[-20px] w-40 h-40 sm:w-48 sm:h-48 text-slate-100/30 -rotate-12 pointer-events-none select-none hidden sm:block" />
+      {/* Total Expense */}
+      <StatCard
+        title="Total Pengeluaran"
+        value={fmt(totalExpense)}
+        icon={TrendingDown}
+        iconBg="bg-red-50"
+        iconColor="text-red-500"
+        loading={loading}
+      />
     </div>
   );
 }
