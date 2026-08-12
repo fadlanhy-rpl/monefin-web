@@ -132,20 +132,22 @@ export default function ReportsPage() {
       <div className="space-y-8 min-w-0">
 
         {/* Header + Filter */}
-        <ReportsHeader
-          isVisible={isVisible}
-          onNewTransaction={handleNewTransaction}
-          onExportCSV={handleExportCSV}
-          activePreset={activePreset}
-          onPresetChange={handlePresetChange}
-          customStart={customStart}
-          customEnd={customEnd}
-          onCustomRangeChange={handleCustomRangeChange}
-          loading={loading}
-        />
+        <div className="relative z-50">
+          <ReportsHeader
+            isVisible={isVisible}
+            onNewTransaction={handleNewTransaction}
+            onExportCSV={handleExportCSV}
+            activePreset={activePreset}
+            onPresetChange={handlePresetChange}
+            customStart={customStart}
+            customEnd={customEnd}
+            onCustomRangeChange={handleCustomRangeChange}
+            loading={loading}
+          />
+        </div>
 
         {/* Overview Cards */}
-        <div className={`transition-all duration-700 delay-100 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+        <div className={`relative z-10 transition-all duration-700 delay-100 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <ReportsOverview
             totalIncome={summary.total_income}
             totalExpense={summary.total_expense}
