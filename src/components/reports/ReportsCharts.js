@@ -31,8 +31,9 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
   const count     = months.length;
   const labelStep = count > 120 ? 24 : count > 60 ? 12 : count > 24 ? 6 : count > 12 ? 2 : 1;
 
-  const svgWidth  = Math.max(500, count * (count > 60 ? 12 : count > 24 ? 22 : 35));
-  const svgHeight = 200;
+  // Dedicated scrollable pixel width per month item (35px per month slot)
+  const svgWidth  = Math.max(500, count * 35);
+  const svgHeight = 210;
   const padX      = 35;
   const padY      = 25;
 
@@ -80,14 +81,14 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
             <div className="bg-slate-50 p-1 rounded-xl flex gap-1 border border-slate-100">
               <button
                 onClick={() => setChartType("line")}
-                title="Grafik Garis"
+                title="Tampilan Grafik Garis"
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${chartType === "line" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"}`}
               >
                 <LineChart className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setChartType("bar")}
-                title="Grafik Batang"
+                title="Tampilan Grafik Batang"
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${chartType === "bar" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"}`}
               >
                 <BarChart2 className="w-3.5 h-3.5" />
@@ -103,82 +104,88 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
             Belum ada data transaksi pada periode ini
           </div>
         ) : (
-          <div className="w-full overflow-x-auto pb-2">
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full min-w-[300px]" style={{ height: 200 }}>
-              <defs>
-                <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00685F" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="#00685F" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity="0.12" />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
-                </linearGradient>
-              </defs>
+          <div className="w-full overflow-x-auto pb-3 pt-1 border-b border-slate-50">
+            <div style={{ width: svgWidth, minWidth: "100%" }}>
+              <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full" style={{ height: 210 }}>
+                <defs>
+                  <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00685F" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="#00685F" stopOpacity="0" />
+                  </linearGradient>
+                  <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.12" />
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
 
-              {/* Y-axis grid lines */}
-              {[0, 0.25, 0.5, 0.75, 1].map((f) => {
-                const y = padY + f * (svgHeight - 2 * padY);
-                const v = (maxVal * (1 - f)).toFixed(1);
-                return (
-                  <g key={f}>
-                    <line x1={padX} y1={y} x2={svgWidth - padX} y2={y} stroke="#f1f5f9" strokeWidth="1" />
-                    <text x={padX - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#94a3b8">{v}M</text>
-                  </g>
-                );
-              })}
-
-              {chartType === "line" ? (
-                <>
-                  <path d={incomeArea}  fill="url(#incomeGrad)" />
-                  <path d={expenseArea} fill="url(#expenseGrad)" />
-                  <path d={incomePath}  fill="none" stroke="#00685F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d={expensePath} fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  {incomeArr.map((v, i) => {
-                    if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
-                    return <circle key={`i${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#00685F" stroke="#fff" strokeWidth="1.5" />;
-                  })}
-                  {expenseArr.map((v, i) => {
-                    if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
-                    return <circle key={`e${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#ef4444" stroke="#fff" strokeWidth="1.5" />;
-                  })}
-                </>
-              ) : (
-                months.map((_, i) => {
-                  if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
-                  const bw = Math.max(3, ((svgWidth - 2 * padX) / count) * 0.4);
-                  const cx = getX(i);
-                  const incH = ((incomeArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY);
-                  const expH = ((expenseArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY);
+                {/* Y-axis grid lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((f) => {
+                  const y = padY + f * (svgHeight - 2 * padY);
+                  const v = (maxVal * (1 - f)).toFixed(1);
                   return (
-                    <g key={i}>
-                      <rect x={cx - bw - 1} y={svgHeight - padY - incH} width={bw} height={incH}
-                        fill="#00685F" rx="2" fillOpacity="0.85" />
-                      <rect x={cx + 1}      y={svgHeight - padY - expH} width={bw} height={expH}
-                        fill="#ef4444" rx="2" fillOpacity="0.75" />
+                    <g key={f}>
+                      <line x1={padX} y1={y} x2={svgWidth - padX} y2={y} stroke="#f1f5f9" strokeWidth="1" />
+                      <text x={padX - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#94a3b8">{v}M</text>
                     </g>
                   );
-                })
-              )}
+                })}
 
-              {/* X-axis sampled labels */}
-              {months.map((label, i) => {
-                if (i % labelStep !== 0 && i !== count - 1 && i !== 0) return null;
-                const displayLabel = count > 60 && monthlyData[i]?.month
-                  ? monthlyData[i].month.split("-")[0]
-                  : label;
-                return (
-                  <text key={i} x={getX(i)} y={svgHeight - 5} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#94a3b8">
-                    {displayLabel}
-                  </text>
-                );
-              })}
-            </svg>
+                {/* Line or Bar rendering */}
+                {chartType === "line" ? (
+                  <>
+                    <path d={incomeArea}  fill="url(#incomeGrad)" />
+                    <path d={expenseArea} fill="url(#expenseGrad)" />
+                    <path d={incomePath}  fill="none" stroke="#00685F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={expensePath} fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    {incomeArr.map((v, i) => {
+                      if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
+                      return <circle key={`i${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#00685F" stroke="#fff" strokeWidth="1.5" />;
+                    })}
+                    {expenseArr.map((v, i) => {
+                      if (count > 60 && i % labelStep !== 0 && i !== count - 1) return null;
+                      return <circle key={`e${i}`} cx={getX(i)} cy={getY(v)} r="3" fill="#ef4444" stroke="#fff" strokeWidth="1.5" />;
+                    })}
+                  </>
+                ) : (
+                  months.map((_, i) => {
+                    const bw = Math.min(12, Math.max(3, (svgWidth / count) * 0.25));
+                    const cx = getX(i);
+                    const incH = incomeArr[i] > 0 ? Math.max(3, ((incomeArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY)) : 0;
+                    const expH = expenseArr[i] > 0 ? Math.max(3, ((expenseArr[i] - minVal) / (maxVal - minVal)) * (svgHeight - 2 * padY)) : 0;
+                    return (
+                      <g key={i}>
+                        {incH > 0 && (
+                          <rect x={cx - bw - 1} y={svgHeight - padY - incH} width={bw} height={incH}
+                            fill="#00685F" rx="2" fillOpacity="0.85" />
+                        )}
+                        {expH > 0 && (
+                          <rect x={cx + 1} y={svgHeight - padY - expH} width={bw} height={expH}
+                            fill="#ef4444" rx="2" fillOpacity="0.75" />
+                        )}
+                      </g>
+                    );
+                  })
+                )}
+
+                {/* X-axis sampled labels */}
+                {months.map((label, i) => {
+                  if (i % labelStep !== 0 && i !== count - 1 && i !== 0) return null;
+                  const displayLabel = count > 60 && monthlyData[i]?.month
+                    ? monthlyData[i].month.split("-")[0]
+                    : label;
+                  return (
+                    <text key={i} x={getX(i)} y={svgHeight - 5} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#94a3b8">
+                      {displayLabel}
+                    </text>
+                  );
+                })}
+              </svg>
+            </div>
           </div>
         )}
 
         {/* Legend */}
-        <div className="flex items-center gap-5 mt-4 select-none flex-wrap">
+        <div className="flex items-center gap-5 mt-3 select-none flex-wrap">
           {[{ color: "#00685F", label: "Pemasukan" }, { color: "#ef4444", label: "Pengeluaran" }].map((l) => (
             <div key={l.label} className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full" style={{ background: l.color }}></span>
