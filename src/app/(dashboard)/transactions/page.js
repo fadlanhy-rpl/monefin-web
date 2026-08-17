@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import TransactionsStats from "../../../components/transactions/TransactionsStats";
 import TransactionsFilters from "../../../components/transactions/TransactionsFilters";
@@ -25,10 +26,13 @@ function formatDateInput(dateStr) {
 }
 
 export default function TransactionsPage() {
+  const searchParams = useSearchParams();
+
   const [categoryIdFilter, setCategoryIdFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("Last 30 Days");
-  const [searchQuery, setSearchQuery] = useState("");
+  // Inisialisasi dari URL param ?search= (dari header search navbar)
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [isVisible, setIsVisible] = useState(false);
   const [page, setPage] = useState(1);
 

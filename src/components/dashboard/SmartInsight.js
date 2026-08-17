@@ -8,13 +8,20 @@ function formatRupiah(n) {
   return 'Rp ' + abs;
 }
 
-export default function SmartInsight() {
+export default function SmartInsight({ status = null, savings = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [budgetValue, setBudgetValue] = useState(1500000);
   const [savedBudget, setSavedBudget] = useState(1500000);
   const [showSavedToast, setShowSavedToast] = useState(false);
   const ref = useRef(null);
+
+  useEffect(() => {
+    if (status && status.income_amount) {
+      setBudgetValue(status.income_amount);
+      setSavedBudget(status.income_amount);
+    }
+  }, [status]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
@@ -64,7 +71,7 @@ export default function SmartInsight() {
             </h2>
             
             <p className="text-sm text-slate-600 mt-2.5 leading-relaxed">
-              Pengeluaran makanan naik <span className="font-bold text-brand-700">15%</span> bulan ini. Batas anggaran Anda saat ini adalah <span className="font-bold text-slate-800">{formatRupiah(savedBudget)}</span>. Sesuaikan batas untuk menghemat.
+              {status?.message || 'Silakan atur uang saku terlebih dahulu di halaman Settings.'}
             </p>
           </div>
 
@@ -87,8 +94,8 @@ export default function SmartInsight() {
               Kembali
             </button>
 
-            <h3 className="font-bold text-slate-900 mt-3 text-sm">Sesuaikan Anggaran Makanan</h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">Tentukan batas maksimal pengeluaran kategori makanan.</p>
+            <h3 className="font-bold text-slate-900 mt-3 text-sm">Sesuaikan Uang Saku (Simulasi)</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Tentukan batas maksimal pengeluaran simulasi.</p>
 
             {/* Range Slider */}
             <div className="mt-5 space-y-2">

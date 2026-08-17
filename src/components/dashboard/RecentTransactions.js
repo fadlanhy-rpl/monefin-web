@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { Utensils, Wallet, Car, ShoppingBag, Eye } from "lucide-react";
 
 function formatRupiah(n) {
@@ -8,7 +9,7 @@ function formatRupiah(n) {
   return (n < 0 ? '- ' : '+ ') + 'Rp ' + abs;
 }
 
-export default function RecentTransactions() {
+export default function RecentTransactions({ transactions = [] }) {
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const ref = useRef(null);
@@ -24,46 +25,42 @@ export default function RecentTransactions() {
     return () => observer.disconnect();
   }, []);
 
-  const transactions = [
-    { 
-      id: 1, 
-      date: '24 Okt 2023', 
-      category: 'Food & Beverage', 
-      tag: 'expense', 
-      amount: -120000,
-      icon: <Utensils className="w-4 h-4 text-emerald-600" />,
-      iconBg: 'bg-emerald-50'
-    },
-    { 
-      id: 2, 
-      date: '23 Okt 2023', 
-      category: 'Gaji Bulanan', 
-      tag: 'income', 
-      amount: 8000000,
-      icon: <Wallet className="w-4 h-4 text-brand-600" />,
-      iconBg: 'bg-brand-50'
-    },
-    { 
-      id: 3, 
-      date: '22 Okt 2023', 
-      category: 'Transportasi', 
-      tag: 'expense', 
-      amount: -45000,
-      icon: <Car className="w-4 h-4 text-blue-600" />,
-      iconBg: 'bg-blue-50'
-    },
-    { 
-      id: 4, 
-      date: '21 Okt 2023', 
-      category: 'Shopping', 
-      tag: 'expense', 
-      amount: -450000,
-      icon: <ShoppingBag className="w-4 h-4 text-orange-600" />,
-      iconBg: 'bg-orange-50'
-    },
-  ];
+  const formattedTransactions = transactions.map(t => {
+    const d = new Date(t.transaction_date);
+    const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    const tag = t.type;
+    const amt = tag === 'expense' ? -t.amount : t.amount;
+    
+    let IconComponent = ShoppingBag;
+    let iconColor = 'text-orange-600';
+    let bgClass = 'bg-orange-50';
+    
+    if (tag === 'income') {
+      IconComponent = Wallet;
+      iconColor = 'text-brand-600';
+      bgClass = 'bg-brand-50';
+    } else if (t.category?.name?.toLowerCase().includes('food') || t.category?.name?.toLowerCase().includes('makanan')) {
+      IconComponent = Utensils;
+      iconColor = 'text-emerald-600';
+      bgClass = 'bg-emerald-50';
+    } else if (t.category?.name?.toLowerCase().includes('transport')) {
+      IconComponent = Car;
+      iconColor = 'text-blue-600';
+      bgClass = 'bg-blue-50';
+    }
 
-  const filteredTransactions = transactions.filter(t => {
+    return {
+      id: t.id,
+      date: dateStr,
+      category: t.category?.name || 'Lain-lain',
+      tag: tag,
+      amount: amt,
+      icon: <IconComponent className={`w-4 h-4 ${iconColor}`} />,
+      iconBg: bgClass
+    };
+  });
+
+  const filteredTransactions = formattedTransactions.filter(t => {
     if (activeFilter === "all") return true;
     return t.tag === activeFilter;
   });
@@ -77,10 +74,13 @@ export default function RecentTransactions() {
         </div>
         
         {/* View all button */}
-        <button className="ripple-container press-scale text-xs font-bold text-brand-700 bg-brand-50 px-3.5 py-2 rounded-xl hover:bg-brand-100 transition-colors flex items-center gap-1.5 self-start sm:self-auto">
+        <Link 
+          href="/transactions" 
+          className="ripple-container press-scale text-xs font-bold text-brand-700 bg-brand-50 px-3.5 py-2 rounded-xl hover:bg-brand-100 transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+        >
           <Eye className="w-3.5 h-3.5" />
           Lihat Semua
-        </button>
+        </Link>
       </div>
 
       {/* Tabs Filter */}

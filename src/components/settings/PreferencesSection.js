@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Sliders, DollarSign, Globe, Bell, Sun, Moon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Sliders, DollarSign, Globe, Bell, Sun, Moon, ChevronDown, Check } from "lucide-react";
 
 export default function PreferencesSection({
   currency,
@@ -18,6 +18,39 @@ export default function PreferencesSection({
   setTheme,
   onSave
 }) {
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const currencyRef = useRef(null);
+  const languageRef = useRef(null);
+
+  const currencyOptions = [
+    { value: "IDR", label: "IDR - Rupiah Indonesia (Rp)" },
+    { value: "USD", label: "USD - US Dollar ($)" },
+    { value: "EUR", label: "EUR - Euro (€)" },
+    { value: "SGD", label: "SGD - Singapore Dollar (S$)" },
+  ];
+
+  const languageOptions = [
+    { value: "id", label: "Bahasa Indonesia" },
+    { value: "en", label: "English (US)" },
+  ];
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (currencyRef.current && !currencyRef.current.contains(event.target)) {
+        setIsCurrencyOpen(false);
+      }
+      if (languageRef.current && !languageRef.current.contains(event.target)) {
+        setIsLanguageOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedCurrencyLabel = currencyOptions.find(o => o.value === currency)?.label || "IDR - Rupiah Indonesia (Rp)";
+  const selectedLanguageLabel = languageOptions.find(o => o.value === language)?.label || "Bahasa Indonesia";
+
   return (
     <div className="bg-white p-5 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8 hover:shadow-md transition-all duration-300">
       
@@ -28,7 +61,7 @@ export default function PreferencesSection({
         </div>
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">Preferensi & Notifikasi</h2>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Atur mata uang utama, bahasa aplikasi, serta preferensi pemberitahuan</p>
+          <p className="text-xs text-slate-400 font-semibold mt-0.5">Kelola pengaturan mata uang, bahasa, dan pemberitahuan</p>
         </div>
       </div>
 
@@ -36,37 +69,101 @@ export default function PreferencesSection({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         
         {/* Preferred Currency */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+        <div className="space-y-1.5 relative" ref={currencyRef}>
+          <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 select-none">
             <DollarSign className="w-3.5 h-3.5 text-[#00685F]" />
             <span>Mata Uang Utama</span>
           </label>
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none cursor-pointer text-slate-800 transition-all"
+          <button
+            type="button"
+            onClick={() => {
+              setIsCurrencyOpen(!isCurrencyOpen);
+              setIsLanguageOpen(false);
+            }}
+            className={`w-full bg-slate-50 border rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold flex items-center justify-between text-left cursor-pointer transition-all ${
+              isCurrencyOpen
+                ? "border-[#00685F] bg-white ring-4 ring-[#00685F]/10"
+                : "border-slate-200/70 hover:border-slate-300"
+            }`}
           >
-            <option value="IDR">IDR - Rupiah Indonesia (Rp)</option>
-            <option value="USD">USD - US Dollar ($)</option>
-            <option value="EUR">EUR - Euro (€)</option>
-            <option value="SGD">SGD - Singapore Dollar (S$)</option>
-          </select>
+            <span className="truncate text-slate-800">{selectedCurrencyLabel}</span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isCurrencyOpen ? "rotate-180 text-[#00685F]" : ""}`} />
+          </button>
+
+          {isCurrencyOpen && (
+            <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+              {currencyOptions.map((opt) => {
+                const isSelected = currency === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setCurrency(opt.value);
+                      setIsCurrencyOpen(false);
+                    }}
+                    className={`w-full px-4 py-2.5 rounded-xl flex items-center justify-between text-xs sm:text-sm font-bold transition-all text-left cursor-pointer ${
+                      isSelected 
+                        ? "bg-[#00685F]/10 text-[#00685F]" 
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && <Check className="w-4 h-4 text-[#00685F] shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Language Selection */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+        <div className="space-y-1.5 relative" ref={languageRef}>
+          <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 select-none">
             <Globe className="w-3.5 h-3.5 text-[#00685F]" />
             <span>Bahasa Aplikasi</span>
           </label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none cursor-pointer text-slate-800 transition-all"
+          <button
+            type="button"
+            onClick={() => {
+              setIsLanguageOpen(!isLanguageOpen);
+              setIsCurrencyOpen(false);
+            }}
+            className={`w-full bg-slate-50 border rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold flex items-center justify-between text-left cursor-pointer transition-all ${
+              isLanguageOpen
+                ? "border-[#00685F] bg-white ring-4 ring-[#00685F]/10"
+                : "border-slate-200/70 hover:border-slate-300"
+            }`}
           >
-            <option value="id">Bahasa Indonesia</option>
-            <option value="en">English (US)</option>
-          </select>
+            <span className="truncate text-slate-800">{selectedLanguageLabel}</span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isLanguageOpen ? "rotate-180 text-[#00685F]" : ""}`} />
+          </button>
+
+          {isLanguageOpen && (
+            <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+              {languageOptions.map((opt) => {
+                const isSelected = language === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setLanguage(opt.value);
+                      setIsLanguageOpen(false);
+                    }}
+                    className={`w-full px-4 py-2.5 rounded-xl flex items-center justify-between text-xs sm:text-sm font-bold transition-all text-left cursor-pointer ${
+                      isSelected 
+                        ? "bg-[#00685F]/10 text-[#00685F]" 
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && <Check className="w-4 h-4 text-[#00685F] shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>

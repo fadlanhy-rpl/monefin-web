@@ -1,20 +1,44 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Plus, User, Settings, LogOut, CheckCheck } from "lucide-react";
+import Link from "next/link";
+import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
+import { useGlobalSearch } from "../../hooks/useGlobalSearch";
+import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
+
+function formatRupiah(n) {
+  const abs = Math.abs(n).toLocaleString("id-ID");
+  return (n < 0 ? "- " : "") + "Rp " + abs;
+}
+
+function getRelativeTime(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now - date;
+  const diffInMins = Math.floor(diffInMs / 60000);
+  
+  if (diffInMins < 1) return "Baru saja";
+  if (diffInMins < 60) return `${diffInMins} menit lalu`;
+  const diffInHours = Math.floor(diffInMins / 60);
+  if (diffInHours < 24) return `${diffInHours} jam lalu`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) return `${diffInDays} hari lalu`;
+  return date.toLocaleDateString('id-ID');
+}
 
 export default function Header({ setMobileOpen }) {
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  // Avatar fallback: inisial nama user atau placeholder
   const userPhoto = user?.photo
-    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.photo}`
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=00685F&color=fff&size=64`;
+    ? `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}/storage/${user.photo}`
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=00685F&color=fff&size=64`;
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
+
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -23,21 +47,53 @@ export default function Header({ setMobileOpen }) {
 
   const isExpanded = isFocused || searchQuery.length > 0;
 
+  const { results, isLoading, error } = useGlobalSearch(searchQuery);
+
+  const totalResults =
+    (results?.transactions?.length || 0) +
+    (results?.categories?.length || 0) +
+    (results?.accounts?.length || 0) +
+    (results?.goals?.length || 0);
+
+  const hasSearch = searchQuery.trim().length > 0;
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setIsFocused(false);
+    setSearchQuery("");
+  };
+
   const handleSearchChange = (val) => {
     setSearchQuery(val);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("header-search", { detail: val }));
-    }
   };
 
   // Notification items in state for dynamic updates
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "Pengeluaran makanan naik 15%", time: "2 jam lalu", unread: true },
-    { id: 2, text: "Gaji bulan Oktober telah masuk", time: "1 hari lalu", unread: true },
-    { id: 3, text: "Target tabungan bulan ini tercapai", time: "3 hari lalu", unread: false }
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [isNotifLoading, setIsNotifLoading] = useState(true);
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      setIsNotifLoading(true);
+      const res = await getNotifications();
+      if (res && res.data) {
+        setNotifications(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    } finally {
+      setIsNotifLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+
+    const handleNotificationsUpdate = () => fetchNotifications();
+    window.addEventListener('notificationsRead', handleNotificationsUpdate);
+    return () => window.removeEventListener('notificationsRead', handleNotificationsUpdate);
+  }, [fetchNotifications]);
 
   const headerRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -73,12 +129,25 @@ export default function Header({ setMobileOpen }) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+  const markAllRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    try {
+      await markAllAsRead();
+    } catch (error) {
+      console.error("Failed to mark all as read", error);
+      fetchNotifications();
+    }
   };
 
-  const toggleNotifRead = (id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: !n.unread } : n));
+  const toggleNotifRead = async (id, isRead) => {
+    if (isRead) return;
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    try {
+      await markAsRead(id);
+    } catch (error) {
+      console.error("Failed to mark as read", error);
+      fetchNotifications();
+    }
   };
 
   return (
@@ -96,20 +165,35 @@ export default function Header({ setMobileOpen }) {
         {/* Responsive Expandable Search Bar */}
         <div className={`relative transition-all duration-300 ease-in-out h-10 ${
           isExpanded 
-            ? 'w-[150px] min-[380px]:w-[190px] min-[480px]:w-[250px] sm:w-[320px] md:w-[380px] lg:w-[420px]' 
-            : 'w-10 sm:w-[320px] md:w-[380px] lg:w-[420px]'
+            ? "w-[150px] min-[380px]:w-[190px] min-[480px]:w-[250px] sm:w-[320px] md:w-[380px] lg:w-[420px]" 
+            : "w-10 sm:w-[320px] md:w-[380px] lg:w-[420px]"
         }`}>
+          {/* Label sr-only (accessibility) */}
+          <label htmlFor="header-search" className="sr-only">Cari transaksi, kategori, rekening, atau goal</label>
+
           <Search className={`w-4 h-4 absolute top-1/2 -translate-y-1/2 transition-colors pointer-events-none z-10 ${
-            isExpanded ? 'left-3.5 text-slate-400' : 'left-3.5 text-slate-600 hidden sm:block'
+            isExpanded ? "left-3.5 text-slate-400" : "left-3.5 text-slate-600 hidden sm:block"
           }`} />
+
           <input 
             ref={searchInputRef}
+            id="header-search"
             type="text" 
             placeholder="Search analytics, transactions..." 
             autoComplete="off"
             value={searchQuery}
-            onChange={(e) => { handleSearchChange(e.target.value); setSearchOpen(true); }}
-            onFocus={() => { setIsFocused(true); setSearchOpen(true); setNotifOpen(false); setProfileOpen(false); }}
+            aria-expanded={searchOpen}
+            aria-controls="search-dropdown"
+            onChange={(e) => { 
+              handleSearchChange(e.target.value); 
+              setSearchOpen(true); 
+            }}
+            onFocus={() => { 
+              setIsFocused(true); 
+              setSearchOpen(true); 
+              setNotifOpen(false); 
+              setProfileOpen(false); 
+            }}
             onBlur={() => {
               setTimeout(() => {
                 setIsFocused(false);
@@ -118,10 +202,11 @@ export default function Header({ setMobileOpen }) {
             }}
             className={`w-full h-full bg-white border border-slate-200/80 rounded-full py-2 text-sm placeholder:text-slate-400 text-slate-700 focus:border-brand-600 focus:outline-none transition-all shadow-sm shadow-slate-100/50 ${
               isExpanded 
-                ? 'pl-10 pr-8 opacity-100 cursor-text' 
-                : 'pl-0 pr-0 opacity-0 sm:opacity-100 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text'
+                ? "pl-10 pr-8 opacity-100 cursor-text" 
+                : "pl-0 pr-0 opacity-0 sm:opacity-100 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text"
             }`} 
           />
+
           {!isExpanded && (
             <button
               type="button"
@@ -136,36 +221,140 @@ export default function Header({ setMobileOpen }) {
             </button>
           )}
 
-          {/* Shortcut key "/" */}
+          {/* Shortcut hints */}
           {!searchQuery && (
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none font-mono hidden sm:inline">/</span>
+            <kbd className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px] font-black text-slate-400 shadow-sm pointer-events-none select-none font-mono">
+              /
+            </kbd>
           )}
 
-          {/* Clear button inside input */}
+          {/* Clear button */}
           {isExpanded && searchQuery && (
             <button 
               type="button"
               onClick={() => handleSearchChange("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 z-10"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
             </button>
           )}
 
-          {/* Suggestions Dropdown */}
-          {searchOpen && isExpanded && (
-            <div className="dropdown-pop absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden z-40 max-h-48 overflow-y-auto w-full">
-              {['Food & Beverage', 'Gaji Bulanan', 'Transportasi', 'Food & Drink', 'Salary', 'Transport', 'Shopping', 'Investment'].map((suggestion, idx) => (
-                <button 
-                  key={suggestion}
-                  type="button"
-                  onClick={() => { handleSearchChange(suggestion); setSearchOpen(false); }}
-                  className={`suggestion-item w-full flex items-center gap-3 px-3 py-2 text-left text-xs text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors ${idx !== 0 ? 'border-t border-slate-50' : ''}`}
-                >
-                  <Search className="w-3.5 h-3.5 text-slate-400" />
-                  {suggestion}
-                </button>
-              ))}
+          {/* ── SEARCH DROPDOWN ───────────────────────────────────────── */}
+          {searchOpen && isExpanded && hasSearch && (
+            <div
+              id="search-dropdown"
+              onMouseDown={(e) => e.preventDefault()}
+              className="dropdown-pop absolute left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl shadow-2xl overflow-hidden z-50"
+            >
+              <div className="p-2">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-3 py-1.5">
+                  Hasil Pencarian
+                </p>
+
+                <div className="max-h-[65vh] overflow-y-auto space-y-0.5">
+                  {isLoading ? (
+                    /* Loading Skeleton */
+                    <div className="px-2 space-y-4 animate-pulse py-2">
+                      {[1, 2].map((group) => (
+                        <div key={group} className="space-y-2">
+                          <div className="h-4 w-28 bg-slate-100 rounded-md ml-3"></div>
+                          {[1, 2].map((item) => (
+                            <div key={item} className="flex items-center gap-3 px-3 py-1">
+                              <div className="w-8 h-8 rounded-xl bg-slate-100 shrink-0"></div>
+                              <div className="h-4 w-48 bg-slate-100 rounded-md"></div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ) : error ? (
+                    <div className="px-3 py-6 text-sm text-red-500 text-center">
+                      Gagal memuat hasil pencarian.
+                    </div>
+                  ) : totalResults > 0 ? (
+                    <>
+                      {/* Transactions */}
+                      <SearchResultGroup
+                        title="Transaksi"
+                        icon={<ArrowUpRight className="w-3.5 h-3.5" />}
+                        items={results.transactions}
+                        onItemClick={closeSearch}
+                        renderItem={(t) => ({
+                          href: "/transactions",
+                          label: t.description,
+                          meta: `${t.type === "income" ? "+" : "-"}${formatRupiah(t.amount)}`,
+                          metaColor: t.type === "income" ? "text-emerald-600" : "text-red-500",
+                          sub: t.category || "—",
+                          icon: t.type === "income"
+                            ? <ArrowDownLeft className="w-4 h-4 text-emerald-500" />
+                            : <ArrowUpRight className="w-4 h-4 text-red-400" />,
+                        })}
+                      />
+                      {/* Categories */}
+                      <SearchResultGroup
+                        title="Kategori"
+                        icon={<Tag className="w-3.5 h-3.5" />}
+                        items={results.categories}
+                        onItemClick={closeSearch}
+                        renderItem={(c) => ({
+                          href: "/categories",
+                          label: c.name,
+                          meta: c.type === "income" ? "Pemasukan" : "Pengeluaran",
+                          metaColor: c.type === "income" ? "text-emerald-600" : "text-red-500",
+                          sub: null,
+                          icon: <Tag className="w-4 h-4 text-brand-500" />,
+                        })}
+                      />
+                      {/* Accounts */}
+                      <SearchResultGroup
+                        title="Rekening"
+                        icon={<CreditCard className="w-3.5 h-3.5" />}
+                        items={results.accounts}
+                        onItemClick={closeSearch}
+                        renderItem={(a) => ({
+                          href: "/accounts",
+                          label: a.name,
+                          meta: formatRupiah(a.balance),
+                          metaColor: "text-slate-700",
+                          sub: a.type,
+                          icon: <CreditCard className="w-4 h-4 text-indigo-400" />,
+                        })}
+                      />
+                      {/* Goals */}
+                      <SearchResultGroup
+                        title="Goals"
+                        icon={<Target className="w-3.5 h-3.5" />}
+                        items={results.goals}
+                        onItemClick={closeSearch}
+                        renderItem={(g) => ({
+                          href: "/goals",
+                          label: g.title,
+                          meta: formatRupiah(g.current_amount),
+                          metaColor: "text-brand-700",
+                          sub: `Target: ${formatRupiah(g.target_amount)}`,
+                          icon: <Target className="w-4 h-4 text-amber-500" />,
+                        })}
+                      />
+                    </>
+                  ) : (
+                    <div className="px-3 py-8 text-sm text-slate-400 text-center">
+                      <Search className="w-8 h-8 mx-auto mb-2 text-slate-200" />
+                      <p>Tidak ada hasil untuk</p>
+                      <p className="font-bold text-slate-600 mt-0.5">&ldquo;{searchQuery}&rdquo;</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer hint */}
+                {totalResults > 0 && !isLoading && (
+                  <div className="border-t border-slate-50 px-3 py-2 mt-1 flex items-center gap-3 text-[10px] text-slate-400">
+                    <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-[9px] font-mono font-bold">↵</kbd> untuk buka
+                    <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-[9px] font-mono font-bold">Esc</kbd> untuk tutup
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -210,21 +399,27 @@ export default function Header({ setMobileOpen }) {
                 )}
               </div>
               <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
-                {notifications.map((n) => (
-                  <div 
-                    key={n.id}
-                    onClick={() => toggleNotifRead(n.id)}
-                    className="flex gap-3 px-4 py-3.5 hover:bg-brand-50/40 transition-colors cursor-pointer"
-                  >
-                    <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${n.unread ? 'bg-brand-600' : 'bg-transparent'}`}></span>
-                    <div className="flex-1">
-                      <p className={`text-xs sm:text-sm text-slate-700 ${n.unread ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>{n.text}</p>
-                      <p className="text-[10px] text-slate-400 mt-1">{n.time}</p>
+                {isNotifLoading ? (
+                  <div className="px-4 py-6 text-center text-xs text-slate-400 animate-pulse">Memuat notifikasi...</div>
+                ) : notifications.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-xs text-slate-400">Belum ada notifikasi</div>
+                ) : (
+                  notifications.map((n) => (
+                    <div 
+                      key={n.id}
+                      onClick={() => toggleNotifRead(n.id, n.is_read)}
+                      className="flex gap-3 px-4 py-3.5 hover:bg-brand-50/40 transition-colors cursor-pointer"
+                    >
+                      <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${!n.is_read ? "bg-brand-600" : "bg-transparent"}`}></span>
+                      <div className="flex-1">
+                        <p className={`text-xs sm:text-sm text-slate-700 ${!n.is_read ? "font-bold text-slate-900" : "font-medium text-slate-500"}`}>{n.message}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{getRelativeTime(n.created_at)}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-              <button className="w-full text-center text-xs font-bold text-brand-700 px-4 py-3 bg-slate-50/50 hover:bg-brand-50 border-t border-slate-100 transition-colors">Lihat Semua Notifikasi</button>
+              <Link href="/notifications" onClick={() => setNotifOpen(false)} className="block w-full text-center text-xs font-bold text-brand-700 px-4 py-3 bg-slate-50/50 hover:bg-brand-50 border-t border-slate-100 transition-colors">Lihat Semua Notifikasi</Link>
             </div>
           )}
         </div>
@@ -238,7 +433,7 @@ export default function Header({ setMobileOpen }) {
           >
             <img src={userPhoto} alt={`Foto profil ${userName}`} className="w-8 h-8 rounded-full object-cover" />
             <span className="text-xs font-bold text-slate-700">{userName}</span>
-            <svg className={`w-3 h-3 text-slate-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            <svg className={`w-3 h-3 text-slate-400 transition-transform ${profileOpen ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <button onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); setSearchOpen(false); }} className="md:hidden flex items-center pl-1" aria-label="Profil">
             <img src={userPhoto} alt={`Foto profil ${userName}`} className="w-8 h-8 rounded-full object-cover" />
@@ -255,26 +450,80 @@ export default function Header({ setMobileOpen }) {
                 className="profile-action w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors"
               >
                 <User className="w-4 h-4 text-slate-400" />
-                Profil Saya
-              </button>
-              <button 
-                onClick={() => { router.push("/settings"); setProfileOpen(false); }}
-                className="profile-action w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors"
-              >
-                <Settings className="w-4 h-4 text-slate-400" />
-                Pengaturan Akun
+                My Profile
               </button>
               <button
                 onClick={() => { setProfileOpen(false); logout(); }}
                 className="profile-action w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors border-t border-slate-50"
               >
                 <LogOut className="w-4 h-4 text-red-400" />
-                Keluar
+                Logout
               </button>
             </div>
           )}
         </div>
       </div>
     </header>
+  );
+}
+
+function SearchResultGroup({ title, icon, items, renderItem, onItemClick }) {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div className="mb-1 last:mb-0">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest bg-slate-50/70">
+        {icon}
+        <span>{title}</span>
+      </div>
+
+      {items.map((item) => {
+        const { href, label, meta, metaColor, sub, icon: itemIcon } = renderItem(item);
+        return (
+          <Link
+            key={item.id}
+            href={href}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              sessionStorage.setItem("global-search", label);
+            }}
+            onClick={onItemClick}
+            className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-50/70 transition-all mx-1"
+          >
+            {/* Icon container */}
+            <div className="w-8 h-8 rounded-xl bg-slate-50 group-hover:bg-white flex items-center justify-center transition-all shadow-sm border border-slate-100 shrink-0">
+              {itemIcon}
+            </div>
+
+            {/* Teks */}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-slate-700 truncate group-hover:text-brand-700 transition-colors">
+                {label}
+              </p>
+              {sub && (
+                <p className="text-[10px] text-slate-400 truncate">{sub}</p>
+              )}
+            </div>
+
+            {/* Meta (nominal/tipe) */}
+            {meta && (
+              <span className={`text-[11px] font-bold shrink-0 ${metaColor}`}>
+                {meta}
+              </span>
+            )}
+
+            {/* Arrow hover */}
+            <svg
+              className="w-3.5 h-3.5 text-slate-200 opacity-0 group-hover:opacity-100 transition-all -translate-x-1.5 group-hover:translate-x-0 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        );
+      })}
+    </div>
   );
 }
