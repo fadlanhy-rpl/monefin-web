@@ -40,7 +40,7 @@ function CountUp({ target, prefix = "", locale = "id-ID", isHidden = false }) {
   return <span ref={ref}>{prefix}{value.toLocaleString(locale)}</span>;
 }
 
-export default function StatCards() {
+export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpense = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
   const ref = useRef(null);
@@ -74,7 +74,7 @@ export default function StatCards() {
               <p className="text-xs text-white/70 font-semibold tracking-wider uppercase">Total Balance</p>
               <div className="flex items-center gap-2 mt-2">
                 <p className="text-3xl font-extrabold tracking-tight tabular-nums min-h-[40px] flex items-center">
-                  <CountUp target={15250000} prefix="Rp " isHidden={!showBalance} />
+                  <CountUp target={totalBalance} prefix="Rp " isHidden={!showBalance} />
                 </p>
                 <button 
                   onClick={() => setShowBalance(!showBalance)} 
@@ -123,7 +123,7 @@ export default function StatCards() {
           </p>
           <div className="flex items-baseline gap-2 mt-3">
             <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
-              <CountUp target={8000000} prefix="Rp " />
+              <CountUp target={totalIncome} prefix="Rp " />
             </p>
             <span className="flex items-center gap-0.5 text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md">
               <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -174,7 +174,7 @@ export default function StatCards() {
           </p>
           <div className="flex items-baseline gap-2 mt-3">
             <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
-              <CountUp target={3200000} prefix="Rp " />
+              <CountUp target={totalExpense} prefix="Rp " />
             </p>
             <span className="flex items-center gap-0.5 text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md">
               <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>

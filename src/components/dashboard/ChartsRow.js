@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 
 function formatRupiah(n) {
   const abs = Math.abs(n).toLocaleString('id-ID');
   return (n < 0 ? '- ' : '+ ') + 'Rp ' + abs;
 }
 
-export default function ChartsRow() {
+export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categoryData = [] }) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
   
@@ -16,6 +16,8 @@ export default function ChartsRow() {
   const [hoveredBar, setHoveredBar] = useState(null);
   const [hoveredDonut, setHoveredDonut] = useState(null);
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 });
+
+  const activeData = period === "weekly" ? weeklyTrend : monthlyTrend;
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
@@ -28,34 +30,13 @@ export default function ChartsRow() {
     return () => observer.disconnect();
   }, []);
 
-  // Datasets
-  const weeklyData = [
-    { label: 'Sen', last: 45, thisWeek: 62, lastAmt: 450000, thisAmt: 620000 },
-    { label: 'Sel', last: 68, thisWeek: 92, lastAmt: 680000, thisAmt: 920000 },
-    { label: 'Rab', last: 78, thisWeek: 58, lastAmt: 780000, thisAmt: 580000 },
-    { label: 'Kam', last: 54, thisWeek: 85, lastAmt: 540000, thisAmt: 850000 },
-    { label: 'Jum', last: 62, thisWeek: 70, lastAmt: 620000, thisAmt: 700000 },
-    { label: 'Sab', last: 88, thisWeek: 100, lastAmt: 880000, thisAmt: 1000000 },
-  ];
-
-  const monthlyData = [
-    { label: 'Jul', last: 50, thisWeek: 75, lastAmt: 3500000, thisAmt: 5250000 },
-    { label: 'Agt', last: 65, thisWeek: 80, lastAmt: 4550000, thisAmt: 5600000 },
-    { label: 'Sep', last: 85, thisWeek: 70, lastAmt: 5950000, thisAmt: 4900000 },
-    { label: 'Okt', last: 60, thisWeek: 95, lastAmt: 4200000, thisAmt: 6650000 },
-    { label: 'Nov', last: 70, thisWeek: 85, lastAmt: 4900000, thisAmt: 5950000 },
-    { label: 'Des', last: 90, thisWeek: 100, lastAmt: 6300000, thisAmt: 7000000 },
-  ];
-
-  const activeData = period === "weekly" ? weeklyData : monthlyData;
-
   const handleBarHover = (e, index, type, amount) => {
     const x = e.clientX ?? (e.touches && e.touches[0].clientX);
     const y = e.clientY ?? (e.touches && e.touches[0].clientY);
     setHoveredBar({ index, type });
     setTooltip({ 
       show: true, 
-      text: `${type === 'this' ? 'Minggu Ini' : 'Minggu Lalu'}: ${formatRupiah(amount).replace('+ ', '')}`, 
+      text: `${type === 'this' ? (period === 'weekly' ? 'Minggu Ini' : 'Bulan Ini') : (period === 'weekly' ? 'Minggu Lalu' : 'Tahun Lalu')}: ${formatRupiah(amount).replace('+ ', '')}`, 
       x: x + 14, 
       y: y - 36 
     });
@@ -66,16 +47,38 @@ export default function ChartsRow() {
     setTooltip(prev => ({ ...prev, show: false }));
   };
 
-  // Donut segment calculations
-  // r = 88, circumference = 2 * pi * r = 552.92
-  const donutData = [
-    { label: 'Food', pct: 55, amount: 1760000, color: '#00685F', stroke: '304.11 248.81', offset: '0', rotate: '0deg' },
-    { label: 'Transport', pct: 30, amount: 960000, color: '#465569', stroke: '165.88 387.04', offset: '387.04', rotate: '198deg' },
-    { label: 'Shopping', pct: 15, amount: 480000, color: '#b3572b', stroke: '82.94 469.98', offset: '469.98', rotate: '306deg' },
-  ];
+  const computedDonutData = useMemo(() => {
+    if (!categoryData || categoryData.length === 0) return [];
+    
+    const total = categoryData.reduce((sum, item) => sum + item.amount, 0);
+    const colors = ['#00685F', '#465569', '#b3572b', '#D97706', '#2563EB', '#7C3AED'];
+    
+    let currentRotate = 0;
+    const circumference = 2 * Math.PI * 88; // 552.92
+    
+    return categoryData.map((item, index) => {
+      const pct = total > 0 ? (item.amount / total) * 100 : 0;
+      const strokeVal = (pct / 100) * circumference;
+      const emptyVal = circumference - strokeVal;
+      const stroke = `${strokeVal.toFixed(2)} ${emptyVal.toFixed(2)}`;
+      
+      const rotate = currentRotate;
+      currentRotate += (pct / 100) * 360;
+      
+      return {
+        label: item.category,
+        pct: pct.toFixed(1),
+        amount: item.amount,
+        color: colors[index % colors.length],
+        stroke: stroke,
+        offset: emptyVal.toFixed(2),
+        rotate: `${rotate}deg`
+      };
+    });
+  }, [categoryData]);
 
-  // Currently shown center content
-  const activeDonutInfo = hoveredDonut || { label: 'Total Spend', amount: 3200000, pct: 100 };
+  const totalDonutAmount = categoryData.reduce((sum, item) => sum + item.amount, 0);
+  const activeDonutInfo = hoveredDonut || { label: 'Total Spend', amount: totalDonutAmount, pct: 100 };
 
   return (
     <>
@@ -112,49 +115,66 @@ export default function ChartsRow() {
             </div>
           </div>
 
-          {/* Interactive Chart Bars */}
-          <div className="mt-8 grid grid-cols-6 gap-3 sm:gap-6 items-end h-56 sm:h-64 relative">
-            {activeData.map((d, i) => {
-              const isAnyBarHovered = hoveredBar !== null;
-              const isThisHovered = isAnyBarHovered && hoveredBar.index === i && hoveredBar.type === 'this';
-              const isLastHovered = isAnyBarHovered && hoveredBar.index === i && hoveredBar.type === 'last';
-              
-              return (
-                <div key={d.label} className="flex flex-col items-center justify-end h-full gap-2 group">
-                  <div className="flex items-end gap-1.5 h-full">
-                    {/* This Period Bar */}
-                    <div 
-                      className={`chart-bar w-3 sm:w-5 bg-brand-600 rounded-t-lg transition-all ${isVisible ? 'bar-rise' : ''}`} 
-                      style={{ 
-                        height: `${d.thisWeek}%`, 
-                        animationDelay: `${i * 60}ms`,
-                        opacity: isAnyBarHovered && !isThisHovered ? 0.35 : 1,
-                        filter: isThisHovered ? 'brightness(1.1)' : 'none'
-                      }}
-                      onMouseEnter={(e) => handleBarHover(e, i, 'this', d.thisAmt)}
-                      onMouseMove={(e) => handleBarHover(e, i, 'this', d.thisAmt)}
-                      onMouseLeave={handleBarLeave}
-                    ></div>
-                    {/* Last Period Bar */}
-                    <div 
-                      className={`chart-bar w-3 sm:w-5 bg-slate-200 rounded-t-lg transition-all ${isVisible ? 'bar-rise' : ''}`} 
-                      style={{ 
-                        height: `${d.last}%`, 
-                        animationDelay: `${i * 60 + 60}ms`,
-                        opacity: isAnyBarHovered && !isLastHovered ? 0.35 : 1,
-                        filter: isLastHovered ? 'brightness(1.05)' : 'none'
-                      }}
-                      onMouseEnter={(e) => handleBarHover(e, i, 'last', d.lastAmt)}
-                      onMouseMove={(e) => handleBarHover(e, i, 'last', d.lastAmt)}
-                      onMouseLeave={handleBarLeave}
-                    ></div>
+          {/* Interactive Chart Container with Grid Lines */}
+          <div className="mt-6 relative">
+            {/* Background Grid Lines */}
+            <div className="absolute inset-x-0 top-0 bottom-7 flex flex-col justify-between pointer-events-none">
+              <div className="border-b border-dashed border-slate-100 w-full"></div>
+              <div className="border-b border-dashed border-slate-100 w-full"></div>
+              <div className="border-b border-dashed border-slate-100 w-full"></div>
+              <div className="border-b border-dashed border-slate-100 w-full"></div>
+            </div>
+
+            {/* Bars Grid */}
+            <div className={`grid ${period === "weekly" ? "grid-cols-7" : "grid-cols-6"} gap-2 sm:gap-4 items-end h-56 sm:h-64 relative z-10 pt-4 pb-1 border-b border-slate-200/60`}>
+              {activeData.map((d, i) => {
+                const isAnyBarHovered = hoveredBar !== null;
+                const isThisHovered = isAnyBarHovered && hoveredBar.index === i && hoveredBar.type === 'this';
+                const isLastHovered = isAnyBarHovered && hoveredBar.index === i && hoveredBar.type === 'last';
+                
+                const thisHeight = d.thisAmt > 0 ? Math.max(d.thisWeek, 4) : (d.thisWeek > 0 ? d.thisWeek : 0);
+                const lastHeight = d.lastAmt > 0 ? Math.max(d.last, 4) : (d.last > 0 ? d.last : 0);
+
+                return (
+                  <div key={d.label} className="flex flex-col items-center justify-end h-full gap-2 group">
+                    <div className="flex items-end gap-1 sm:gap-2 h-full w-full justify-center">
+                      {/* This Period Bar */}
+                      <div 
+                        className={`chart-bar w-3.5 sm:w-6 bg-gradient-to-t from-brand-700 to-brand-500 rounded-t-md transition-all duration-300 relative ${isVisible ? 'bar-rise' : ''}`} 
+                        style={{ 
+                          height: `${thisHeight}%`, 
+                          animationDelay: `${i * 50}ms`,
+                          opacity: isAnyBarHovered && !isThisHovered ? 0.35 : 1,
+                          boxShadow: isThisHovered ? '0 4px 12px rgba(0, 104, 95, 0.25)' : 'none'
+                        }}
+                        onMouseEnter={(e) => handleBarHover(e, i, 'this', d.thisAmt)}
+                        onMouseMove={(e) => handleBarHover(e, i, 'this', d.thisAmt)}
+                        onMouseLeave={handleBarLeave}
+                      >
+                        {isThisHovered && (
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-brand-300 rounded-full animate-ping pointer-events-none"></div>
+                        )}
+                      </div>
+                      {/* Last Period Bar */}
+                      <div 
+                        className={`chart-bar w-3.5 sm:w-6 bg-slate-200/80 hover:bg-slate-300 rounded-t-md transition-all duration-300 relative ${isVisible ? 'bar-rise' : ''}`} 
+                        style={{ 
+                          height: `${lastHeight}%`, 
+                          animationDelay: `${i * 50 + 40}ms`,
+                          opacity: isAnyBarHovered && !isLastHovered ? 0.35 : 1,
+                        }}
+                        onMouseEnter={(e) => handleBarHover(e, i, 'last', d.lastAmt)}
+                        onMouseMove={(e) => handleBarHover(e, i, 'last', d.lastAmt)}
+                        onMouseLeave={handleBarLeave}
+                      ></div>
+                    </div>
+                    <span className={`text-[11px] sm:text-xs font-semibold transition-colors ${isAnyBarHovered && hoveredBar.index === i ? 'text-brand-700 font-bold' : 'text-slate-500'}`}>
+                      {d.label}
+                    </span>
                   </div>
-                  <span className={`text-[11px] sm:text-xs font-semibold transition-colors ${isAnyBarHovered && hoveredBar.index === i ? 'text-brand-600' : 'text-slate-400'}`}>
-                    {d.label}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -169,7 +189,7 @@ export default function ChartsRow() {
             <div className="relative w-44 h-44">
               <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
                 <circle cx="100" cy="100" r="88" fill="none" stroke="#f1f5f4" strokeWidth="18"/>
-                {donutData.map((d, index) => {
+                {computedDonutData.map((d, index) => {
                   const isHovered = hoveredDonut && hoveredDonut.label === d.label;
                   return (
                     <circle 
@@ -195,14 +215,17 @@ export default function ChartsRow() {
                 })}
               </svg>
               {/* Dynamic Information Center */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
-                <span className="text-[10px] tracking-widest text-slate-400 font-extrabold uppercase transition-all duration-300">
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4 overflow-hidden">
+                <span 
+                  className="text-[10px] tracking-wider text-slate-400 font-extrabold uppercase transition-all duration-300 truncate w-full px-2"
+                  title={activeDonutInfo.label}
+                >
                   {activeDonutInfo.label}
                 </span>
-                <span className="text-base font-extrabold text-slate-900 mt-1 transition-all duration-300">
+                <span className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5 transition-all duration-300 truncate w-full px-1">
                   {formatRupiah(activeDonutInfo.amount).replace('+ ', '')}
                 </span>
-                <span className="text-[11px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full mt-1.5 transition-all">
+                <span className="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full mt-1 transition-all">
                   {activeDonutInfo.pct}%
                 </span>
               </div>
@@ -211,7 +234,7 @@ export default function ChartsRow() {
 
           {/* Interactive Legend List */}
           <div className="space-y-3 mt-2">
-            {donutData.map(d => {
+            {computedDonutData.map(d => {
               const isHovered = hoveredDonut && hoveredDonut.label === d.label;
               return (
                 <div 
@@ -220,11 +243,12 @@ export default function ChartsRow() {
                   onMouseEnter={() => setHoveredDonut({ label: d.label, amount: d.amount, pct: d.pct })}
                   onMouseLeave={() => setHoveredDonut(null)}
                 >
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-slate-600 font-medium">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }}></span>{d.label}
+                  <div className="flex items-center justify-between text-sm gap-2">
+                    <span className="flex items-center gap-2 text-slate-600 font-medium truncate min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }}></span>
+                      <span className="truncate" title={d.label}>{d.label}</span>
                     </span>
-                    <span className="font-bold text-slate-800">{formatRupiah(d.amount).replace('+ ', '')}</span>
+                    <span className="font-bold text-slate-800 shrink-0">{formatRupiah(d.amount).replace('+ ', '')}</span>
                   </div>
                   {/* Small visual bar indicator */}
                   <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
