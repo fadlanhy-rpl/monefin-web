@@ -8,8 +8,10 @@ import RecentTransactions from "../../../components/dashboard/RecentTransactions
 import SmartInsight from "../../../components/dashboard/SmartInsight";
 import { getDashboardSummary } from "../../../services/dashboard.service";
 import { Calendar, ChevronDown, Check } from "lucide-react";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState("30days");
@@ -17,10 +19,10 @@ export default function DashboardPage() {
   const dropdownRef = useRef(null);
 
   const rangeOptions = [
-    { value: "7days", label: "7 Hari Terakhir" },
-    { value: "30days", label: "30 Hari Terakhir" },
-    { value: "this_month", label: "Bulan Ini" },
-    { value: "this_year", label: "Tahun Ini" },
+    { value: "7days", label: t("dashboard.range_7days") || "7 Hari Terakhir" },
+    { value: "30days", label: t("dashboard.range_30days") || "30 Hari Terakhir" },
+    { value: "this_month", label: t("dashboard.range_this_month") || "Bulan Ini" },
+    { value: "this_year", label: t("dashboard.range_this_year") || "Tahun Ini" },
   ];
 
   useEffect(() => {
@@ -57,8 +59,8 @@ export default function DashboardPage() {
       {/* HEADING */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Financial Overview</h1>
-          <p className="text-sm text-slate-500 mt-1">Here's what's happening with your wealth today.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{t("dashboard.title") || "Financial Overview"}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t("dashboard.subtitle") || "Here's what's happening with your wealth today."}</p>
         </div>
         
         {/* Date Filter Dropdown */}

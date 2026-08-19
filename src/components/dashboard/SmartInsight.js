@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Lightbulb, Check, ChevronLeft } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 function formatRupiah(n) {
   const abs = Math.abs(n).toLocaleString('id-ID');
@@ -9,6 +10,7 @@ function formatRupiah(n) {
 }
 
 export default function SmartInsight({ status = null, savings = 0 }) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [budgetValue, setBudgetValue] = useState(1500000);
@@ -62,16 +64,16 @@ export default function SmartInsight({ status = null, savings = 0 }) {
             </div>
             
             <h2 className="font-bold text-slate-900 mt-4 text-base flex items-center gap-1.5">
-              Smart Insight
+              {t("dashboard.smart_insight") || "Smart Insight"}
               {showSavedToast && (
                 <span className="text-[10px] bg-brand-600 text-white font-bold px-2 py-0.5 rounded-full animate-bounce">
-                  Saved!
+                  {t("common.saved") || "Saved!"}
                 </span>
               )}
             </h2>
             
             <p className="text-sm text-slate-600 mt-2.5 leading-relaxed">
-              {status?.message || 'Silakan atur uang saku terlebih dahulu di halaman Settings.'}
+              {status?.message || t("dashboard.smart_insight_empty") || 'Silakan atur uang saku terlebih dahulu di halaman Settings.'}
             </p>
           </div>
 
@@ -79,7 +81,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
             onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
             className="ripple-container ripple-dark press-scale mt-4 sm:mt-5 w-full bg-white border border-brand-200 text-brand-700 font-bold text-xs py-2.5 sm:py-3 rounded-xl hover:bg-brand-50 hover:border-brand-400 transition-colors shadow-sm"
           >
-            Adjust Budget
+            {t("dashboard.adjust_budget") || "Adjust Budget"}
           </button>
         </div>
 
@@ -91,11 +93,11 @@ export default function SmartInsight({ status = null, savings = 0 }) {
               className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 font-bold self-start -ml-1 py-1 px-2 rounded-lg hover:bg-slate-50 transition-colors"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              Kembali
+              {t("common.back") || "Kembali"}
             </button>
 
-            <h3 className="font-bold text-slate-900 mt-3 text-sm">Sesuaikan Uang Saku (Simulasi)</h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">Tentukan batas maksimal pengeluaran simulasi.</p>
+            <h3 className="font-bold text-slate-900 mt-3 text-sm">{t("dashboard.adjust_budget_sim") || "Sesuaikan Uang Saku (Simulasi)"}</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">{t("dashboard.adjust_budget_sim_desc") || "Tentukan batas maksimal pengeluaran simulasi."}</p>
 
             {/* Range Slider */}
             <div className="mt-5 space-y-2">

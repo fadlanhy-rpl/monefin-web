@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
 function CountUp({ target, prefix = "", locale = "id-ID", isHidden = false }) {
   const [value, setValue] = useState(0);
@@ -41,6 +42,7 @@ function CountUp({ target, prefix = "", locale = "id-ID", isHidden = false }) {
 }
 
 export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpense = 0 }) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
   const ref = useRef(null);
@@ -71,7 +73,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
           
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-xs text-white/70 font-semibold tracking-wider uppercase">Total Balance</p>
+              <p className="text-xs text-white/70 font-semibold tracking-wider uppercase">{t("dashboard.total_balance") || "Total Balance"}</p>
               <div className="flex items-center gap-2 mt-2">
                 <p className="text-3xl font-extrabold tracking-tight tabular-nums min-h-[40px] flex items-center">
                   <CountUp target={totalBalance} prefix="Rp " isHidden={!showBalance} />
@@ -109,7 +111,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
           </div>
           
           <div className="mt-5 flex justify-between items-center relative z-10">
-            <span className="inline-block bg-white/15 text-[10px] font-extrabold tracking-wider px-2.5 py-1.5 rounded-lg">SAVINGS +4.2%</span>
+            <span className="inline-block bg-white/15 text-[10px] font-extrabold tracking-wider px-2.5 py-1.5 rounded-lg">{t("dashboard.savings") || "SAVINGS"} +4.2%</span>
             <span className="text-[10px] text-white/60 tracking-widest font-mono">•••• 8820</span>
           </div>
         </div>
@@ -119,7 +121,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
       <div className={`reveal card-hover rounded-2xl bg-white p-6 shadow-card border border-slate-100/50 flex flex-col justify-between ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "80ms" }}>
         <div>
           <p className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse"></span> Monthly Income
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse"></span> {t("dashboard.monthly_income") || "Monthly Income"}
           </p>
           <div className="flex items-baseline gap-2 mt-3">
             <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
@@ -138,7 +140,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div className={`h-full bg-brand-600 rounded-full ${isVisible ? 'bar-grow' : ''}`} style={{ "--target-width": "78%" }}></div>
             </div>
-            <p className="text-[10px] text-slate-400 mt-2 font-medium">78% of income target achieved</p>
+            <p className="text-[10px] text-slate-400 mt-2 font-medium">78% {t("dashboard.income_target") || "of income target achieved"}</p>
           </div>
           {/* SVG Sparkline */}
           <div className="w-16 h-8 shrink-0">
@@ -170,7 +172,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
       <div className={`reveal card-hover rounded-2xl bg-white p-6 shadow-card border border-slate-100/50 flex flex-col justify-between ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "160ms" }}>
         <div>
           <p className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> Monthly Expenses
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> {t("dashboard.monthly_expenses") || "Monthly Expenses"}
           </p>
           <div className="flex items-baseline gap-2 mt-3">
             <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
@@ -189,7 +191,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div className={`h-full bg-red-500 rounded-full ${isVisible ? 'bar-grow' : ''}`} style={{ "--target-width": "32%" }}></div>
             </div>
-            <p className="text-[10px] text-slate-400 mt-2 font-medium">32% of monthly budget limit</p>
+            <p className="text-[10px] text-slate-400 mt-2 font-medium">32% {t("dashboard.expense_limit") || "of monthly budget limit"}</p>
           </div>
           {/* SVG Sparkline */}
           <div className="w-16 h-8 shrink-0">

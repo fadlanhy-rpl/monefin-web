@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, ChevronDown, Check } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function BudgetModal({
   isOpen,
@@ -12,6 +13,7 @@ export default function BudgetModal({
   setFormLimit,
   categories = []
 }) {
+  const { t, language } = useLanguage();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -49,7 +51,7 @@ export default function BudgetModal({
         {/* Modal Header */}
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-extrabold text-slate-900">
-            {modalMode === "add" ? "Set New Budget" : "Edit Budget"}
+            {modalMode === "add" ? (t("budgets.add_title") || "Set New Budget") : (t("budgets.edit_title") || "Edit Budget")}
           </h3>
           <button 
             onClick={onClose}
@@ -66,7 +68,7 @@ export default function BudgetModal({
             {/* Custom Modern Category Dropdown */}
             <div className="space-y-1.5 relative" ref={dropdownRef}>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Kategori (Category)
+                {t("budgets.category") || "Kategori (Category)"}
               </label>
               
               {/* Dropdown Trigger Button */}
@@ -81,7 +83,7 @@ export default function BudgetModal({
                 } ${modalMode === "edit" ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 <span className={selectedCategory ? "text-slate-900" : "text-slate-400 font-medium"}>
-                  {selectedCategory ? selectedCategory.name : "Pilih Kategori Pengeluaran"}
+                  {selectedCategory ? selectedCategory.name : (t("budgets.select_category") || "Pilih Kategori Pengeluaran")}
                 </span>
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
@@ -95,7 +97,7 @@ export default function BudgetModal({
                 <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] max-h-56 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                   {categories.length === 0 ? (
                     <div className="px-4 py-3 text-xs text-slate-400 text-center font-medium">
-                      Tidak ada kategori pengeluaran.
+                      {language === 'en' ? 'No expense categories available.' : 'Tidak ada kategori pengeluaran.'}
                     </div>
                   ) : (
                     categories.map((cat) => {
@@ -124,14 +126,14 @@ export default function BudgetModal({
               )}
 
               {modalMode === "edit" && (
-                <p className="text-xs text-slate-500 mt-1">Kategori tidak dapat diubah setelah anggaran dibuat.</p>
+                <p className="text-xs text-slate-500 mt-1">{t("budgets.category_locked") || "Kategori tidak dapat diubah setelah anggaran dibuat."}</p>
               )}
             </div>
 
             {/* Limit Input with Thousand Separator */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Batas Anggaran (Limit)
+                {t("budgets.limit") || "Batas Anggaran (Limit)"}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">
@@ -157,13 +159,13 @@ export default function BudgetModal({
               onClick={onClose}
               className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
             >
-              Batal
+              {t("common.cancel") || "Batal"}
             </button>
             <button
               type="submit"
               className="flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
             >
-              Simpan
+              {t("common.save") || "Simpan"}
             </button>
           </div>
         </form>

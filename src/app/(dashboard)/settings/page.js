@@ -9,19 +9,22 @@ import PreferencesSection from "../../../components/settings/PreferencesSection"
 import DangerZoneSection from "../../../components/settings/DangerZoneSection";
 import { CheckCircle2, AlertCircle, X, Settings } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function SettingsPage() {
-  const { user, updatePassword } = useAuth();
+  const { user, updatePassword, updateProfile } = useAuth();
+  const { changeLanguage, language: currentGlobalLang } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
   // Form State - Profile
-  const [fullName, setFullName] = useState("Ahmad Maariz");
-  const [email, setEmail] = useState("ahmad@example.com");
-  const [phone, setPhone] = useState("+62 812 3456 7890");
-  const [occupation, setOccupation] = useState("Software Engineer");
-  const [bio, setBio] = useState("Fokus membangun dana darurat dan investasi jangka panjang.");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
 
   // Form State - Security
   const [currentPassword, setCurrentPassword] = useState("");
@@ -44,6 +47,30 @@ export default function SettingsPage() {
     setIsVisible(true);
   }, []);
 
+  const populateUserData = () => {
+    if (user) {
+      setFullName(user.name || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+      setOccupation(user.occupation || "");
+      setBio(user.bio || "");
+      setAvatarUrl(user.photo ? `http://localhost:8000/storage/${user.photo}` : "");
+      
+      if (user.preferences) {
+        setCurrency(user.preferences.currency || "IDR");
+        setLanguage(user.preferences.language || "id");
+        setEmailNotif(user.preferences.emailNotif ?? true);
+        setTxAlert(user.preferences.txAlert ?? true);
+        setBudgetAlert(user.preferences.budgetAlert ?? true);
+        setTheme(user.preferences.theme || "light");
+      }
+    }
+  };
+
+  useEffect(() => {
+    populateUserData();
+  }, [user]);
+
   const showToast = (message) => {
     setToastMessage(message);
     setTimeout(() => {
@@ -51,20 +78,35 @@ export default function SettingsPage() {
     }, 3000);
   };
 
-  const handleAvatarChange = () => {
-    showToast("Membuka dialog pemilihan foto profil...");
+  const handleAvatarChange = (file) => {
+    setAvatarFile(file);
+    setAvatarUrl(URL.createObjectURL(file));
   };
 
-  const handleSaveProfile = () => {
-    showToast("Profil berhasil diperbarui.");
+  const handleSaveProfile = async () => {
+    const formData = new FormData();
+    formData.append("name", fullName);
+    formData.append("phone", phone);
+    formData.append("occupation", occupation);
+    formData.append("bio", bio);
+    if (avatarFile) {
+      formData.append("photo", avatarFile);
+    }
+    // Also include preferences so they are not lost
+    const prefs = { currency, language, emailNotif, txAlert, budgetAlert, theme };
+    formData.append("preferences", JSON.stringify(prefs));
+
+    const result = await updateProfile(formData);
+    if (result.success) {
+      showToast("Profil berhasil diperbarui.");
+    } else {
+      showToast(result.error || "Gagal memperbarui profil.");
+    }
   };
 
   const handleCancelProfile = () => {
-    setFullName("Ahmad Maariz");
-    setEmail("ahmad@example.com");
-    setPhone("+62 812 3456 7890");
-    setOccupation("Software Engineer");
-    setBio("Fokus membangun dana darurat dan investasi jangka panjang.");
+    populateUserData();
+    setAvatarFile(null);
     showToast("Perubahan profil dibatalkan.");
   };
 
@@ -108,8 +150,24 @@ export default function SettingsPage() {
     showToast("Instruksi reset password telah dikirim ke email Anda.");
   };
 
-  const handleSavePreferences = () => {
-    showToast("Preferensi aplikasi berhasil disimpan.");
+  const handleSavePreferences = async () => {
+    const formData = new FormData();
+    formData.append("name", fullName);
+    formData.append("phone", phone);
+    formData.append("occupation", occupation);
+    formData.append("bio", bio);
+    // Send updated preferences
+    const prefs = { currency, language, txAlert, budgetAlert };
+    formData.append("preferences", JSON.stringify(prefs));
+
+    const result = await updateProfile(formData);
+    if (result.success) {
+      // Apply the language globally only after saving
+      changeLanguage(language);
+      showToast(language === 'en' ? "Application preferences successfully saved." : "Preferensi aplikasi berhasil disimpan.");
+    } else {
+      showToast(result.error || (language === 'en' ? "Failed to save preferences." : "Gagal menyimpan preferensi."));
+    }
   };
 
   const handleConfirmDelete = () => {
@@ -187,14 +245,10 @@ export default function SettingsPage() {
               setCurrency={setCurrency}
               language={language}
               setLanguage={setLanguage}
-              emailNotif={emailNotif}
-              setEmailNotif={setEmailNotif}
               txAlert={txAlert}
               setTxAlert={setTxAlert}
               budgetAlert={budgetAlert}
               setBudgetAlert={setBudgetAlert}
-              theme={theme}
-              setTheme={setTheme}
               onSave={handleSavePreferences}
             />
           </div>

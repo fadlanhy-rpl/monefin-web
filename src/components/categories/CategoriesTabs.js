@@ -1,4 +1,5 @@
 import { LayoutGrid, List } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function CategoriesTabs({
   activeTab,
@@ -6,6 +7,7 @@ export default function CategoriesTabs({
   viewMode,
   setViewMode
 }) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 select-none bg-white p-3 sm:p-4 rounded-3xl border border-slate-100 shadow-sm w-full">
       {/* Tab Switcher */}
@@ -18,7 +20,7 @@ export default function CategoriesTabs({
               : "text-slate-500 hover:text-[#00685F] hover:bg-slate-100/50"
           }`}
         >
-          Pengeluaran
+          {t("categories.expense") || "Pengeluaran"}
         </button>
         <button 
           onClick={() => setActiveTab("income")}
@@ -28,7 +30,7 @@ export default function CategoriesTabs({
               : "text-slate-500 hover:text-[#00685F] hover:bg-slate-100/50"
           }`}
         >
-          Pemasukan
+          {t("categories.income") || "Pemasukan"}
         </button>
       </div>
 
@@ -44,7 +46,7 @@ export default function CategoriesTabs({
           }`}
         >
           <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-          <span>Card</span>
+          <span>{t("categories.card_view") || "Card"}</span>
         </button>
         <button
           onClick={() => setViewMode("list")}
@@ -56,7 +58,7 @@ export default function CategoriesTabs({
           }`}
         >
           <List className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-          <span>List</span>
+          <span>{t("categories.list_view") || "List"}</span>
         </button>
       </div>
     </div>

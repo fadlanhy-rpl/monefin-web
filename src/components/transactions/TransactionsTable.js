@@ -1,11 +1,9 @@
+"use client";
+
 import { Pencil, Trash2, Banknote, Utensils, Car, ShoppingBag, TrendingUp, HelpCircle } from "lucide-react";
 import { formatDate } from "../../lib/utils";
-
-// Formatter Helpers
-function formatRupiah(n) {
-  const abs = Math.abs(n).toLocaleString('id-ID');
-  return (n < 0 ? '- ' : '+ ') + 'Rp ' + abs;
-}
+import { useCurrency } from "../../hooks/useCurrency";
+import { useLanguage } from "../../context/LanguageContext";
 
 const getCategoryIcon = (iconName, colorCode) => {
   const style = colorCode ? { color: colorCode } : {};
@@ -27,6 +25,8 @@ export default function TransactionsTable({
   paginationMeta,
   onPageChange
 }) {
+  const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const from = paginationMeta?.from || 0;
   const to = paginationMeta?.to || 0;
   const total = paginationMeta?.total || 0;
@@ -72,29 +72,29 @@ export default function TransactionsTable({
         <table className="w-full text-left min-w-[700px]">
           <thead className="bg-slate-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest">
             <tr>
-              <th className="px-6 py-5">Date</th>
-              <th className="px-6 py-5">Category</th>
-              <th className="px-6 py-5">Account</th>
-              <th className="px-6 py-5">Note</th>
-              <th className="px-6 py-5 text-right">Amount</th>
-              <th className="px-6 py-5 text-center">Actions</th>
+              <th className="px-6 py-5">{t("transactions.date") || "Date"}</th>
+              <th className="px-6 py-5">{t("transactions.category") || "Category"}</th>
+              <th className="px-6 py-5">{t("transactions.account") || "Account"}</th>
+              <th className="px-6 py-5">{t("transactions.note") || "Note"}</th>
+              <th className="px-6 py-5 text-right">{t("transactions.amount") || "Amount"}</th>
+              <th className="px-6 py-5 text-center">{t("transactions.actions") || "Actions"}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
             {transactions.length > 0 ? (
-              transactions.map((t) => {
-                const isExpense = t.type === 'expense';
-                const finalAmount = isExpense ? -Math.abs(t.amount) : Math.abs(t.amount);
-                const amountText = formatRupiah(finalAmount);
+              transactions.map((txn) => {
+                const isExpense = txn.type === 'expense';
+                const finalAmount = isExpense ? -Math.abs(txn.amount) : Math.abs(txn.amount);
+                const amountText = formatCurrency(finalAmount);
                 const amountClass = isExpense ? "text-red-600 font-extrabold" : "text-emerald-600 font-extrabold";
 
-                const categoryName = t.category?.name || "Unknown";
-                const catIcon = t.category?.icon;
-                const catColor = t.category?.color || "#64748b";
+                const categoryName = txn.category?.name || (t("transactions.unknown") || "Unknown");
+                const catIcon = txn.category?.icon;
+                const catColor = txn.category?.color || "#64748b";
 
                 return (
-                  <tr key={t.id} className="txn-row border-b border-slate-100/60 hover:bg-[#f4faf9] transition-all duration-200 group">
-                    <td className="px-6 py-4 text-gray-500 font-semibold whitespace-nowrap">{formatDate(t.transaction_date)}</td>
+                  <tr key={txn.id} className="txn-row border-b border-slate-100/60 hover:bg-[#f4faf9] transition-all duration-200 group">
+                    <td className="px-6 py-4 text-gray-500 font-semibold whitespace-nowrap">{formatDate(txn.transaction_date)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span 
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-300 hover:scale-105"
@@ -104,9 +104,9 @@ export default function TransactionsTable({
                         {categoryName}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-bold text-slate-800 text-xs whitespace-nowrap">{t.account?.name || "Unknown"}</td>
-                    <td className="px-6 py-4 text-gray-400 text-xs max-w-xs truncate font-medium" title={t.description || "-"}>
-                      {t.description || "-"}
+                    <td className="px-6 py-4 font-bold text-slate-800 text-xs whitespace-nowrap">{txn.account?.name || "Unknown"}</td>
+                    <td className="px-6 py-4 text-gray-400 text-xs max-w-xs truncate font-medium" title={txn.description || "-"}>
+                      {txn.description || "-"}
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap font-mono tracking-tight">
                       <span className={amountClass}>{amountText}</span>
@@ -114,15 +114,15 @@ export default function TransactionsTable({
                     <td className="px-6 py-4 text-center whitespace-nowrap">
                       <div className="flex justify-center gap-2 text-slate-300 group-hover:text-slate-400 transition-colors">
                         <button 
-                          onClick={() => openEditModal(t)}
-                          title="Edit Transaksi"
+                          onClick={() => openEditModal(txn)}
+                          title={language === 'en' ? "Edit Transaction" : "Edit Transaksi"}
                           className="hover:text-[#00685F] transition-all p-1 hover:bg-slate-100 rounded-lg active:scale-95 hover:scale-110 duration-200 hover:rotate-6 cursor-pointer"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(t.id)}
-                          title="Hapus Transaksi"
+                          onClick={() => handleDelete(txn.id)}
+                          title={language === 'en' ? "Delete Transaction" : "Hapus Transaksi"}
                           className="hover:text-red-500 transition-all p-1 hover:bg-slate-100 rounded-lg active:scale-95 hover:scale-110 duration-200 hover:-rotate-6 cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -143,11 +143,11 @@ export default function TransactionsTable({
         </table>
       </div>
       
-      {/* Pagination */}
+      {/* Pagination Footer */}
       {total > 0 && (
-        <div className="px-4 py-4 sm:px-6 sm:py-5 bg-white border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
-          <p className="text-xs text-gray-500 font-semibold text-center sm:text-left">
-            Showing <span className="text-slate-900 font-extrabold">{from}-{to}</span> of <span className="text-slate-900 font-extrabold">{total}</span> transactions
+        <div className="bg-white px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-gray-500 font-semibold">
+            {t("transactions.showing") || "Showing"} <span className="text-slate-700 font-bold">{from}</span> {t("transactions.to") || "to"} <span className="text-slate-700 font-bold">{to}</span> {t("transactions.of") || "of"} <span className="text-slate-700 font-bold">{total}</span> {t("transactions.results") || "results"}
           </p>
           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
             <button 

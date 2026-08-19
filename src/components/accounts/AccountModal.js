@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Sparkles, ChevronDown, Check, Landmark, Smartphone, Banknote } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function AccountModal({
   isOpen,
@@ -20,6 +21,7 @@ export default function AccountModal({
   setFormTheme,
   isSubmitting
 }) {
+  const { t, language } = useLanguage();
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
 
@@ -103,7 +105,7 @@ export default function AccountModal({
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#00685F]" />
-            {modalMode === "add" ? "Tambah Akun Baru" : "Edit Akun"}
+            {modalMode === "add" ? (t("accounts.add_title") || "Tambah Akun Baru") : (t("accounts.edit_title") || "Edit Akun")}
           </h3>
           <button 
             onClick={onClose}
@@ -121,7 +123,7 @@ export default function AccountModal({
             {/* Quick presets (Only on Add mode) */}
             {modalMode === "add" && (
               <div className="space-y-1.5 select-none">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Template Akun Cepat</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{language === 'en' ? "Quick Account Template" : "Template Akun Cepat"}</label>
                 <div className="flex flex-wrap gap-2 pt-0.5">
                   {["BCA", "Mandiri", "GoPay", "OVO", "Tunai"].map((p) => (
                     <button
@@ -139,20 +141,20 @@ export default function AccountModal({
 
             {/* Account Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Nama Akun / Bank</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("accounts.account_name") || "Nama Akun"}</label>
               <input
                 type="text"
                 required
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800"
-                placeholder="Contoh: BANK BCA, E-Wallet, Cash"
+                placeholder={t("accounts.account_name_placeholder") || "Contoh: BANK BCA, E-Wallet, Cash"}
               />
             </div>
 
             {/* Balance */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Saldo (Balance)</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("accounts.balance") || "Saldo (Balance)"}</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
                 <input
@@ -169,7 +171,7 @@ export default function AccountModal({
 
             {/* Account Type Custom Dropdown */}
             <div className="space-y-1.5 relative" ref={typeRef}>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tipe Akun</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("accounts.account_type") || "Tipe Akun"}</label>
               <button
                 type="button"
                 onClick={() => {
@@ -185,9 +187,9 @@ export default function AccountModal({
                   {formType === "ewallet" && <Smartphone className="w-4 h-4 text-[#00685F]" />}
                   {formType === "cash" && <Banknote className="w-4 h-4 text-[#00685F]" />}
                   <span>
-                    {formType === "bank" && "Akun Bank (Rekening)"}
-                    {formType === "ewallet" && "Dompet Digital (E-Wallet)"}
-                    {formType === "cash" && "Uang Tunai (Cash)"}
+                    {formType === "bank" && (t("accounts.type_bank") || "Akun Bank (Rekening)")}
+                    {formType === "ewallet" && (t("accounts.type_emoney") || "Dompet Digital (E-Wallet)")}
+                    {formType === "cash" && (t("accounts.type_cash") || "Uang Tunai (Cash)")}
                   </span>
                 </div>
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isTypeOpen ? "rotate-180 text-[#00685F]" : ""}`} />
@@ -196,9 +198,9 @@ export default function AccountModal({
               {isTypeOpen && (
                 <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                   {[
-                    { id: "bank", label: "Akun Bank (Rekening)", icon: Landmark },
-                    { id: "ewallet", label: "Dompet Digital (E-Wallet)", icon: Smartphone },
-                    { id: "cash", label: "Uang Tunai (Cash)", icon: Banknote }
+                    { id: "bank", label: t("accounts.type_bank") || "Akun Bank (Rekening)", icon: Landmark },
+                    { id: "ewallet", label: t("accounts.type_emoney") || "Dompet Digital (E-Wallet)", icon: Smartphone },
+                    { id: "cash", label: t("accounts.type_cash") || "Uang Tunai (Cash)", icon: Banknote }
                   ].map((item) => {
                     const Icon = item.icon;
                     const isSelected = formType === item.id;
@@ -232,7 +234,7 @@ export default function AccountModal({
             {/* Card Theme Custom Dropdown (only for Bank) */}
             {formType === "bank" && (
               <div className="space-y-1.5 relative" ref={themeRef}>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Desain Kartu</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{language === 'en' ? "Card Theme" : "Desain Kartu"}</label>
                 <button
                   type="button"
                   onClick={() => {
@@ -246,7 +248,7 @@ export default function AccountModal({
                   <div className="flex items-center gap-2.5">
                     <span className={`w-3.5 h-3.5 rounded-full border border-slate-200 ${formTheme === "bank-primary" ? "bg-[#00685F]" : "bg-slate-900"}`}></span>
                     <span>
-                      {formTheme === "bank-primary" ? "Premium Green (Utama)" : "Luxurious Dark (Gelap)"}
+                      {formTheme === "bank-primary" ? (language === 'en' ? "Premium Green (Primary)" : "Premium Green (Utama)") : (language === 'en' ? "Luxurious Dark" : "Luxurious Dark (Gelap)")}
                     </span>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isThemeOpen ? "rotate-180 text-[#00685F]" : ""}`} />
@@ -255,8 +257,8 @@ export default function AccountModal({
                 {isThemeOpen && (
                   <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                     {[
-                      { id: "bank-primary", label: "Premium Green (Utama)", color: "bg-[#00685F]" },
-                      { id: "bank-dark", label: "Luxurious Dark (Gelap)", color: "bg-slate-900" }
+                      { id: "bank-primary", label: language === 'en' ? "Premium Green (Primary)" : "Premium Green (Utama)", color: "bg-[#00685F]" },
+                      { id: "bank-dark", label: language === 'en' ? "Luxurious Dark" : "Luxurious Dark (Gelap)", color: "bg-slate-900" }
                     ].map((item) => {
                       const isSelected = formTheme === item.id;
                       return (
@@ -288,7 +290,7 @@ export default function AccountModal({
             {formType === "bank" && (
               <>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Nomor Rekening (Optional)</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{language === 'en' ? "Account Number (Optional)" : "Nomor Rekening (Optional)"}</label>
                   <input
                     type="text"
                     value={formNumber}
@@ -300,7 +302,7 @@ export default function AccountModal({
 
                 {formTheme === "bank-primary" && (
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Pemilik Rekening (Optional)</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{language === 'en' ? "Account Holder (Optional)" : "Pemilik Rekening (Optional)"}</label>
                     <input
                       type="text"
                       value={formHolder}
@@ -321,7 +323,7 @@ export default function AccountModal({
               onClick={onClose}
               className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
             >
-              Batal
+              {language === 'en' ? "Cancel" : "Batal"}
             </button>
             <button
               type="submit"
@@ -331,7 +333,7 @@ export default function AccountModal({
               {isSubmitting ? (
                 <span className="animate-spin h-5 w-5 border-2 border-white border-b-transparent rounded-full"></span>
               ) : (
-                "Simpan"
+                language === 'en' ? "Save" : "Simpan"
               )}
             </button>
           </div>

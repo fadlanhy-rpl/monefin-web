@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import TransactionsStats from "../../../components/transactions/TransactionsStats";
@@ -14,6 +14,7 @@ import { getTransactions, createTransaction, updateTransaction, deleteTransactio
 import { getCategories } from "../../../services/category.service";
 import { getAccounts } from "../../../services/account.service";
 import { formatDate } from "../../../lib/utils";
+import { useLanguage } from "../../../context/LanguageContext";
 
 // Formatter Helpers
 function formatDateInput(dateStr) {
@@ -25,12 +26,13 @@ function formatDateInput(dateStr) {
   return dateStr;
 }
 
-export default function TransactionsPage() {
+function TransactionsPage() {
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   const [categoryIdFilter, setCategoryIdFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
-  const [dateFilter, setDateFilter] = useState("Last 30 Days");
+  const [dateFilter, setDateFilter] = useState("last_30_days");
   // Inisialisasi dari URL param ?search= (dari header search navbar)
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [isVisible, setIsVisible] = useState(false);
@@ -92,18 +94,22 @@ export default function TransactionsPage() {
     let start_date = null;
     let end_date = null;
 
-    if (dateFilter === "Last 7 Days") {
+    if (dateFilter === "last_7_days") {
       const lastWeek = new Date(today);
       lastWeek.setDate(today.getDate() - 7);
       start_date = lastWeek.toISOString().split('T')[0];
       end_date = today.toISOString().split('T')[0];
-    } else if (dateFilter === "Last 30 Days") {
+    } else if (dateFilter === "last_30_days") {
       const lastMonth = new Date(today);
       lastMonth.setDate(today.getDate() - 30);
       start_date = lastMonth.toISOString().split('T')[0];
       end_date = today.toISOString().split('T')[0];
-    } else if (dateFilter === "This Month") {
+    } else if (dateFilter === "this_month") {
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      start_date = firstDay.toISOString().split('T')[0];
+      end_date = today.toISOString().split('T')[0];
+    } else if (dateFilter === "this_year") {
+      const firstDay = new Date(today.getFullYear(), 0, 1);
       start_date = firstDay.toISOString().split('T')[0];
       end_date = today.toISOString().split('T')[0];
     }
@@ -422,15 +428,15 @@ export default function TransactionsPage() {
         {/* Page Title */}
         <div className={`transition-all duration-700 ease-out transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900">Transactions History</h2>
-            <p className="text-gray-500 text-sm mt-1">Comprehensive record of your financial movements across all linked accounts.</p>
+            <h2 className="text-2xl font-extrabold text-slate-900">{t("transactions.title") || "Transactions History"}</h2>
+            <p className="text-gray-500 text-sm mt-1">{t("transactions.subtitle") || "Comprehensive record of your financial movements across all linked accounts."}</p>
           </div>
           <button 
             onClick={openAddModal}
             className="flex items-center justify-center gap-2 bg-[#00685F] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#004D46] hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 shrink-0 relative overflow-hidden shimmer-sweep cursor-pointer"
           >
             <Plus className="w-5 h-5" />
-            Add Transaction
+            {t("transactions.add_transaction") || "Add Transaction"}
           </button>
         </div>
 
@@ -509,5 +515,13 @@ export default function TransactionsPage() {
         isLoading={isDeleting}
       />
     </DashboardLayout>
+  );
+}
+
+export default function TransactionsPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <TransactionsPage />
+    </Suspense>
   );
 }

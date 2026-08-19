@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
 function formatRupiah(n) {
   const abs = Math.abs(n).toLocaleString('id-ID');
@@ -8,6 +9,7 @@ function formatRupiah(n) {
 }
 
 export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categoryData = [] }) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
   
@@ -36,7 +38,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
     setHoveredBar({ index, type });
     setTooltip({ 
       show: true, 
-      text: `${type === 'this' ? (period === 'weekly' ? 'Minggu Ini' : 'Bulan Ini') : (period === 'weekly' ? 'Minggu Lalu' : 'Tahun Lalu')}: ${formatRupiah(amount).replace('+ ', '')}`, 
+      text: `${type === 'this' ? (period === 'weekly' ? t("dashboard.this_week") : t("dashboard.this_month")) : (period === 'weekly' ? t("dashboard.last_week") : t("dashboard.last_month"))}: ${formatRupiah(amount).replace('+ ', '')}`, 
       x: x + 14, 
       y: y - 36 
     });
@@ -78,7 +80,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
   }, [categoryData]);
 
   const totalDonutAmount = categoryData.reduce((sum, item) => sum + item.amount, 0);
-  const activeDonutInfo = hoveredDonut || { label: 'Total Spend', amount: totalDonutAmount, pct: 100 };
+  const activeDonutInfo = hoveredDonut || { label: t("dashboard.total_spend") || 'Total Spend', amount: totalDonutAmount, pct: 100 };
 
   return (
     <>
@@ -88,8 +90,8 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
         <div className={`reveal card-hover xl:col-span-2 bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-100/50 ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "220ms" }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="font-bold text-slate-900 text-lg">Spending Analytics</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Analisis pengeluaran berkala Anda</p>
+              <h2 className="font-bold text-slate-900 text-lg">{t("dashboard.spending_analytics") || "Spending Analytics"}</h2>
+              <p className="text-xs text-slate-400 mt-0.5">{t("dashboard.spending_analytics_desc") || "Analisis pengeluaran berkala Anda"}</p>
             </div>
             
             {/* Toggle tabs */}
@@ -99,18 +101,18 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
                   onClick={() => setPeriod("weekly")}
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${period === "weekly" ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
-                  Mingguan
+                  {t("dashboard.weekly") || "Mingguan"}
                 </button>
                 <button 
                   onClick={() => setPeriod("monthly")}
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${period === "monthly" ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
-                  Bulanan
+                  {t("dashboard.monthly") || "Bulanan"}
                 </button>
               </div>
               <div className="hidden sm:flex items-center gap-4 text-xs text-slate-500 font-medium">
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-200"></span>{period === "weekly" ? "Minggu Lalu" : "Bulan Lalu"}</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-brand-600"></span>{period === "weekly" ? "Minggu Ini" : "Bulan Ini"}</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-200"></span>{period === "weekly" ? t("dashboard.last_week") : t("dashboard.last_month")}</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-brand-600"></span>{period === "weekly" ? t("dashboard.this_week") : t("dashboard.this_month")}</span>
               </div>
             </div>
           </div>
@@ -181,8 +183,8 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
         {/* Category Breakdown (Donut Chart) */}
         <div className={`reveal card-hover bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-100/50 flex flex-col ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "280ms" }}>
           <div>
-            <h2 className="font-bold text-slate-900 text-lg">Category Breakdown</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Proporsi pembagian pengeluaran Anda</p>
+            <h2 className="font-bold text-slate-900 text-lg">{t("dashboard.category_breakdown") || "Category Breakdown"}</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{t("dashboard.category_breakdown_desc") || "Proporsi pembagian pengeluaran Anda"}</p>
           </div>
 
           <div className="flex-1 flex items-center justify-center py-6">

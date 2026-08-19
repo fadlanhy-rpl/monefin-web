@@ -2,6 +2,7 @@ import {
   CheckCircle2 
 } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import {
   DndContext,
   closestCenter,
@@ -24,6 +25,7 @@ export default function AccountsGrid({
   handleDelete,
   onReorder
 }) {
+  const { t, language } = useLanguage();
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
@@ -46,7 +48,7 @@ export default function AccountsGrid({
   const handleCopy = (id, text) => {
     navigator.clipboard.writeText(text.replace("xxxx", "1234")); // Mock full copy
     setCopiedId(id);
-    setToastMessage("Nomor rekening berhasil disalin!");
+    setToastMessage(language === 'en' ? "Account number copied successfully!" : "Nomor rekening berhasil disalin!");
     setTimeout(() => {
       setCopiedId(null);
     }, 2000);

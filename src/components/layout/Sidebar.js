@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const navItems = [
     {
-      name: "Dashboard",
+      name: t("sidebar.dashboard") || "Dashboard",
       href: "/dashboard",
       icon: (
         <svg
@@ -27,7 +29,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       ),
     },
     {
-      name: "Transactions",
+      name: t("sidebar.transactions") || "Transactions",
       href: "/transactions",
       icon: (
         <svg
@@ -43,7 +45,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       ),
     },
     {
-      name: "Categories",
+      name: t("sidebar.categories") || "Categories",
       href: "/categories",
       icon: (
         <svg
@@ -59,7 +61,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       ),
     },
     {
-      name: "Budgets",
+      name: t("sidebar.budgets") || "Budgets",
       href: "/budgets",
       icon: (
         <svg
@@ -76,7 +78,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       ),
     },
     {
-      name: "Accounts",
+      name: t("sidebar.accounts") || "Accounts",
       href: "/accounts",
       icon: (
         <svg
@@ -93,7 +95,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       ),
     },
     {
-      name: "Goals",
+      name: t("sidebar.goals") || "Goals",
       href: "/goals",
       icon: (
         <svg
@@ -110,7 +112,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       ),
     },
     {
-      name: "Reports",
+      name: t("sidebar.reports") || "Reports",
       href: "/reports",
       icon: (
         <svg
@@ -200,7 +202,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
-          Settings
+          {t("sidebar.settings") || "Settings"}
         </Link>
       </div>
     </>

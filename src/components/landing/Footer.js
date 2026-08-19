@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { useLanguage } from "../../context/LanguageContext";
 
 export const Footer = ({ isLoggedIn }) => {
+  const { t } = useLanguage();
   return (
     <footer className="relative z-10 bg-[#eaf4f2] text-slate-600 py-8 sm:py-10 border-t border-slate-200/80 text-[11px] sm:text-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 text-center md:text-left">
@@ -14,15 +16,15 @@ export const Footer = ({ isLoggedIn }) => {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-semibold text-slate-600">
-          <a href="#features" className="hover:text-brand-600 transition-colors">Fitur Utama</a>
-          <a href="#simulator" className="hover:text-brand-600 transition-colors">Simulasi Wealth</a>
-          <a href="#comparison" className="hover:text-brand-600 transition-colors">Keunggulan</a>
-          <a href="#testimonials" className="hover:text-brand-600 transition-colors">Testimoni</a>
-          <a href="#faq" className="hover:text-brand-600 transition-colors">FAQ</a>
+          <a href="#features" className="hover:text-brand-600 transition-colors">{t("nav.features")}</a>
+          <a href="#simulator" className="hover:text-brand-600 transition-colors">{t("nav.simulator")}</a>
+          <a href="#comparison" className="hover:text-brand-600 transition-colors">{t("nav.comparison")}</a>
+          <a href="#testimonials" className="hover:text-brand-600 transition-colors">{t("nav.testimonials")}</a>
+          <a href="#faq" className="hover:text-brand-600 transition-colors">{t("nav.faq")}</a>
           {isLoggedIn ? (
-            <Link href="/dashboard" className="hover:text-brand-600 transition-colors text-brand-600 font-bold">Dashboard</Link>
+            <Link href="/dashboard" className="hover:text-brand-600 transition-colors text-brand-600 font-bold">{t("nav.dashboard")}</Link>
           ) : (
-            <Link href="/login" className="hover:text-brand-600 transition-colors">Masuk</Link>
+            <Link href="/login" className="hover:text-brand-600 transition-colors">{t("nav.login")}</Link>
           )}
         </div>
 

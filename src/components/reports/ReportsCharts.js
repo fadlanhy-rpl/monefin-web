@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LineChart, BarChart2 } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const PALETTE = [
   "#00685F", "#2dd4bf", "#34d399", "#6ee7b7", "#a7f3d0",
@@ -9,18 +10,21 @@ const PALETTE = [
   "#ef4444", "#64748b", "#8b5cf6", "#ec4899", "#14b8a6",
 ];
 
-function monthLabel(ym) {
+function monthLabel(ym, language) {
   if (!ym) return "";
   const [y, m] = ym.split("-");
-  const names = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  const namesId = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  const namesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const names = language === 'en' ? namesEn : namesId;
   return (names[parseInt(m, 10) - 1] || m) + " " + y.slice(2);
 }
 
 export default function ReportsCharts({ monthlyData = [], categoryData = [], loading = false }) {
+  const { language } = useLanguage();
   const [chartType, setChartType] = useState("line");
   const [activeLegend, setActiveLegend] = useState(null);
 
-  const months    = monthlyData.map((d) => monthLabel(d.month));
+  const months    = monthlyData.map((d) => monthLabel(d.month, language));
   const incomeArr = monthlyData.map((d) => (d.income  || 0) / 1_000_000);
   const expenseArr= monthlyData.map((d) => (d.expense || 0) / 1_000_000);
 
@@ -74,21 +78,21 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
       <div className="lg:col-span-2 bg-white p-5 sm:p-7 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 select-none">
           <div>
-            <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Tren Pemasukan vs Pengeluaran</h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">Arus kas bulanan periode yang dipilih</p>
+            <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">{language === 'en' ? "Income vs Expense Trend" : "Tren Pemasukan vs Pengeluaran"}</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">{language === 'en' ? "Monthly cashflow for the selected period" : "Arus kas bulanan periode yang dipilih"}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="bg-slate-50 p-1 rounded-xl flex gap-1 border border-slate-100">
               <button
                 onClick={() => setChartType("line")}
-                title="Tampilan Grafik Garis"
+                title={language === 'en' ? "Line Chart View" : "Tampilan Grafik Garis"}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${chartType === "line" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"}`}
               >
                 <LineChart className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setChartType("bar")}
-                title="Tampilan Grafik Batang"
+                title={language === 'en' ? "Bar Chart View" : "Tampilan Grafik Batang"}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${chartType === "bar" ? "bg-[#00685F] text-white shadow-xs" : "text-slate-500 hover:text-[#00685F]"}`}
               >
                 <BarChart2 className="w-3.5 h-3.5" />
@@ -101,7 +105,7 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
           <div className="flex-1 animate-pulse bg-slate-50 rounded-2xl min-h-[180px]"></div>
         ) : !hasData ? (
           <div className="flex-1 flex items-center justify-center text-slate-300 text-sm font-bold min-h-[180px]">
-            Belum ada data transaksi pada periode ini
+            {language === 'en' ? "No transaction data for this period" : "Belum ada data transaksi pada periode ini"}
           </div>
         ) : (
           <div className="w-full overflow-x-auto pb-3 pt-1 border-b border-slate-50">
@@ -186,7 +190,10 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
 
         {/* Legend */}
         <div className="flex items-center gap-5 mt-3 select-none flex-wrap">
-          {[{ color: "#00685F", label: "Pemasukan" }, { color: "#ef4444", label: "Pengeluaran" }].map((l) => (
+          {[
+            { color: "#00685F", label: language === 'en' ? "Income" : "Pemasukan" }, 
+            { color: "#ef4444", label: language === 'en' ? "Expense" : "Pengeluaran" }
+          ].map((l) => (
             <div key={l.label} className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full" style={{ background: l.color }}></span>
               <span className="text-xs font-bold text-slate-600">{l.label}</span>
@@ -198,8 +205,8 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
       {/* ── Category Distribution Donut ── */}
       <div className="bg-white p-5 sm:p-7 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
         <div className="mb-4 select-none">
-          <h3 className="font-black text-slate-900 text-base tracking-tight">Distribusi Pengeluaran</h3>
-          <p className="text-[11px] text-slate-400 mt-0.5">Breakdown per kategori</p>
+          <h3 className="font-black text-slate-900 text-base tracking-tight">{language === 'en' ? "Expense Distribution" : "Distribusi Pengeluaran"}</h3>
+          <p className="text-[11px] text-slate-400 mt-0.5">{language === 'en' ? "Breakdown by category" : "Breakdown per kategori"}</p>
         </div>
 
         {loading ? (
@@ -211,7 +218,7 @@ export default function ReportsCharts({ monthlyData = [], categoryData = [], loa
           </div>
         ) : catData.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-slate-300 text-xs font-bold">
-            Belum ada data pengeluaran
+            {language === 'en' ? "No expense data available" : "Belum ada data pengeluaran"}
           </div>
         ) : (
           <>

@@ -1,19 +1,22 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { ArrowUpDown, Search, TrendingUp, TrendingDown, Award, AlertCircle, Minus } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const MONTH_ID = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-function monthLabel(ym) {
+const MONTH_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTH_SHORT_ID = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const MONTH_SHORT_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function monthLabel(ym, lang) {
   if (!ym) return ym;
   const [y, m] = ym.split("-");
-  return (MONTH_ID[parseInt(m, 10) - 1] || m) + " " + y;
+  return ((lang === 'en' ? MONTH_EN : MONTH_ID)[parseInt(m, 10) - 1] || m) + " " + y;
 }
-function monthLabelShort(ym) {
+function monthLabelShort(ym, lang) {
   if (!ym) return ym;
   const [y, m] = ym.split("-");
-  const MONTH_SHORT = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-  return (MONTH_SHORT[parseInt(m, 10) - 1] || m) + " " + y.slice(2);
+  return ((lang === 'en' ? MONTH_SHORT_EN : MONTH_SHORT_ID)[parseInt(m, 10) - 1] || m) + " " + y.slice(2);
 }
 
 const fmt = (v) =>
@@ -55,6 +58,7 @@ function GrowthBadge({ current, previous }) {
 }
 
 export default function ReportsTable({ monthlyData = [], loading = false }) {
+  const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("desc");
@@ -77,7 +81,7 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
 
   const filtered = rawData.filter(
     (r) =>
-      monthLabel(r.month).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      monthLabel(r.month, language).toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -114,14 +118,14 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
       <div className="p-5 sm:p-7 border-b border-slate-100">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Rincian Bulanan</h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">Analisis arus kas, rasio pengeluaran & pertumbuhan per bulan</p>
+            <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">{language === 'en' ? "Monthly Breakdown" : "Rincian Bulanan"}</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">{language === 'en' ? "Cash flow, expense ratio & growth analysis per month" : "Analisis arus kas, rasio pengeluaran & pertumbuhan per bulan"}</p>
           </div>
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Cari bulan atau status..."
+              placeholder={language === 'en' ? "Search month or status..." : "Cari bulan atau status..."}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#00685F]/20 focus:border-[#00685F] transition"
@@ -133,17 +137,17 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
         {!loading && months > 0 && (
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-black px-3 py-1.5 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-slate-400" />{months} bulan
+              <span className="w-2 h-2 rounded-full bg-slate-400" />{months} {language === 'en' ? "months" : "bulan"}
             </span>
             <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1.5 rounded-full">
               <Award className="w-3 h-3" />{surplusCount} Surplus
             </span>
             <span className={`inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full border ${(months - surplusCount) > 0 ? "bg-red-50 border-red-100 text-red-600" : "bg-slate-50 border-slate-100 text-slate-500"}`}>
-              <AlertCircle className="w-3 h-3" />{months - surplusCount} Defisit
+              <AlertCircle className="w-3 h-3" />{months - surplusCount} {language === 'en' ? "Deficit" : "Defisit"}
             </span>
             {bestMonthRow && (
               <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-100 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-full">
-                Best: {monthLabelShort(bestMonthRow.month)}
+                Best: {monthLabelShort(bestMonthRow.month, language)}
               </span>
             )}
           </div>
@@ -155,14 +159,14 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/60">
-              <th className="text-left px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">Bulan</th>
+              <th className="text-left px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">{language === 'en' ? "Month" : "Bulan"}</th>
               <th className="text-right px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
-                <SortBtn field="income" label="Pemasukan" />
+                <SortBtn field="income" label={language === 'en' ? "Income" : "Pemasukan"} />
               </th>
               <th className="text-right px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
-                <SortBtn field="expense" label="Pengeluaran" />
+                <SortBtn field="expense" label={language === 'en' ? "Expense" : "Pengeluaran"} />
               </th>
-              <th className="text-left px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider min-w-[120px]">Rasio Pengeluaran</th>
+              <th className="text-left px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider min-w-[120px]">{language === 'en' ? "Expense Ratio" : "Rasio Pengeluaran"}</th>
               <th className="text-right px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
                 <SortBtn field="cashflow" label="Net Cashflow" />
               </th>
@@ -182,7 +186,7 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
             ) : sorted.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-14 text-center text-slate-300 text-xs font-bold">
-                  {searchQuery ? `Tidak ditemukan: "${searchQuery}"` : "Belum ada data pada periode ini"}
+                  {searchQuery ? (language === 'en' ? `No results found for: "${searchQuery}"` : `Tidak ditemukan: "${searchQuery}"`) : (language === 'en' ? "No data available for this period" : "Belum ada data pada periode ini")}
                 </td>
               </tr>
             ) : (
@@ -197,7 +201,7 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
                         {isBest && <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
                         <div>
                           <p className="font-bold text-slate-800 text-xs whitespace-nowrap">{monthLabel(row.month)}</p>
-                          {isBest && <p className="text-[9px] text-amber-600 font-black">Best Month</p>}
+                          {isBest && <p className="text-[9px] text-amber-600 font-black">{language === 'en' ? "Best Month" : "Bulan Terbaik"}</p>}
                         </div>
                       </div>
                     </td>
@@ -238,14 +242,14 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
                     <td className="px-5 py-3.5 text-center">
                       <div className="flex flex-col items-center gap-0.5">
                         <GrowthBadge current={row.income} previous={row.prevIncome} />
-                        <p className="text-[8px] text-slate-300 font-semibold">income</p>
+                        <p className="text-[8px] text-slate-300 font-semibold">{language === 'en' ? "income" : "pemasukan"}</p>
                       </div>
                     </td>
 
                     {/* Status */}
                     <td className="px-5 py-3.5 text-center">
                       <span className={`text-[9px] font-black px-2.5 py-1 rounded-full border select-none whitespace-nowrap ${isPositive ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>
-                        {row.status}
+                        {row.status === "Surplus" ? (language === 'en' ? "Surplus" : "Surplus") : (language === 'en' ? "Deficit" : "Defisit")}
                       </span>
                     </td>
                   </tr>
@@ -259,8 +263,8 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
             <tfoot>
               <tr className="border-t-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">
                 <td className="px-5 py-4">
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Total Periode</p>
-                  <p className="text-[9px] text-slate-400 font-semibold">{months} bulan</p>
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">{language === 'en' ? "Period Total" : "Total Periode"}</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{months} {language === 'en' ? "months" : "bulan"}</p>
                 </td>
                 <td className="px-5 py-4 text-right">
                   <p className="text-xs font-black text-emerald-700 whitespace-nowrap">{fmtCompact(totalIncome)}</p>
@@ -289,7 +293,7 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
                 </td>
                 <td className="px-5 py-4 text-center">
                   <span className={`text-[9px] font-black px-2.5 py-1 rounded-full border ${totalCashflow >= 0 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>
-                    {totalCashflow >= 0 ? "Surplus" : "Defisit"}
+                    {totalCashflow >= 0 ? "Surplus" : (language === 'en' ? "Deficit" : "Defisit")}
                   </span>
                 </td>
               </tr>

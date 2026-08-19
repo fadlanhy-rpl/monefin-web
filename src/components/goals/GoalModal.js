@@ -17,21 +17,16 @@ import {
   PieChart
 } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
-const iconsList = [
-  { id: "laptop", label: "Laptop", icon: Laptop },
-  { id: "plane", label: "Liburan", icon: Plane },
-  { id: "graduation", label: "Pendidikan", icon: GraduationCap },
-  { id: "target", label: "Target", icon: Target },
-  { id: "shield", label: "Proteksi", icon: Shield },
-  { id: "heart", label: "Sosial", icon: Heart },
-  { id: "car", label: "Kendaraan", icon: Car },
-  { id: "home", label: "Properti", icon: Home }
-];
-
-const MONTH_NAMES = [
+const MONTH_NAMES_ID = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
+const MONTH_NAMES_EN = [
+  "January", "February", "March", "April", "May", "June", 
+  "July", "August", "September", "October", "November", "December"
 ];
 
 export default function GoalModal({
@@ -56,8 +51,23 @@ export default function GoalModal({
   formIcon,
   setFormIcon
 }) {
+  const { t, language } = useLanguage();
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const iconsList = [
+    { id: "laptop", label: language === "en" ? "Laptop" : "Komputer", icon: Laptop },
+    { id: "plane", label: language === "en" ? "Vacation" : "Liburan", icon: Plane },
+    { id: "graduation", label: language === "en" ? "Education" : "Pendidikan", icon: GraduationCap },
+    { id: "target", label: language === "en" ? "Target" : "Sasaran", icon: Target },
+    { id: "shield", label: language === "en" ? "Protection" : "Proteksi", icon: Shield },
+    { id: "heart", label: language === "en" ? "Social" : "Sosial", icon: Heart },
+    { id: "car", label: language === "en" ? "Vehicle" : "Kendaraan", icon: Car },
+    { id: "home", label: language === "en" ? "Property" : "Properti", icon: Home }
+  ];
+
+  const monthNames = language === "en" ? MONTH_NAMES_EN : MONTH_NAMES_ID;
+  const dayHeaders = language === "en" ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] : ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
   const [viewDate, setViewDate] = useState(() => {
     if (formDeadlineDate) {
@@ -93,7 +103,7 @@ export default function GoalModal({
     const m = parseInt(parts[1], 10) - 1;
     const d = parseInt(parts[2], 10);
     if (isNaN(m) || isNaN(d)) return dateStr;
-    return `${d} ${MONTH_NAMES[m]} ${y}`;
+    return `${d} ${monthNames[m]} ${y}`;
   };
 
   if (!isOpen) return null;
@@ -120,7 +130,7 @@ export default function GoalModal({
         {/* Modal Header */}
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between">
           <h3 className="text-lg font-extrabold text-slate-900 select-none">
-            {modalMode === "add" ? "Buat Target Baru" : "Edit Target Tabungan"}
+            {modalMode === "add" ? (t("goals.add_title") || "Buat Target Baru") : (t("goals.edit_title") || "Ubah Target Tabungan")}
           </h3>
           <button 
             type="button"
@@ -135,32 +145,32 @@ export default function GoalModal({
         <form onSubmit={handleFormSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto no-scrollbar">
           {/* Title */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Nama Target</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.goal_name") || "Nama Target"}</label>
             <input
               type="text"
               required
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
               className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800"
-              placeholder="Contoh: Beli Laptop Baru, Dana Darurat"
+              placeholder={t("goals.goal_name_placeholder") || "Contoh: Beli Laptop Baru, Dana Darurat"}
             />
           </div>
 
           {/* Subtitle / Description */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Deskripsi Singkat</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.description") || "Deskripsi / Alasan"}</label>
             <input
               type="text"
               value={formSubtitle}
               onChange={(e) => setFormSubtitle(e.target.value)}
               className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-semibold text-slate-800"
-              placeholder="Contoh: Tabungan cadangan, reward karir"
+              placeholder={t("goals.description_placeholder") || "Contoh: Tabungan cadangan, reward karir"}
             />
           </div>
 
           {/* Icon Picker */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Pilih Ikon Target</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.icon") || "Pilih Ikon Target"}</label>
             <div className="grid grid-cols-4 gap-2.5">
               {iconsList.map((item) => {
                 const Icon = item.icon;
@@ -186,7 +196,7 @@ export default function GoalModal({
 
           {/* Target Amount */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Target Nominal</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.target_amount") || "Nominal Target"}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
               <input
@@ -196,31 +206,30 @@ export default function GoalModal({
                 value={formatThousand(formTarget)}
                 onChange={handleTargetChange}
                 className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
-                placeholder="0"
+                placeholder={t("goals.target_amount_placeholder") || "0"}
               />
             </div>
           </div>
 
           {/* Current Saved Amount */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Tabungan Saat Ini</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.initial_amount") || "Tabungan Saat Ini"}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
               <input
                 type="text"
                 inputMode="numeric"
-                required
                 value={formatThousand(formCurrent)}
                 onChange={handleCurrentChange}
                 className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
-                placeholder="0"
+                placeholder={t("goals.initial_amount_placeholder") || "0"}
               />
             </div>
           </div>
 
           {/* Custom Type Selector (Dropdown Menu) */}
           <div className="space-y-1.5 relative">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Gaya Tampilan Visual</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.card_style") || "Gaya Tampilan Visual"}</label>
             <div 
               onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
               className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-800 hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
@@ -229,12 +238,12 @@ export default function GoalModal({
                 {formType === "circular" ? (
                   <>
                     <PieChart className="w-4.5 h-4.5 text-[#00685F]" />
-                    <span>Circular Card (Donut Chart Kanan)</span>
+                    <span>{t("goals.style_circular") || "Circular Card (Donut Chart Kanan)"}</span>
                   </>
                 ) : (
                   <>
                     <BarChart2 className="w-4.5 h-4.5 text-[#00685F]" />
-                    <span>Linear Card (Bar Progres Lebar)</span>
+                    <span>{t("goals.style_linear") || "Linear Card (Bar Progres Lebar)"}</span>
                   </>
                 )}
               </div>
@@ -251,7 +260,7 @@ export default function GoalModal({
                   >
                     <div className="flex items-center gap-2.5">
                       <BarChart2 className="w-4 h-4 text-[#00685F]" />
-                      <span className="text-sm">Linear Card (Bar Progres Lebar)</span>
+                      <span className="text-sm">{t("goals.style_linear") || "Linear Card (Bar Progres Lebar)"}</span>
                     </div>
                     {formType === "linear" && <Check className="w-4 h-4 text-[#00685F]" />}
                   </div>
@@ -261,7 +270,7 @@ export default function GoalModal({
                   >
                     <div className="flex items-center gap-2.5">
                       <PieChart className="w-4 h-4 text-[#00685F]" />
-                      <span className="text-sm">Circular Card (Donut Chart Kanan)</span>
+                      <span className="text-sm">{t("goals.style_circular") || "Circular Card (Donut Chart Kanan)"}</span>
                     </div>
                     {formType === "circular" && <Check className="w-4 h-4 text-[#00685F]" />}
                   </div>
@@ -274,13 +283,13 @@ export default function GoalModal({
           {formType === "linear" ? (
             /* Custom Modern Calendar Picker */
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Tanggal Batas (Opsional)</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.target_date") || "Tanggal Batas (Opsional)"}</label>
               <div 
                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-bold hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
               >
                 <span className={formDeadlineDate ? "text-slate-900" : "text-slate-400 font-semibold"}>
-                  {formDeadlineDate ? formatDisplayDate(formDeadlineDate) : "Pilih Tanggal Batas"}
+                  {formDeadlineDate ? formatDisplayDate(formDeadlineDate) : (t("goals.select_date") || "Pilih Tanggal Batas")}
                 </span>
                 <CalendarIcon className="w-4.5 h-4.5 text-[#00685F]" />
               </div>
@@ -290,7 +299,7 @@ export default function GoalModal({
                   {/* Header Month Year & Prev/Next */}
                   <div className="flex items-center justify-between mb-3.5 px-1 select-none">
                     <span className="font-extrabold text-sm text-slate-900">
-                      {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
+                      {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
                     </span>
                     <div className="flex items-center gap-1">
                       <button 
@@ -312,7 +321,7 @@ export default function GoalModal({
 
                   {/* Days of week header */}
                   <div className="grid grid-cols-7 gap-1 text-center mb-1.5 select-none">
-                    {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
+                    {dayHeaders.map((d) => (
                       <span key={d} className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{d}</span>
                     ))}
                   </div>
@@ -354,14 +363,14 @@ export default function GoalModal({
                       onClick={() => { setFormDeadlineDate(""); setIsCalendarOpen(false); }}
                       className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
                     >
-                      Tanpa Batas
+                      {language === "en" ? "No Deadline" : "Tanpa Batas"}
                     </button>
                     <button 
                       type="button" 
                       onClick={() => { setFormDeadlineDate(todayIso); setIsCalendarOpen(false); }}
                       className="text-[#00685F] hover:underline cursor-pointer"
                     >
-                      Set Hari Ini
+                      {language === "en" ? "Set Today" : "Set Hari Ini"}
                     </button>
                   </div>
                 </div>
@@ -369,13 +378,13 @@ export default function GoalModal({
             </div>
           ) : (
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">Lencana Tag</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.color_tag") || "Lencana Tag"}</label>
               <input
                 type="text"
                 value={formTag}
                 onChange={(e) => setFormTag(e.target.value)}
-                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-semibold text-slate-800"
-                placeholder="Contoh: Safety, Travel"
+                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800"
+                placeholder={language === 'en' ? "e.g., Safety, Travel" : "Contoh: Keamanan, Liburan"}
               />
             </div>
           )}
@@ -387,13 +396,13 @@ export default function GoalModal({
               onClick={onClose}
               className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
             >
-              Batal
+              {t("common.cancel") || (language === "en" ? "Cancel" : "Batal")}
             </button>
             <button
               type="submit"
               className="flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
             >
-              Simpan
+              {t("common.save") || (language === "en" ? "Save" : "Simpan")}
             </button>
           </div>
         </form>

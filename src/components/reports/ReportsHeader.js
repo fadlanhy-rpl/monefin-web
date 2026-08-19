@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Calendar, Plus, FileSpreadsheet, Sparkles, X, ChevronLeft, ChevronRight, ArrowRight, Check } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 // Preset chips configuration
 const PRESETS = [
   {
     id: "this_month",
-    label: "Bulan Ini",
+    label: (lang) => lang === 'en' ? "This Month" : "Bulan Ini",
     getRange: () => {
       const now = new Date();
       const y = now.getFullYear();
@@ -17,7 +18,7 @@ const PRESETS = [
   },
   {
     id: "3_months",
-    label: "3 Bulan",
+    label: (lang) => lang === 'en' ? "3 Months" : "3 Bulan",
     getRange: () => {
       const end = new Date();
       const start = new Date();
@@ -30,7 +31,7 @@ const PRESETS = [
   },
   {
     id: "6_months",
-    label: "6 Bulan",
+    label: (lang) => lang === 'en' ? "6 Months" : "6 Bulan",
     getRange: () => {
       const end = new Date();
       const start = new Date();
@@ -43,7 +44,7 @@ const PRESETS = [
   },
   {
     id: "this_year",
-    label: "Tahun Ini",
+    label: (lang) => lang === 'en' ? "This Year" : "Tahun Ini",
     getRange: () => {
       const y = new Date().getFullYear();
       return { start_month: `${y}-01`, end_month: `${y}-12` };
@@ -51,16 +52,22 @@ const PRESETS = [
   },
 ];
 
-const MONTH_NAMES = [
+const MONTH_NAMES_ID = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
   "Jul", "Agu", "Sep", "Okt", "Nov", "Des"
 ];
 
-const formatMY = (ymStr) => {
+const MONTH_NAMES_EN = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
+const formatMY = (ymStr, lang) => {
   if (!ymStr) return "-";
   const [y, m] = ymStr.split("-");
   const idx = parseInt(m, 10) - 1;
-  return `${MONTH_NAMES[idx] || m} ${y}`;
+  const names = lang === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_ID;
+  return `${names[idx] || m} ${y}`;
 };
 
 export default function ReportsHeader({
@@ -74,6 +81,7 @@ export default function ReportsHeader({
   onCustomRangeChange,
   loading,
 }) {
+  const { t, language } = useLanguage();
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [localStart, setLocalStart] = useState(customStart || `${new Date().getFullYear()}-01`);
   const [localEnd, setLocalEnd]     = useState(customEnd || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`);
@@ -131,10 +139,10 @@ export default function ReportsHeader({
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              Laporan Keuangan
+              {language === 'en' ? "Financial Reports" : "Laporan Keuangan"}
               <Sparkles className="w-5 h-5 text-[#00685F] animate-pulse hidden sm:block" />
             </h1>
-            <p className="text-xs text-slate-400 font-semibold mt-0.5">Analisis mendalam keuangan Anda dalam satu tampilan</p>
+            <p className="text-xs text-slate-400 font-semibold mt-0.5">{language === 'en' ? "In-depth analysis of your finances in one view" : "Analisis mendalam keuangan Anda dalam satu tampilan"}</p>
           </div>
         </div>
 
@@ -145,7 +153,7 @@ export default function ReportsHeader({
             className="bg-[#00685F] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-[#004D46] transition-all shadow-md shadow-[#00685F]/20 cursor-pointer whitespace-nowrap shrink-0 group"
           >
             <Plus className="w-4 h-4 shrink-0 group-hover:rotate-90 transition-transform duration-300" />
-            <span>Transaksi Baru</span>
+            <span>{language === 'en' ? "New Transaction" : "Transaksi Baru"}</span>
           </button>
 
           <button
@@ -162,7 +170,7 @@ export default function ReportsHeader({
       {/* Filter Bar: Quick Preset Chips + Custom Range Picker */}
       <div className="flex flex-wrap items-center gap-2.5 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm relative z-20">
         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5" /> Periode:
+          <Calendar className="w-3.5 h-3.5" /> {language === 'en' ? "Period:" : "Periode:"}
         </span>
 
         {/* Preset Chips */}
@@ -176,7 +184,7 @@ export default function ReportsHeader({
                 : "bg-slate-50 text-slate-600 border-slate-100 hover:border-[#00685F]/30 hover:text-[#00685F]"
             }`}
           >
-            {preset.label}
+            {preset.label(language)}
           </button>
         ))}
 
@@ -192,8 +200,8 @@ export default function ReportsHeader({
           >
             <Calendar className="w-3.5 h-3.5" />
             {activePreset === "custom" && customStart && customEnd
-              ? `${formatMY(customStart)} → ${formatMY(customEnd)}`
-              : "Custom Range"}
+              ? `${formatMY(customStart, language)} → ${formatMY(customEnd, language)}`
+              : (language === 'en' ? "Custom Range" : "Rentang Custom")}
           </button>
 
           {/* Ultra Modern Custom Calendar Range Modal */}
@@ -207,8 +215,8 @@ export default function ReportsHeader({
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-slate-900 tracking-tight">Pilih Rentang Bulan</h4>
-                    <p className="text-[10px] text-slate-400 font-semibold">Tentukan periode laporan custom</p>
+                    <h4 className="text-xs font-black text-slate-900 tracking-tight">{language === 'en' ? "Select Month Range" : "Pilih Rentang Bulan"}</h4>
+                    <p className="text-[10px] text-slate-400 font-semibold">{language === 'en' ? "Specify custom report period" : "Tentukan periode laporan custom"}</p>
                   </div>
                 </div>
                 <button 
@@ -230,8 +238,8 @@ export default function ReportsHeader({
                       : "text-slate-500 border-transparent hover:text-slate-800"
                   }`}
                 >
-                  <span className="text-[9px] font-black uppercase tracking-wider block text-slate-400">Dari Bulan</span>
-                  <span className="text-xs font-black truncate block mt-0.5">{formatMY(localStart)}</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider block text-slate-400">{language === 'en' ? "From Month" : "Dari Bulan"}</span>
+                  <span className="text-xs font-black truncate block mt-0.5">{formatMY(localStart, language)}</span>
                 </button>
 
                 <button
@@ -243,8 +251,8 @@ export default function ReportsHeader({
                       : "text-slate-500 border-transparent hover:text-slate-800"
                   }`}
                 >
-                  <span className="text-[9px] font-black uppercase tracking-wider block text-slate-400">Sampai Bulan</span>
-                  <span className="text-xs font-black truncate block mt-0.5">{formatMY(localEnd)}</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider block text-slate-400">{language === 'en' ? "To Month" : "Sampai Bulan"}</span>
+                  <span className="text-xs font-black truncate block mt-0.5">{formatMY(localEnd, language)}</span>
                 </button>
               </div>
 
@@ -269,7 +277,7 @@ export default function ReportsHeader({
 
               {/* Month Grid (12 Months) */}
               <div className="grid grid-cols-4 gap-2">
-                {MONTH_NAMES.map((mName, idx) => {
+                {(language === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_ID).map((mName, idx) => {
                   const mStr = String(idx + 1).padStart(2, "0");
                   const ymVal = `${pickerYear}-${mStr}`;
                   const isStart = localStart === ymVal;
@@ -304,7 +312,7 @@ export default function ReportsHeader({
                 className="w-full py-3 bg-[#00685F] hover:bg-[#004D46] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#00685F]/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Check className="w-4 h-4" />
-                <span>Terapkan Filter</span>
+                <span>{language === 'en' ? "Apply Filter" : "Terapkan Filter"}</span>
               </button>
 
             </div>

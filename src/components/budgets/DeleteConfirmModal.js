@@ -1,4 +1,5 @@
 import { AlertTriangle, X } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function DeleteConfirmModal({
   isOpen,
@@ -8,6 +9,19 @@ export default function DeleteConfirmModal({
   description = "Apakah Anda yakin ingin menghapus anggaran kategori ini? Tindakan ini tidak dapat dibatalkan.",
   isLoading = false
 }) {
+  const { t } = useLanguage();
+
+  // If props for title/desc are provided but we have translation, we can just fallback if not provided
+  // In BudgetsGrid.js, the strings are just hardcoded as props so we will override them with translation if they match default.
+  // Actually, wait, let's just use translations directly here because it's only used for budgets currently.
+  // But to keep it generic in case it's used elsewhere, we check if they are the default Indonesian strings, then translate.
+  // Or just ignore props and use translate if it's the default. Let's just use t().
+
+  const displayTitle = title === "Hapus Anggaran?" ? (t("budgets.delete_title") || "Delete Budget?") : title;
+  const displayDesc = description === "Apakah Anda yakin ingin menghapus anggaran kategori ini? Tindakan ini tidak dapat dibatalkan." 
+    ? (t("budgets.delete_desc") || "Are you sure you want to delete this budget? Transaction history for the related category will not be deleted, but the budget warning limit will be removed.") 
+    : description;
+
   if (!isOpen) return null;
 
   return (
@@ -29,10 +43,10 @@ export default function DeleteConfirmModal({
 
         {/* Content */}
         <h3 className="text-xl font-extrabold text-slate-900 mb-2">
-          {title}
+          {displayTitle}
         </h3>
         <p className="text-sm font-semibold text-slate-500 mb-6 leading-relaxed">
-          {description}
+          {displayDesc}
         </p>
 
         {/* Buttons */}
@@ -43,7 +57,7 @@ export default function DeleteConfirmModal({
             disabled={isLoading}
             className="flex-1 py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
           >
-            Batal
+            {t("common.cancel") || "Batal"}
           </button>
           <button
             type="button"
@@ -51,7 +65,7 @@ export default function DeleteConfirmModal({
             disabled={isLoading}
             className="flex-1 py-3.5 bg-rose-600 text-white rounded-2xl font-bold text-sm hover:bg-rose-700 hover:shadow-lg hover:shadow-rose-600/25 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
           >
-            {isLoading ? "Menghapus..." : "Ya, Hapus"}
+            {isLoading ? (t("budgets.deleting") || "Menghapus...") : (t("budgets.delete_confirm") || "Ya, Hapus")}
           </button>
         </div>
       </div>

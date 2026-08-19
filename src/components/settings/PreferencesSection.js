@@ -1,23 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sliders, DollarSign, Globe, Bell, Sun, Moon, ChevronDown, Check } from "lucide-react";
+import { Sliders, DollarSign, Globe, Bell, ChevronDown, Check } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function PreferencesSection({
   currency,
   setCurrency,
   language,
   setLanguage,
-  emailNotif,
-  setEmailNotif,
   txAlert,
   setTxAlert,
   budgetAlert,
   setBudgetAlert,
-  theme,
-  setTheme,
   onSave
 }) {
+  const { t, language: globalLanguage, changeLanguage } = useLanguage();
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const currencyRef = useRef(null);
@@ -60,8 +58,8 @@ export default function PreferencesSection({
           <Sliders className="w-5 h-5 sm:w-6 sm:h-6 text-[#00685F]" />
         </div>
         <div>
-          <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">Preferensi & Notifikasi</h2>
-          <p className="text-xs text-slate-400 font-semibold mt-0.5">Kelola pengaturan mata uang, bahasa, dan pemberitahuan</p>
+          <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{t("settings.preferences") || "Preferensi Sistem"}</h2>
+          <p className="text-xs text-slate-400 font-semibold mt-0.5">{globalLanguage === 'en' ? "Manage currency, language, and notification settings" : "Kelola pengaturan mata uang, bahasa, dan pemberitahuan"}</p>
         </div>
       </div>
 
@@ -72,7 +70,7 @@ export default function PreferencesSection({
         <div className="space-y-1.5 relative" ref={currencyRef}>
           <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 select-none">
             <DollarSign className="w-3.5 h-3.5 text-[#00685F]" />
-            <span>Mata Uang Utama</span>
+            <span>{globalLanguage === 'en' ? "Primary Currency" : "Mata Uang Utama"}</span>
           </label>
           <button
             type="button"
@@ -121,7 +119,7 @@ export default function PreferencesSection({
         <div className="space-y-1.5 relative" ref={languageRef}>
           <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 select-none">
             <Globe className="w-3.5 h-3.5 text-[#00685F]" />
-            <span>Bahasa Aplikasi</span>
+            <span>{globalLanguage === 'en' ? "App Language" : "Bahasa Aplikasi"}</span>
           </label>
           <button
             type="button"
@@ -172,34 +170,15 @@ export default function PreferencesSection({
       <div className="space-y-3 pt-2">
         <h3 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
           <Bell className="w-3.5 h-3.5 text-[#00685F]" />
-          <span>Pengaturan Notifikasi</span>
+          <span>{globalLanguage === 'en' ? "Notification Settings" : "Pengaturan Notifikasi"}</span>
         </h3>
 
         <div className="space-y-2 select-none">
-          {/* Toggle 1: Email Monthly Digest */}
+          {/* Toggle 1: Transaction Alerts */}
           <div className="flex justify-between items-center p-3.5 sm:p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
             <div>
-              <p className="text-xs sm:text-sm font-extrabold text-slate-800">Laporan Bulanan via Email</p>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">Terima ringkasan performa finansial setiap akhir bulan</p>
-            </div>
-            <button 
-              type="button"
-              onClick={() => setEmailNotif(!emailNotif)}
-              className={`w-11 h-6 rounded-full transition-colors duration-300 relative cursor-pointer shrink-0 p-0.5 ${
-                emailNotif ? 'bg-[#00685F]' : 'bg-slate-300'
-              }`}
-            >
-              <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 transform ${
-                emailNotif ? 'translate-x-5' : 'translate-x-0'
-              }`}></div>
-            </button>
-          </div>
-
-          {/* Toggle 2: Transaction Alerts */}
-          <div className="flex justify-between items-center p-3.5 sm:p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-            <div>
-              <p className="text-xs sm:text-sm font-extrabold text-slate-800">Notifikasi Transaksi Baru</p>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">Kirim pemberitahuan setiap ada pencatatan transaksi</p>
+              <p className="text-xs sm:text-sm font-extrabold text-slate-800">{globalLanguage === 'en' ? "New Transaction Alert" : "Notifikasi Transaksi Baru"}</p>
+              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">{globalLanguage === 'en' ? "Send notification whenever a new transaction is recorded" : "Kirim pemberitahuan setiap ada pencatatan transaksi"}</p>
             </div>
             <button 
               type="button"
@@ -214,11 +193,11 @@ export default function PreferencesSection({
             </button>
           </div>
 
-          {/* Toggle 3: Budget Limit Warnings */}
+          {/* Toggle 2: Budget Limit Warnings */}
           <div className="flex justify-between items-center p-3.5 sm:p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
             <div>
-              <p className="text-xs sm:text-sm font-extrabold text-slate-800">Peringatan Batas Anggaran (Budget Alert)</p>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">Beritahu saat pengeluaran kategori mencapai 80% limit</p>
+              <p className="text-xs sm:text-sm font-extrabold text-slate-800">{globalLanguage === 'en' ? "Budget Limit Warning" : "Peringatan Batas Anggaran (Budget Alert)"}</p>
+              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">{globalLanguage === 'en' ? "Notify when a category expense reaches 80% limit" : "Beritahu saat pengeluaran kategori mencapai 80% limit"}</p>
             </div>
             <button 
               type="button"
@@ -235,55 +214,6 @@ export default function PreferencesSection({
         </div>
       </div>
 
-      {/* Theme Selector */}
-      <div className="space-y-3 pt-2">
-        <h3 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <Sun className="w-3.5 h-3.5 text-[#00685F]" />
-          <span>Tema Tampilan</span>
-        </h3>
-
-        <div className="grid grid-cols-3 gap-3 select-none">
-          <button
-            type="button"
-            onClick={() => setTheme("light")}
-            className={`p-3.5 rounded-2xl border flex flex-col items-center gap-2 cursor-pointer transition-all ${
-              theme === "light" 
-                ? "bg-[#E6F0EF] border-[#00685F] text-[#00685F] shadow-xs" 
-                : "bg-slate-50 border-slate-200/60 text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Sun className="w-5 h-5" />
-            <span className="text-xs font-bold">Terang</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setTheme("dark")}
-            className={`p-3.5 rounded-2xl border flex flex-col items-center gap-2 cursor-pointer transition-all ${
-              theme === "dark" 
-                ? "bg-slate-900 border-slate-900 text-white shadow-xs" 
-                : "bg-slate-50 border-slate-200/60 text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Moon className="w-5 h-5" />
-            <span className="text-xs font-bold">Gelap</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setTheme("system")}
-            className={`p-3.5 rounded-2xl border flex flex-col items-center gap-2 cursor-pointer transition-all ${
-              theme === "system" 
-                ? "bg-[#E6F0EF] border-[#00685F] text-[#00685F] shadow-xs" 
-                : "bg-slate-50 border-slate-200/60 text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Sliders className="w-5 h-5" />
-            <span className="text-xs font-bold">Sistem</span>
-          </button>
-        </div>
-      </div>
-
       {/* Save Button */}
       <div className="flex justify-end pt-4 border-t border-slate-100">
         <button 
@@ -291,7 +221,7 @@ export default function PreferencesSection({
           onClick={onSave}
           className="w-full sm:w-auto bg-[#00685F] text-white px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold hover:bg-[#004D46] transition-all shadow-md shadow-[#00685F]/20 active:scale-95 cursor-pointer text-center select-none"
         >
-          Simpan Preferensi
+          {globalLanguage === 'en' ? "Save Preferences" : "Simpan Preferensi"}
         </button>
       </div>
 

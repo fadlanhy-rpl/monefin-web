@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { CatalisButton } from "../ui/CatalisButton";
-import { formatRupiah } from "@/lib/utils"; // I will need to create/check this, or define it locally. Let's define locally for now to match exactly.
+import { useLanguage } from "../../context/LanguageContext";
 
 export const Hero = ({ isLoggedIn }) => {
+  const { t } = useLanguage();
   const [activeAccount, setActiveAccount] = useState("total");
   const [simulatedBalances, setSimulatedBalances] = useState({
     bca: 28500000,
@@ -28,6 +29,13 @@ export const Hero = ({ isLoggedIn }) => {
     if (activeAccount === "gopay") return simulatedBalances.gopay;
     if (activeAccount === "mandiri") return simulatedBalances.mandiri;
     return totalNetWorth;
+  };
+
+  const getAccountLabel = () => {
+    if (activeAccount === "total") return t("hero.card_total_net");
+    if (activeAccount === "bca") return t("hero.card_bca");
+    if (activeAccount === "gopay") return t("hero.card_gopay");
+    return t("hero.card_mandiri");
   };
 
   const handleSimulatedTransaction = (type, amount, label) => {
@@ -65,29 +73,29 @@ export const Hero = ({ isLoggedIn }) => {
               <div className="inline-flex items-center gap-1.5 sm:gap-2.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/90 border border-brand-300/80 text-brand-800 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider shadow-sm backdrop-blur-md">
                 <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-brand-500 animate-ping" />
                 <svg className="w-3.5 h-3.5 text-brand-600 shrink-0" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <span>Aplikasi Finansial Personal #1 Gratis &amp; Praktis</span>
+                <span>{t("hero.badge")}</span>
               </div>
 
               {/* Headline */}
               <h1 className="text-2xl xs:text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.15] sm:leading-[1.12]">
-                Kelola dan <em className="catalis-heading-italic text-brand-600">Tumbuhkan</em> Keuangan Anda dengan Alat Terukur
+                {t("hero.title")}
               </h1>
 
               {/* Subheadline */}
               <p className="text-xs sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                MoneFin menyatukan pelacakan anggaran, agregasi dompet, dan analisis finansial otomatis agar Anda dapat mengambil keputusan keuangan secara percaya diri tanpa kerumitan.
+                {t("hero.subtitle")}
               </p>
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-1">
                 <CatalisButton href={isLoggedIn ? "/dashboard" : "/register"} variant="primary" className="w-full sm:w-auto text-center">
-                  <span>{isLoggedIn ? "Buka Dashboard" : "Coba Sekarang — 100% Gratis"}</span>
+                  <span>{isLoggedIn ? t("hero.cta_primary_loggedin") : t("hero.cta_primary")}</span>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </CatalisButton>
                 
                 <CatalisButton href="#simulator" variant="secondary" className="w-full sm:w-auto text-center">
                   <svg className="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                  <span>Simulasi Wealth</span>
+                  <span>{t("hero.cta_secondary")}</span>
                 </CatalisButton>
               </div>
 
@@ -95,15 +103,15 @@ export const Hero = ({ isLoggedIn }) => {
               <div className="pt-3 sm:pt-6 flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold text-slate-600">
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>Tanpa Kartu Kredit</span>
+                  <span>{t("hero.badge_no_cc")}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>Privasi Data Terjamin</span>
+                  <span>{t("hero.badge_privacy")}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>Respon &lt; 1 Detik</span>
+                  <span>{t("hero.badge_speed")}</span>
                 </div>
               </div>
             </div>
@@ -117,12 +125,12 @@ export const Hero = ({ isLoggedIn }) => {
                 {/* Account Switcher Header */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                   <div>
-                    <p className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider">Pratinjau Saldo Dompet</p>
-                    <p className="text-xs sm:text-sm font-black text-slate-900 mt-0.5">Saldo Saat Ini</p>
+                    <p className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider">{t("hero.card_wallet_preview")}</p>
+                    <p className="text-xs sm:text-sm font-black text-slate-900 mt-0.5">{t("hero.card_balance_now")}</p>
                   </div>
                   <span className="text-[10px] sm:text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full flex items-center gap-1 shadow-xs">
                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500" />
-                    <span>Saldo Real-time</span>
+                    <span>{t("hero.card_live")}</span>
                   </span>
                 </div>
 
@@ -136,7 +144,7 @@ export const Hero = ({ isLoggedIn }) => {
                         : "text-slate-500 hover:text-slate-900"
                     }`}
                   >
-                    Semua
+                    {t("hero.card_all")}
                   </button>
                   <button
                     onClick={() => setActiveAccount("bca")}
@@ -165,13 +173,7 @@ export const Hero = ({ isLoggedIn }) => {
                   <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
                   <div className="flex justify-between items-start mb-1.5">
                     <p className="text-[10px] sm:text-xs text-brand-200 uppercase tracking-widest font-extrabold">
-                      {activeAccount === "total"
-                        ? "Total Sisa Net Worth"
-                        : activeAccount === "bca"
-                        ? "Saldo BCA Utama"
-                        : activeAccount === "gopay"
-                        ? "Saldo GoPay Wallet"
-                        : "Saldo Mandiri Tabungan"}
+                      {getAccountLabel()}
                     </p>
                     <span className="text-[9px] sm:text-[10px] font-mono bg-white/15 px-2 py-0.5 rounded-full border border-white/20">
                       LIVE DEMO
@@ -197,7 +199,7 @@ export const Hero = ({ isLoggedIn }) => {
 
                   {/* Mini Sparkline Visualization */}
                   <div className="mt-4 pt-3 border-t border-white/15 flex justify-between items-center text-[10px] sm:text-xs text-brand-200">
-                    <span className="font-mono">Cashflow Trend</span>
+                    <span className="font-mono">{t("hero.card_cashflow")}</span>
                     <svg className="w-16 sm:w-24 h-5 sm:h-6 text-emerald-300 overflow-visible" viewBox="0 0 100 30">
                       <path
                         d="M0 25 Q20 5, 40 20 T80 8 T100 2"
@@ -213,7 +215,7 @@ export const Hero = ({ isLoggedIn }) => {
 
                 {/* Interactive Transaction Action Buttons */}
                 <p className="text-[10px] sm:text-xs font-semibold text-slate-500 mb-2 text-center">
-                  Simulasikan Transaksi Langsung:
+                  {t("hero.card_simulate")}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                   <button
@@ -227,7 +229,7 @@ export const Hero = ({ isLoggedIn }) => {
                     onClick={() => handleSimulatedTransaction("subtract", 125000, "Belanja Bulanan")}
                     className="press-scale px-2.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 font-bold text-[11px] sm:text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                   >
-                    <svg className="w-3.5 h-3.5 text-rose-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="8 12h8"/></svg>
+                    <svg className="w-3.5 h-3.5 text-rose-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>
                     <span>- Rp 125.000</span>
                   </button>
                 </div>
@@ -239,8 +241,8 @@ export const Hero = ({ isLoggedIn }) => {
                       AI
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800">Status Alokasi Hemat</p>
-                      <p className="text-[9px] sm:text-[10px] text-slate-500">Sehat &amp; Terkendali</p>
+                      <p className="font-bold text-slate-800">{t("hero.card_ai_title")}</p>
+                      <p className="text-[9px] sm:text-[10px] text-slate-500">{t("hero.card_ai_sub")}</p>
                     </div>
                   </div>
                   <span className="font-black text-emerald-700 text-[10px] sm:text-xs bg-emerald-100 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">

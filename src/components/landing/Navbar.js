@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CatalisButton } from "../ui/CatalisButton";
+import { LanguageSwitcher } from "../ui/LanguageSwitcher";
+import { useLanguage } from "../../context/LanguageContext";
 
 export const Navbar = ({ isLoggedIn }) => {
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -37,18 +40,19 @@ export const Navbar = ({ isLoggedIn }) => {
 
         {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-bold text-slate-800">
-          <a href="#features" className="hover:text-brand-600 transition-colors">Fitur Utama</a>
-          <a href="#simulator" className="hover:text-brand-600 transition-colors">Simulasi Wealth</a>
-          <a href="#comparison" className="hover:text-brand-600 transition-colors">Keunggulan</a>
-          <a href="#testimonials" className="hover:text-brand-600 transition-colors">Testimoni</a>
-          <a href="#faq" className="hover:text-brand-600 transition-colors">FAQ</a>
+          <a href="#features" className="hover:text-brand-600 transition-colors">{t("nav.features")}</a>
+          <a href="#simulator" className="hover:text-brand-600 transition-colors">{t("nav.simulator")}</a>
+          <a href="#comparison" className="hover:text-brand-600 transition-colors">{t("nav.comparison")}</a>
+          <a href="#testimonials" className="hover:text-brand-600 transition-colors">{t("nav.testimonials")}</a>
+          <a href="#faq" className="hover:text-brand-600 transition-colors">{t("nav.faq")}</a>
         </div>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSwitcher />
           {isLoggedIn ? (
             <CatalisButton href="/dashboard" variant="primary">
-              <span>Ke Dashboard</span>
+              <span>{t("nav.dashboard")}</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </CatalisButton>
           ) : (
@@ -57,10 +61,10 @@ export const Navbar = ({ isLoggedIn }) => {
                 href="/login"
                 className="text-sm font-bold text-slate-800 hover:text-brand-600 px-3.5 py-2 rounded-full transition-colors"
               >
-                Masuk
+                {t("nav.login")}
               </Link>
               <CatalisButton href="/register" variant="primary">
-                <span>Mulai Gratis</span>
+                <span>{t("nav.register")}</span>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
               </CatalisButton>
             </>
@@ -74,7 +78,7 @@ export const Navbar = ({ isLoggedIn }) => {
               href="/login"
               className="text-xs font-extrabold text-slate-800 hover:text-brand-600 px-2.5 py-1.5 rounded-full border border-slate-200/80 bg-white/80"
             >
-              Masuk
+              {t("nav.login")}
             </Link>
           )}
           <button
@@ -92,19 +96,22 @@ export const Navbar = ({ isLoggedIn }) => {
       {/* Mobile Dropdown */}
       {mobileMenuOpen && (
         <div className="pointer-events-auto md:hidden mt-2 bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-3 animate-popIn text-xs sm:text-sm">
-          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">Fitur Utama</a>
-          <a href="#simulator" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">Simulasi Wealth</a>
-          <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">Keunggulan</a>
-          <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">Testimoni</a>
-          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5">FAQ</a>
-          <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.features")}</a>
+          <a href="#simulator" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.simulator")}</a>
+          <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.comparison")}</a>
+          <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.testimonials")}</a>
+          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5">{t("nav.faq")}</a>
+          <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
+            <div className="flex justify-center">
+              <LanguageSwitcher />
+            </div>
             {isLoggedIn ? (
               <Link href="/dashboard" className="w-full text-center py-2.5 rounded-full bg-brand-600 text-white font-bold text-xs">
-                Ke Dashboard
+                {t("nav.dashboard_mobile")}
               </Link>
             ) : (
               <Link href="/register" className="w-full text-center py-2.5 rounded-full bg-brand-600 text-white font-bold text-xs shadow-md">
-                Mulai Gratis — 100% Free
+                {t("nav.register_mobile")}
               </Link>
             )}
           </div>

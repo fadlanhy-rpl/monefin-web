@@ -6,8 +6,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /** Format a decimal string or number as IDR currency */
-export function formatCurrency(value: string | number): string {
+export function formatCurrency(value: string | number, currency: string = 'IDR'): string {
   const num = typeof value === 'string' ? parseFloat(value) : value;
+  
+  if (currency === 'USD') {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(num);
+  }
+
+  // Default to IDR
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
