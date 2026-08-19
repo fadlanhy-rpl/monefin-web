@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { TrendingUp, TrendingDown, Target, Activity, AlertTriangle, CheckCircle, Info, Zap } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const fmt = (val) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val ?? 0);
@@ -13,13 +14,15 @@ const fmtCompact = (val) => {
   return String(val ?? 0);
 };
 
-function HealthGauge({ rate }) {
+function HealthGauge({ rate, language }) {
   const pct = Math.min(Math.max(rate, 0), 100);
   const r = 38, cx = 50, cy = 52;
   const circ = Math.PI * r;
   const dashOffset = circ - (pct / 100) * circ;
   const color = pct >= 30 ? "#00685F" : pct >= 20 ? "#10b981" : pct >= 10 ? "#f59e0b" : "#ef4444";
-  const label = pct >= 30 ? "Sangat Sehat" : pct >= 20 ? "Sehat" : pct >= 10 ? "Cukup" : "Perlu Perhatian";
+  const label = language === 'en' 
+    ? (pct >= 30 ? "Very Healthy" : pct >= 20 ? "Healthy" : pct >= 10 ? "Fair" : "Needs Attention")
+    : (pct >= 30 ? "Sangat Sehat" : pct >= 20 ? "Sehat" : pct >= 10 ? "Cukup" : "Perlu Perhatian");
   const textColor = pct >= 30 ? "text-[#00685F]" : pct >= 20 ? "text-emerald-600" : pct >= 10 ? "text-amber-500" : "text-red-500";
   return (
     <div className="flex flex-col items-center gap-1">
@@ -106,6 +109,7 @@ export default function ReportsOverview({
   monthlyData  = [],
   loading      = false,
 }) {
+  const { language } = useLanguage();
   const isDeficit  = netSavings < 0;
   const rateScore  = savingRate >= 30 ? "A" : savingRate >= 20 ? "B" : savingRate >= 10 ? "C" : "D";
   const rateGood   = savingRate >= 20;
@@ -121,18 +125,20 @@ export default function ReportsOverview({
   const burnRate      = totalIncome > 0 ? Math.round((totalExpense / totalIncome) * 100) : 0;
 
   const MONTH_ID = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  const MONTH_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const mLabel = (ym) => {
     if (!ym) return "-";
     const [, m] = ym.split("-");
-    return MONTH_ID[parseInt(m, 10) - 1] || m;
+    const names = language === 'en' ? MONTH_EN : MONTH_ID;
+    return names[parseInt(m, 10) - 1] || m;
   };
 
   const insights = [];
   if (!loading && months > 0) {
-    if (savingRate >= 20) insights.push({ icon: CheckCircle, color: "text-emerald-400", msg: `Saving rate ${savingRate}% — target ≥20% tercapai. Keuangan Anda terkendali dengan baik.` });
-    else insights.push({ icon: AlertTriangle, color: "text-amber-400", msg: `Saving rate ${savingRate}% di bawah target 20%. Pertimbangkan memotong pengeluaran non-esensial.` });
-    if (deficitMonths > 0) insights.push({ icon: Info, color: "text-red-400", msg: `${deficitMonths} dari ${months} bulan mengalami defisit. Pastikan tersedia dana darurat minimal 3 bulan pengeluaran.` });
-    if (burnRate > 80) insights.push({ icon: Zap, color: "text-orange-400", msg: `Burn rate ${burnRate}% — ${burnRate}% pemasukan habis untuk pengeluaran. Tingkatkan efisiensi anggaran Anda.` });
+    if (savingRate >= 20) insights.push({ icon: CheckCircle, color: "text-emerald-400", msg: language === 'en' ? `Saving rate ${savingRate}% — target ≥20% achieved. Your finances are well controlled.` : `Saving rate ${savingRate}% — target ≥20% tercapai. Keuangan Anda terkendali dengan baik.` });
+    else insights.push({ icon: AlertTriangle, color: "text-amber-400", msg: language === 'en' ? `Saving rate ${savingRate}% is below the 20% target. Consider cutting non-essential expenses.` : `Saving rate ${savingRate}% di bawah target 20%. Pertimbangkan memotong pengeluaran non-esensial.` });
+    if (deficitMonths > 0) insights.push({ icon: Info, color: "text-red-400", msg: language === 'en' ? `${deficitMonths} out of ${months} months experienced a deficit. Ensure emergency funds of at least 3 months expenses.` : `${deficitMonths} dari ${months} bulan mengalami defisit. Pastikan tersedia dana darurat minimal 3 bulan pengeluaran.` });
+    if (burnRate > 80) insights.push({ icon: Zap, color: "text-orange-400", msg: language === 'en' ? `Burn rate ${burnRate}% — ${burnRate}% of income is spent on expenses. Increase your budget efficiency.` : `Burn rate ${burnRate}% — ${burnRate}% pemasukan habis untuk pengeluaran. Tingkatkan efisiensi anggaran Anda.` });
   }
 
   return (
@@ -149,9 +155,9 @@ export default function ReportsOverview({
           ) : (
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[9px] font-black text-white/70 uppercase tracking-widest">Net Savings</p>
+                <p className="text-[9px] font-black text-white/70 uppercase tracking-widest">{language === 'en' ? "Net Savings" : "Simpanan Bersih"}</p>
                 <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border border-white/20 ${isDeficit ? "bg-red-800/40 text-red-200" : "bg-white/20 text-white"}`}>
-                  {isDeficit ? "DEFISIT" : "SURPLUS"} {rateScore}
+                  {isDeficit ? (language === 'en' ? "DEFICIT" : "DEFISIT") : (language === 'en' ? "SURPLUS" : "SURPLUS")} {rateScore}
                 </span>
               </div>
               <p className="text-2xl font-black text-white tracking-tight leading-none">
@@ -160,8 +166,8 @@ export default function ReportsOverview({
               <p className="text-[10px] text-white/70 font-semibold mt-1">{fmt(Math.abs(netSavings))}</p>
               <p className="text-[10px] font-semibold text-white/60 mt-2 flex items-center gap-1">
                 {isDeficit
-                  ? <><TrendingDown className="w-3 h-3" /> Pengeluaran melebihi pemasukan</>
-                  : <><TrendingUp className="w-3 h-3" /> Keuangan dalam kondisi sehat</>}
+                  ? <><TrendingDown className="w-3 h-3" /> {language === 'en' ? "Expenses exceed income" : "Pengeluaran melebihi pemasukan"}</>
+                  : <><TrendingUp className="w-3 h-3" /> {language === 'en' ? "Finances are in good health" : "Keuangan dalam kondisi sehat"}</>}
               </p>
             </div>
           )}
@@ -181,7 +187,7 @@ export default function ReportsOverview({
             <div className="flex items-end gap-2">
               <p className={`text-2xl font-black tracking-tighter ${rateGood ? "text-[#00685F]" : "text-amber-500"}`}>{savingRate}%</p>
               <span className={`text-[9px] font-black mb-1.5 px-2 py-0.5 rounded-full ${rateGood ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-600"}`}>
-                {rateGood ? "Baik" : "Rendah"}
+                {rateGood ? (language === 'en' ? "Good" : "Baik") : (language === 'en' ? "Low" : "Rendah")}
               </span>
             </div>
             <div className="mt-2 w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -190,24 +196,24 @@ export default function ReportsOverview({
                 style={{ width: `${Math.min(savingRate, 100)}%` }}
               />
             </div>
-            <p className="text-[9px] text-slate-400 font-semibold mt-1">Target: ≥ 20% dari pemasukan</p>
+            <p className="text-[9px] text-slate-400 font-semibold mt-1">{language === 'en' ? "Target: ≥ 20% of income" : "Target: ≥ 20% dari pemasukan"}</p>
           </div>
         )}
 
         <KpiCard
-          label="Total Pemasukan"
+          label={language === 'en' ? "Total Income" : "Total Pemasukan"}
           compact={fmtCompact(totalIncome)}
           value={fmt(totalIncome)}
           icon={TrendingUp} iconBg="bg-emerald-50" iconColor="text-emerald-600"
-          sub={months > 0 ? `Rata-rata ${fmtCompact(avgIncome)}/bln` : undefined}
+          sub={months > 0 ? (language === 'en' ? `Average ${fmtCompact(avgIncome)}/mo` : `Rata-rata ${fmtCompact(avgIncome)}/bln`) : undefined}
           loading={loading}
         />
         <KpiCard
-          label="Total Pengeluaran"
+          label={language === 'en' ? "Total Expense" : "Total Pengeluaran"}
           compact={fmtCompact(totalExpense)}
           value={fmt(totalExpense)}
           icon={TrendingDown} iconBg="bg-red-50" iconColor="text-red-500"
-          sub={months > 0 ? `Rata-rata ${fmtCompact(avgExpense)}/bln` : undefined}
+          sub={months > 0 ? (language === 'en' ? `Average ${fmtCompact(avgExpense)}/mo` : `Rata-rata ${fmtCompact(avgExpense)}/bln`) : undefined}
           badge={burnRate > 0 ? `Burn ${burnRate}%` : undefined}
           badgeColor={burnRate > 80 ? "bg-red-100 text-red-600" : burnRate > 60 ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500"}
           loading={loading}
@@ -218,34 +224,34 @@ export default function ReportsOverview({
       {!loading && months > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Periode</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Period" : "Periode"}</p>
             <p className="text-xl font-black text-slate-900">{months}</p>
-            <p className="text-[10px] text-slate-400 font-semibold">bulan dianalisis</p>
+            <p className="text-[10px] text-slate-400 font-semibold">{language === 'en' ? "months analyzed" : "bulan dianalisis"}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Bulan Surplus</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Surplus Months" : "Bulan Surplus"}</p>
             <p className="text-xl font-black text-emerald-600">{surplusMonths}</p>
-            <p className="text-[10px] text-slate-400 font-semibold">dari {months} bulan</p>
+            <p className="text-[10px] text-slate-400 font-semibold">{language === 'en' ? `out of ${months} months` : `dari ${months} bulan`}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Bulan Defisit</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Deficit Months" : "Bulan Defisit"}</p>
             <p className={`text-xl font-black ${deficitMonths > 0 ? "text-red-500" : "text-emerald-600"}`}>{deficitMonths}</p>
-            <p className="text-[10px] text-slate-400 font-semibold">dari {months} bulan</p>
+            <p className="text-[10px] text-slate-400 font-semibold">{language === 'en' ? `out of ${months} months` : `dari ${months} bulan`}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Konsistensi</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Consistency" : "Konsistensi"}</p>
             <p className={`text-xl font-black ${consistency >= 70 ? "text-[#00685F]" : consistency >= 50 ? "text-amber-500" : "text-red-500"}`}>{consistency}%</p>
             <MiniBar pct={consistency} color={consistency >= 70 ? "#00685F" : consistency >= 50 ? "#f59e0b" : "#ef4444"} />
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Bulan Terbaik</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Best Month" : "Bulan Terbaik"}</p>
             <p className="text-sm font-black text-[#00685F]">{bestMonth ? mLabel(bestMonth.month) : "-"}</p>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{bestMonth ? fmtCompact(bestMonth.income) : "-"} pemasukan</p>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{bestMonth ? fmtCompact(bestMonth.income) : "-"} {language === 'en' ? "income" : "pemasukan"}</p>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pengeluaran Max</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Max Expense" : "Pengeluaran Max"}</p>
             <p className="text-sm font-black text-red-500">{worstMonth ? mLabel(worstMonth.month) : "-"}</p>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{worstMonth ? fmtCompact(worstMonth.expense) : "-"} keluar</p>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{worstMonth ? fmtCompact(worstMonth.expense) : "-"} {language === 'en' ? "expense" : "keluar"}</p>
           </div>
         </div>
       )}
@@ -254,12 +260,12 @@ export default function ReportsOverview({
       {!loading && months > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5">
-            <HealthGauge rate={savingRate} />
+            <HealthGauge rate={savingRate} language={language} />
             <div className="flex-1 min-w-0">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Financial Health Score</p>
               <p className="text-3xl font-black text-slate-900 leading-none">{rateScore}</p>
               <p className="text-[10px] text-slate-500 font-semibold mt-1">
-                Saving rate {savingRate}% dari total pemasukan
+                {language === 'en' ? `Saving rate ${savingRate}% of total income` : `Saving rate ${savingRate}% dari total pemasukan`}
               </p>
               <div className="flex gap-1.5 mt-2 flex-wrap">
                 {["D","C","B","A"].map(g => (
@@ -274,7 +280,7 @@ export default function ReportsOverview({
           <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl shadow-md relative overflow-hidden">
             <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#00685F]/10 rounded-full blur-3xl pointer-events-none" />
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Activity className="w-3 h-3 text-[#00685F]" /> Insight & Rekomendasi Analis
+              <Activity className="w-3 h-3 text-[#00685F]" /> {language === 'en' ? "Analyst Insights & Recommendations" : "Insight & Rekomendasi Analis"}
             </p>
             <div className="space-y-2">
               {insights.map((ins, i) => (
@@ -286,15 +292,15 @@ export default function ReportsOverview({
               <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
                 <div className="text-center">
                   <p className="text-sm font-black text-white">{fmtCompact(avgIncome)}</p>
-                  <p className="text-[9px] text-slate-400 font-semibold">Avg Masuk/Bln</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{language === 'en' ? "Avg Income/Mo" : "Avg Masuk/Bln"}</p>
                 </div>
                 <div className="text-center border-x border-white/10">
                   <p className="text-sm font-black text-white">{fmtCompact(avgExpense)}</p>
-                  <p className="text-[9px] text-slate-400 font-semibold">Avg Keluar/Bln</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{language === 'en' ? "Avg Expense/Mo" : "Avg Keluar/Bln"}</p>
                 </div>
                 <div className="text-center">
                   <p className={`text-sm font-black ${isDeficit ? "text-red-400" : "text-emerald-400"}`}>{fmtCompact(Math.abs(avgIncome - avgExpense))}</p>
-                  <p className="text-[9px] text-slate-400 font-semibold">Avg Net/Bln</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{language === 'en' ? "Avg Net/Mo" : "Avg Net/Bln"}</p>
                 </div>
               </div>
             </div>

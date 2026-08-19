@@ -49,6 +49,9 @@ export default function SecuritySection({
         </h3>
 
         <div className={`grid grid-cols-1 ${user?.has_password ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 sm:gap-6`}>
+          {/* Hidden username input to trick browser autofill and prevent it from filling the search bar */}
+          <input type="text" name="username" autoComplete="username" defaultValue={user?.email || ""} className="hidden" style={{ display: 'none' }} />
+          
           {/* Current Password (ONLY if user has password) */}
           {user?.has_password && (
             <div className="space-y-1.5">

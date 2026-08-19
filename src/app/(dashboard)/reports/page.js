@@ -9,6 +9,7 @@ import ReportsTable   from "../../../components/reports/ReportsTable";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { getReportCompare, getReportCategoryBreakdown, exportReportCSV } from "../../../services/report.service";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "../../../context/LanguageContext";
 
 // ── Utility: derive YYYY-MM from preset id ────────────────────────────────────
 function getPresetRange(presetId) {
@@ -39,6 +40,7 @@ function getPresetRange(presetId) {
 
 export default function ReportsPage() {
   const router = useRouter();
+  const { language } = useLanguage();
 
   // ── UI state ────────────────────────────────────────────────────────────────
   const [isVisible,  setIsVisible]  = useState(false);
@@ -82,7 +84,7 @@ export default function ReportsPage() {
       setCategoryData(catRes.data     || []);
     } catch (err) {
       console.error("Failed to load report data:", err);
-      showToast("Gagal memuat data laporan. Silakan coba lagi.", "error");
+      showToast(language === 'en' ? "Failed to load report data. Please try again." : "Gagal memuat data laporan. Silakan coba lagi.", "error");
     } finally {
       setLoading(false);
     }
@@ -115,7 +117,7 @@ export default function ReportsPage() {
 
   // ── Export Excel (.xlsx) ──────────────────────────────────────────────────────
   const handleExportCSV = () => {
-    showToast("Menyiapkan file Excel laporan keuangan profesional...");
+    showToast(language === 'en' ? "Preparing professional financial report Excel file..." : "Menyiapkan file Excel laporan keuangan profesional...");
     exportReportCSV({
       start_date: filterRange.start_month ? filterRange.start_month + "-01" : undefined,
       end_date:   filterRange.end_month   ? filterRange.end_month   + "-31" : undefined,

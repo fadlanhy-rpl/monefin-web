@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronRight, Plane, GraduationCap, Trophy } from "lucide-react";
 import Link from "next/link";
 import GoalDetailModal from "./GoalDetailModal";
+import { useLanguage } from "../../context/LanguageContext";
 
 // Icon mapper for achieved goals
 function getAchievedIcon(iconType) {
@@ -15,14 +16,16 @@ function getAchievedIcon(iconType) {
 export default function AchievedGoals({
   achievedGoals
 }) {
+  const { t, language } = useLanguage();
   const [selectedGoal, setSelectedGoal] = useState(null);
 
   return (
     <div className="space-y-6 pt-4">
       <div className="flex justify-between items-center select-none">
-        <h3 className="text-lg font-bold text-gray-400 tracking-tight">Achieved Goals</h3>
+        <h3 className="text-lg font-bold text-gray-400 tracking-tight">{t("goals.achieved_goals") || "Target Tercapai"}</h3>
         <Link href="/goals/achieved" className="text-sm font-black text-[#00685F] hover:underline flex items-center gap-1">
-          Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
+          <span>{t("goals.view_all") || "Lihat Semua"}</span> 
+          <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
       
@@ -32,9 +35,9 @@ export default function AchievedGoals({
           const mappedGoal = {
             ...ag,
             title: ag.name,
-            completedDate: ag.updated_at ? new Date(ag.updated_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : "-",
+            completedDate: ag.updated_at ? new Date(ag.updated_at).toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : "-",
             amount: parseFloat(ag.target_amount) || 0,
-            badge: "ACHIEVED",
+            badge: language === 'en' ? "ACHIEVED" : "TERCAPAI",
             iconType: ag.icon || "target"
           };
           return (
@@ -49,13 +52,15 @@ export default function AchievedGoals({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900 text-sm sm:text-base truncate leading-tight group-hover:text-[#00685F] transition-colors">{mappedGoal.title}</p>
-                <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 italic truncate mt-0.5 select-none">Completed on {mappedGoal.completedDate}</p>
+                <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 italic truncate mt-0.5 select-none">
+                  {language === 'en' ? `Completed on ${mappedGoal.completedDate}` : `Tercapai pada ${mappedGoal.completedDate}`}
+                </p>
               </div>
             </div>
             <div className="text-right space-y-1 shrink-0 ml-1">
               <p className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">Rp {mappedGoal.amount.toLocaleString("id-ID")}</p>
               <span className="bg-emerald-50 text-emerald-600 text-[9px] sm:text-[10px] font-black px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg select-none border border-emerald-100 block w-fit ml-auto">
-                {mappedGoal.badge || "VERIFIED"}
+                {mappedGoal.badge}
               </span>
             </div>
           </div>

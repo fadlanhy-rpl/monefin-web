@@ -29,9 +29,20 @@ export default function ProfileSection({
             alt="Profile Avatar" 
             className="w-full h-full object-cover rounded-[1.8rem] sm:rounded-[2.2rem] border-4 border-slate-50 shadow-md group-hover:scale-[1.02] transition-transform duration-300"
           />
+          <input
+            type="file"
+            id="avatarUpload"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                onAvatarChange(e.target.files[0]);
+              }
+            }}
+          />
           <button 
             type="button"
-            onClick={onAvatarChange}
+            onClick={() => document.getElementById('avatarUpload').click()}
             title="Ubah Foto Profil"
             className="absolute -bottom-2 -right-2 w-9 h-9 sm:w-11 sm:h-11 bg-[#00685F] text-white rounded-xl sm:rounded-2xl flex items-center justify-center border-4 border-white shadow-lg hover:bg-[#004D46] transition-all hover:scale-110 active:scale-95 cursor-pointer"
           >
@@ -40,7 +51,7 @@ export default function ProfileSection({
         </div>
         <div className="mt-3 text-center">
           <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest block">Format JPG/PNG</span>
-          <span className="text-[10px] text-slate-400 font-semibold">Max ukuran file 5MB</span>
+          <span className="text-[10px] text-slate-400 font-semibold">Max ukuran file 2MB</span>
         </div>
       </div>
 
@@ -107,16 +118,18 @@ export default function ProfileSection({
           <div className="space-y-1.5">
             <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
               <Briefcase className="w-3.5 h-3.5 text-[#00685F]" />
-              <span>Pekerjaan (Occupation)</span>
+              <span>Profesi (Occupation)</span>
             </label>
             <input 
               type="text" 
               value={occupation}
               onChange={(e) => setOccupation(e.target.value)}
-              placeholder="Pekerjaan Anda"
+              placeholder="Profesi atau Pekerjaan"
               className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-semibold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none text-slate-800 transition-all"
             />
           </div>
+
+
         </div>
 
         {/* Short Bio */}

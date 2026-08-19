@@ -1,4 +1,5 @@
 import { ArrowRight, Lightbulb } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function BudgetsOverview({
   isVisible,
@@ -9,24 +10,26 @@ export default function BudgetsOverview({
   circumference,
   strokeDashoffset
 }) {
+  const { t, language } = useLanguage();
+
   return (
     <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 pb-10 transition-all duration-700 delay-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
       {/* Spending Overview Card */}
       <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-6 sm:gap-8 items-center hover:shadow-lg transition-all duration-300 group overflow-hidden">
         <div className="flex-1 space-y-4 w-full">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900">Spending Overview</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900">{t("dashboard.spending_analytics") || "Spending Overview"}</h3>
           <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-            You've spent {overallPercentage}% of your total monthly budget across all categories. You have Rp {remainingBudget.toLocaleString('id-ID')} remaining.
+            {t("budgets.overview_insight_p1") || "You've spent"} {overallPercentage}{t("budgets.overview_insight_p2") || "% of your total monthly budget across all categories. You have"} {t("budgets.overview_insight_p3") || ""} {remainingBudget.toLocaleString('id-ID')} {language === 'en' ? "remaining." : ""}
           </p>
           
           {/* Side-by-Side 2-Column Grid on all screen sizes with divide line */}
           <div className="grid grid-cols-2 divide-x divide-slate-100 pt-2 w-full select-none">
             <div className="pr-3 sm:pr-4">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Budget</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("budgets.total_budget") || "Total Budget"}</p>
               <p className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 truncate">Rp {totalLimit.toLocaleString('id-ID')}</p>
             </div>
             <div className="pl-3 sm:pl-4">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Spent</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("budgets.total_spent") || "Total Spent"}</p>
               <p className="text-sm sm:text-lg font-black text-brand-600 mt-0.5 truncate">Rp {totalSpent.toLocaleString('id-ID')}</p>
             </div>
           </div>
@@ -51,7 +54,7 @@ export default function BudgetsOverview({
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-2xl sm:text-3xl font-black text-slate-900">{overallPercentage}%</span>
-            <span className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider">Spent</span>
+            <span className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider">{t("dashboard.expense") || "Spent"}</span>
           </div>
         </div>
       </div>
@@ -59,12 +62,14 @@ export default function BudgetsOverview({
       {/* Smart Saving Tip Card */}
       <div className="bg-brand-50/40 p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-brand-100/30 flex flex-col sm:flex-row gap-6 relative overflow-hidden hover:shadow-lg transition-all duration-300 group">
         <div className="space-y-4 relative z-10 w-full">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900">Smart Saving Tip</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900">{language === 'en' ? "Smart Saving Tip" : "Tips Hemat Cerdas"}</h3>
           <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
-            Based on your current dining trends, switching to home cooking on weekends could save you Rp 450,000 next month.
+            {language === 'en' 
+              ? "Based on your current dining trends, switching to home cooking on weekends could save you Rp 450,000 next month." 
+              : "Berdasarkan tren pengeluaran makan di luar, beralih ke masak sendiri di akhir pekan dapat menghemat Rp 450.000 bulan depan."}
           </p>
           <button className="flex items-center gap-2 text-brand-600 font-bold text-xs sm:text-sm group cursor-pointer hover:underline">
-            Enable Auto-Savings <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            {language === 'en' ? "Enable Auto-Savings" : "Aktifkan Tabungan Otomatis"} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
         <div className="absolute -right-8 -bottom-8 opacity-20 text-[#00685F] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-12 pointer-events-none">

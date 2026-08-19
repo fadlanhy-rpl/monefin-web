@@ -9,8 +9,10 @@ import AccountModal from "../../../components/accounts/AccountModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { getAccounts, createAccount, updateAccount, deleteAccount, reorderAccounts } from "../../../services/account.service";
 import toast from "react-hot-toast";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function AccountsPage() {
+  const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
   // Accounts state-based data store
@@ -42,7 +44,7 @@ export default function AccountsPage() {
       setAccounts(response.data || []);
     } catch (error) {
       console.error("Failed to fetch accounts:", error);
-      toast.error("Gagal mengambil data akun");
+      toast.error(language === 'en' ? "Failed to fetch accounts data" : "Gagal mengambil data akun");
     } finally {
       setIsLoading(false);
     }
@@ -102,11 +104,11 @@ export default function AccountsPage() {
     try {
       setIsDeleting(true);
       await deleteAccount(deletingId);
-      toast.success("Akun berhasil dihapus");
+      toast.success(language === 'en' ? "Account deleted successfully" : "Akun berhasil dihapus");
       fetchAccounts();
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Gagal menghapus akun");
+      toast.error(language === 'en' ? "Failed to delete account" : "Gagal menghapus akun");
     } finally {
       setIsDeleting(false);
       setIsConfirmOpen(false);
@@ -120,7 +122,7 @@ export default function AccountsPage() {
     const balanceVal = parseFloat(formBalance);
 
     if (isNaN(balanceVal) || balanceVal < 0) {
-      toast.error("Saldo harus berupa angka positif!");
+      toast.error(language === 'en' ? "Balance must be a positive number!" : "Saldo harus berupa angka positif!");
       return;
     }
 
@@ -137,16 +139,16 @@ export default function AccountsPage() {
     try {
       if (modalMode === "add") {
         await createAccount(payload);
-        toast.success("Akun berhasil ditambahkan");
+        toast.success(language === 'en' ? "Account added successfully" : "Akun berhasil ditambahkan");
       } else {
         await updateAccount(editingAccount.id, payload);
-        toast.success("Akun berhasil diperbarui");
+        toast.success(language === 'en' ? "Account updated successfully" : "Akun berhasil diperbarui");
       }
       setIsModalOpen(false);
       fetchAccounts();
     } catch (error) {
       console.error("Error saving account:", error);
-      toast.error("Gagal menyimpan akun");
+      toast.error(language === 'en' ? "Failed to save account" : "Gagal menyimpan akun");
     } finally {
       setIsSubmitting(false);
     }
@@ -166,7 +168,7 @@ export default function AccountsPage() {
       await reorderAccounts(payload);
     } catch (error) {
       console.error("Failed to reorder accounts:", error);
-      toast.error("Gagal menyimpan urutan kartu");
+      toast.error(language === 'en' ? "Failed to save card order" : "Gagal menyimpan urutan kartu");
       fetchAccounts(); // Revert back
     }
   };
@@ -233,9 +235,10 @@ export default function AccountsPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Hapus Akun ini?"
-        message="Apakah Anda yakin ingin menghapus akun ini? Semua transaksi terkait akun ini tetap tersimpan tetapi sumber dana tidak dapat dipulihkan."
-        confirmText="Ya, Hapus"
+        title={t("accounts.delete_title") || "Hapus Akun ini?"}
+        message={t("accounts.delete_desc") || "Apakah Anda yakin ingin menghapus akun ini? Semua transaksi terkait akun ini tetap tersimpan tetapi sumber dana tidak dapat dipulihkan."}
+        confirmText={language === 'en' ? "Yes, Delete" : "Ya, Hapus"}
+        cancelText={language === 'en' ? "Cancel" : "Batal"}
         isLoading={isDeleting}
       />
     </DashboardLayout>

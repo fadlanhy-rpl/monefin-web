@@ -11,6 +11,7 @@ import { Utensils, Car, ShoppingBag, Zap, Film, PiggyBank, Info, Hash } from "lu
 import { getBudgets, createBudget, updateBudget, deleteBudget } from "../../../services/budget.service";
 import { getCategories } from "../../../services/category.service";
 import { notifySuccess, notifyError } from "../../../lib/notify";
+import { useLanguage } from "../../../context/LanguageContext";
 
 // Helper to get category icon component
 function getCategoryIcon(iconType) {
@@ -26,6 +27,7 @@ function getCategoryIcon(iconType) {
 }
 
 export default function BudgetsPage() {
+  const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [viewMode, setViewMode] = useState("card"); // "card" | "list"
   
@@ -63,7 +65,7 @@ export default function BudgetsPage() {
         id: b.id,
         category_id: b.category_id,
         category: b.category.name,
-        description: b.category.description || "Anggaran",
+        description: b.category.description || (t("sidebar.budgets") || "Anggaran"),
         spent: parseFloat(b.spent_amount) || 0,
         limit: parseFloat(b.limit_amount) || 0,
         iconType: b.category.icon
@@ -73,7 +75,7 @@ export default function BudgetsPage() {
       setCategories(categoriesRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
-      notifyError("Gagal memuat data anggaran");
+      notifyError(language === 'en' ? "Failed to load budget data" : "Gagal memuat data anggaran");
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +138,7 @@ export default function BudgetsPage() {
     setCurrentPage(1);
   };
 
-  const activeMonthStr = currentDate.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+  const activeMonthStr = currentDate.toLocaleString(language === 'en' ? 'en-US' : 'id-ID', { month: 'long', year: 'numeric' });
 
   // Open Modal triggers
   const openAddModal = () => {
@@ -167,12 +169,12 @@ export default function BudgetsPage() {
     try {
       setIsDeleting(true);
       await deleteBudget(deletingBudgetId);
-      notifySuccess("Anggaran berhasil dihapus");
+      notifySuccess(language === 'en' ? "Budget deleted successfully" : "Anggaran berhasil dihapus");
       setIsDeleteModalOpen(false);
       setDeletingBudgetId(null);
       fetchData();
     } catch (error) {
-      notifyError("Gagal menghapus anggaran");
+      notifyError(language === 'en' ? "Failed to delete budget" : "Gagal menghapus anggaran");
     } finally {
       setIsDeleting(false);
     }
@@ -183,7 +185,7 @@ export default function BudgetsPage() {
     const limitVal = parseFloat(formLimit);
 
     if (isNaN(limitVal) || limitVal <= 0 || !formCategoryId) {
-      notifyError("Data tidak valid!");
+      notifyError(language === 'en' ? "Invalid data!" : "Data tidak valid!");
       return;
     }
 
@@ -195,17 +197,17 @@ export default function BudgetsPage() {
           year: currentDate.getFullYear(),
           limit_amount: limitVal
         });
-        notifySuccess("Anggaran baru berhasil ditambahkan");
+        notifySuccess(language === 'en' ? "New budget added successfully" : "Anggaran baru berhasil ditambahkan");
       } else {
         await updateBudget(editingBudget.id, {
           limit_amount: limitVal
         });
-        notifySuccess("Anggaran berhasil diperbarui");
+        notifySuccess(language === 'en' ? "Budget updated successfully" : "Anggaran berhasil diperbarui");
       }
       setIsModalOpen(false);
       fetchData();
     } catch (error) {
-      notifyError(error?.data?.message || error?.message || "Terjadi kesalahan saat menyimpan");
+      notifyError(error?.data?.message || error?.message || (language === 'en' ? "An error occurred while saving" : "Terjadi kesalahan saat menyimpan"));
     }
   };
 
@@ -228,7 +230,7 @@ export default function BudgetsPage() {
         {/* BUDGET CARDS GRID / LIST CONTAINER */}
         {isLoading ? (
           <div className="flex justify-center items-center py-20 text-slate-400 font-medium">
-            Memuat Data Anggaran...
+            {language === 'en' ? "Loading Budget Data..." : "Memuat Data Anggaran..."}
           </div>
         ) : (
           <BudgetsGrid 
@@ -280,9 +282,9 @@ export default function BudgetsPage() {
           setDeletingBudgetId(null);
         }}
         onConfirm={confirmDelete}
-        title="Hapus Anggaran?"
-        message="Apakah Anda yakin ingin menghapus anggaran ini? Batas pengeluaran bulanan untuk kategori ini akan dihapus."
-        confirmText="Ya, Hapus"
+        title={t("budgets.delete_title") || "Hapus Anggaran?"}
+        message={t("budgets.delete_desc") || "Apakah Anda yakin ingin menghapus anggaran ini? Batas pengeluaran bulanan untuk kategori ini akan dihapus."}
+        confirmText={t("budgets.delete_confirm") || "Ya, Hapus"}
         isLoading={isDeleting}
       />
     </DashboardLayout>

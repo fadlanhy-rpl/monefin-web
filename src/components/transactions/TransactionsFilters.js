@@ -1,4 +1,5 @@
 import { ChevronDown, Check, Search, Download } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function TransactionsFilters({
   categoryIdFilter,
@@ -20,13 +21,14 @@ export default function TransactionsFilters({
   categories = [],
   accounts = []
 }) {
+  const { t } = useLanguage();
 
   const selectedCategory = categories.find(c => String(c.id) === String(categoryIdFilter));
   const selectedAccount = accounts.find(a => String(a.id) === String(accountIdFilter));
 
   return (
     <div className={`bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 transition-all duration-700 delay-400 ease-out transform relative z-20 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Filters</span>
+      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">{t("transactions.filters") || "Filters"}</span>
       
       <div 
         onScroll={() => {
@@ -47,7 +49,7 @@ export default function TransactionsFilters({
             }}
             className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[95px] sm:min-w-[130px]"
           >
-            <span className="truncate max-w-[100px]">Cat: {categoryIdFilter === "All" ? "All" : selectedCategory?.name}</span>
+            <span className="truncate max-w-[100px]">Cat: {categoryIdFilter === "All" ? (t("transactions.cat_all") || "All") : selectedCategory?.name}</span>
             <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isCategoryOpen ? "rotate-180 text-[#00685F]" : ""}`} />
           </button>
           
@@ -63,7 +65,7 @@ export default function TransactionsFilters({
                     }}
                     className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${categoryIdFilter === "All" ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
-                    <span>All Categories</span>
+                    <span>{t("transactions.all_categories") || "All Categories"}</span>
                     {categoryIdFilter === "All" && <Check className="w-3.5 h-3.5 text-brand-600" />}
                 </button>
                 {categories.map((cat) => (
@@ -96,7 +98,7 @@ export default function TransactionsFilters({
             }}
             className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[105px] sm:min-w-[140px]"
           >
-            <span>Date: {dateFilter}</span>
+            <span>Date: {t(`transactions.${dateFilter}`) || dateFilter}</span>
             <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isDateOpen ? "rotate-180 text-[#00685F]" : ""}`} />
           </button>
           
@@ -104,7 +106,7 @@ export default function TransactionsFilters({
             <>
               <div className="fixed inset-0 z-20" onClick={() => setIsDateOpen(false)} />
               <div className="dropdown-pop fixed mt-1.5 right-2 sm:right-auto bg-white border border-slate-100 rounded-2xl shadow-xl z-30 py-1.5 min-w-[170px] max-w-[calc(100vw-24px)] overflow-hidden">
-                {['All Time', 'Last 7 Days', 'Last 30 Days', 'This Month'].map((dateOpt) => (
+                {['all_time', 'last_7_days', 'last_30_days', 'this_month'].map((dateOpt) => (
                   <button
                     key={dateOpt}
                     type="button"
@@ -114,7 +116,7 @@ export default function TransactionsFilters({
                     }}
                     className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${dateFilter === dateOpt ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
-                    <span>{dateOpt}</span>
+                    <span>{t(`transactions.${dateOpt}`) || dateOpt}</span>
                     {dateFilter === dateOpt && <Check className="w-3.5 h-3.5 text-brand-600" />}
                   </button>
                 ))}
@@ -134,7 +136,7 @@ export default function TransactionsFilters({
             }}
             className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[115px] sm:min-w-[160px]"
           >
-            <span className="truncate max-w-[100px]">Acc: {accountIdFilter === 'All' ? 'All' : selectedAccount?.name}</span>
+            <span className="truncate max-w-[100px]">Acc: {accountIdFilter === 'All' ? (t("transactions.acc_all") || 'All') : selectedAccount?.name}</span>
             <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isAccountOpen ? "rotate-180 text-[#00685F]" : ""}`} />
           </button>
           
@@ -150,7 +152,7 @@ export default function TransactionsFilters({
                     }}
                     className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${accountIdFilter === "All" ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
-                    <span>All Accounts</span>
+                    <span>{t("transactions.all_accounts") || "All Accounts"}</span>
                     {accountIdFilter === "All" && <Check className="w-3.5 h-3.5 text-brand-600" />}
                 </button>
                 {accounts.map((acc) => (
@@ -181,7 +183,7 @@ export default function TransactionsFilters({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-slate-50 border border-slate-100 rounded-xl py-2 pl-9 pr-4 text-xs w-full focus:ring-1 focus:ring-[#00685F] focus:bg-white outline-none text-slate-600 transition-all" 
-            placeholder="Search transactions..."
+            placeholder={t("transactions.search_placeholder") || "Search transactions..."}
           />
         </div>
         <button 

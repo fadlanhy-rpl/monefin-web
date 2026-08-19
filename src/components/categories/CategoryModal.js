@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import { X, Check, ChevronDown } from "lucide-react";
 import { 
   Utensils, Car, ShoppingBag, Film, PlusSquare, Home, GraduationCap, 
@@ -58,7 +59,29 @@ export default function CategoryModal({
   formColor,
   setFormColor
 }) {
+  const { t, language } = useLanguage();
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+
+  const getTranslatedIconLabel = (name, defaultLabel) => {
+    if (language !== 'en') return defaultLabel;
+    const map = {
+      utensils: "Food", car: "Transport", "shopping-bag": "Shopping", film: "Entertainment",
+      medical: "Health", home: "Home", "graduation-cap": "Education", briefcase: "Work",
+      dollar: "Financial", "trending-up": "Investment", banknote: "Cash", wallet: "Wallet",
+      gift: "Gift", coins: "Coins", "file-text": "Bills", "gamepad-2": "Gaming",
+      "heart-pulse": "Medical", "more-horizontal": "Other"
+    };
+    return map[name] || defaultLabel;
+  };
+
+  const getTranslatedColorLabel = (name, defaultLabel) => {
+    if (language !== 'en') return defaultLabel;
+    const map = {
+      orange: "Orange", blue: "Blue", purple: "Purple", pink: "Pink",
+      emerald: "Emerald", teal: "Teal", amber: "Yellow", primary: "Default MoneFin"
+    };
+    return map[name] || defaultLabel;
+  };
 
   if (!isOpen) return null;
 
@@ -76,7 +99,7 @@ export default function CategoryModal({
         {/* Header */}
         <div className="px-8 pt-8 pb-4 flex justify-between items-center select-none shrink-0">
           <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-            {modalMode === "add" ? "Tambah Kategori Baru" : "Ubah Kategori"}
+            {modalMode === "add" ? (t("categories.add_title") || "Tambah Kategori Baru") : (t("categories.edit_title") || "Ubah Kategori")}
           </h3>
           <button 
             onClick={onClose}
@@ -90,12 +113,12 @@ export default function CategoryModal({
         <div className="px-8 py-4 overflow-y-auto no-scrollbar space-y-6 flex-1">
           {/* Category Name */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Nama Kategori</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">{t("categories.name_label") || "Nama Kategori"}</label>
             <input 
               type="text"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              placeholder="e.g. Makanan & Minuman, Transportasi"
+              placeholder={t("categories.name_placeholder") || "e.g. Makanan & Minuman, Transportasi"}
               className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-semibold focus:border-[#00685F] focus:bg-white outline-none transition"
               required
             />
@@ -103,11 +126,11 @@ export default function CategoryModal({
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Deskripsi Singkat</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">{t("categories.desc_label") || "Deskripsi Singkat"}</label>
             <textarea 
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
-              placeholder="e.g. Restoran, kafe, dan bahan makanan bulanan."
+              placeholder={t("categories.desc_placeholder") || "e.g. Restoran, kafe, dan bahan makanan bulanan."}
               rows={2}
               className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-semibold focus:border-[#00685F] focus:bg-white outline-none transition resize-none"
             />
@@ -117,13 +140,13 @@ export default function CategoryModal({
           <div className="grid grid-cols-2 gap-4">
             {/* Category Type */}
             <div className="space-y-2 relative">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Jenis Aliran</label>
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">{t("categories.type_label") || "Jenis Aliran"}</label>
               <div 
                 onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
                 className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-semibold hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
               >
                 <span className={formType ? "text-slate-900" : "text-slate-400"}>
-                  {formType === "expense" ? "Pengeluaran" : formType === "income" ? "Pemasukan" : "Pilih Aliran"}
+                  {formType === "expense" ? (t("categories.expense") || "Pengeluaran") : formType === "income" ? (t("categories.income") || "Pemasukan") : "Pilih Aliran"}
                 </span>
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`} />
               </div>
@@ -136,7 +159,7 @@ export default function CategoryModal({
                       onClick={() => { setFormType("expense"); setIsTypeDropdownOpen(false); }}
                       className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors group"
                     >
-                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">Pengeluaran</span>
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">{t("categories.expense") || "Pengeluaran"}</span>
                       {formType === "expense" && <Check className="w-4 h-4 text-[#00685F]" />}
                     </div>
                     <div className="border-t border-slate-50"></div>
@@ -144,7 +167,7 @@ export default function CategoryModal({
                       onClick={() => { setFormType("income"); setIsTypeDropdownOpen(false); }}
                       className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors group"
                     >
-                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">Pemasukan</span>
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">{t("categories.income") || "Pemasukan"}</span>
                       {formType === "income" && <Check className="w-4 h-4 text-[#00685F]" />}
                     </div>
                   </div>
@@ -154,7 +177,7 @@ export default function CategoryModal({
 
             {/* Transactions count */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Jumlah Transaksi</label>
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">{t("categories.transaction_count") || "Jumlah Transaksi"}</label>
               <input 
                 type="number"
                 value={formTransactions}
@@ -168,7 +191,7 @@ export default function CategoryModal({
           {/* Budget Realization slider */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Realisasi Anggaran (%)</label>
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{t("categories.budget_realization") || "Realisasi Anggaran"} (%)</label>
               <span className="text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">{formRealization}%</span>
             </div>
             <input 
@@ -183,7 +206,7 @@ export default function CategoryModal({
 
           {/* Icon Selection */}
           <div className="space-y-2.5">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Pilih Ikon Kategori</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">{t("categories.icon_label") || "Pilih Ikon"}</label>
             <div className="grid grid-cols-5 gap-3">
               {icons.map((item) => {
                 const IconComponent = item.icon;
@@ -193,7 +216,7 @@ export default function CategoryModal({
                     key={item.name}
                     type="button"
                     onClick={() => setFormIcon(item.name)}
-                    title={item.label}
+                    title={getTranslatedIconLabel(item.name, item.label)}
                     className={`w-full aspect-square rounded-2xl flex items-center justify-center border-2 transition-all cursor-pointer ${
                       isSelected 
                         ? "border-[#00685F] bg-[#E6F0EF] text-[#00685F] scale-105" 
@@ -209,7 +232,7 @@ export default function CategoryModal({
 
           {/* Color Selection */}
           <div className="space-y-2.5">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Pilih Warna Aksen</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">{t("categories.color_label") || "Pilih Warna Aksen"}</label>
             <div className="grid grid-cols-4 gap-3">
               {colors.map((item) => {
                 const isSelected = formColor === item.name;
@@ -225,7 +248,7 @@ export default function CategoryModal({
                     } ${item.bg}`}
                   >
                     {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{getTranslatedColorLabel(item.name, item.label)}</span>
                   </button>
                 );
               })}
@@ -240,13 +263,13 @@ export default function CategoryModal({
             onClick={onClose}
             className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-2xl font-bold transition text-sm cursor-pointer select-none"
           >
-            Batal
+            {language === 'en' ? "Cancel" : "Batal"}
           </button>
           <button 
             onClick={onSubmit}
             className="flex-1 bg-[#00685F] hover:bg-[#004D46] text-white py-3.5 rounded-2xl font-bold transition hover:shadow-lg active:scale-[0.98] text-sm cursor-pointer select-none"
           >
-            {modalMode === "add" ? "Simpan Kategori" : "Simpan Perubahan"}
+            {language === 'en' ? "Save" : "Simpan"}
           </button>
         </div>
       </div>

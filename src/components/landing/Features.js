@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export const Features = () => {
+  const { t } = useLanguage();
   const [activeFeatureTab, setActiveFeatureTab] = useState("budgeting");
   const [simulatedIncome, setSimulatedIncome] = useState(7500000);
   const [aiInsightPrompt, setAiInsightPrompt] = useState("analisis");
@@ -23,13 +25,13 @@ export const Features = () => {
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16 space-y-3 sm:space-y-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider shadow-xs">
             <svg className="w-3.5 h-3.5 text-brand-600" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span>Fitur Unggulan MoneFin</span>
+            <span>{t("features.badge")}</span>
           </div>
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-snug">
-            Semua Fitur yang Anda Butuhkan untuk <em className="catalis-heading-italic text-brand-600">Kebebasan Finansial</em>
+            {t("features.title_prefix")} <em className="catalis-heading-italic text-brand-600">{t("features.title_em")}</em>
           </h2>
           <p className="text-slate-600 text-xs sm:text-base max-w-2xl mx-auto">
-            Klik tab di bawah untuk melihat bagaimana masing-masing fitur bekerja secara langsung.
+            {t("features.subtitle")}
           </p>
         </div>
 
@@ -43,7 +45,7 @@ export const Features = () => {
                 : "text-slate-600 hover:text-brand-600 hover:bg-slate-50"
             }`}
           >
-            1. Auto Budgeting 50/30/20
+            {t("features.tab1")}
           </button>
           <button
             onClick={() => setActiveFeatureTab("accounts")}
@@ -53,7 +55,7 @@ export const Features = () => {
                 : "text-slate-600 hover:text-brand-600 hover:bg-slate-50"
             }`}
           >
-            2. Multi-Rekening
+            {t("features.tab2")}
           </button>
           <button
             onClick={() => setActiveFeatureTab("ai")}
@@ -63,7 +65,7 @@ export const Features = () => {
                 : "text-slate-600 hover:text-brand-600 hover:bg-slate-50"
             }`}
           >
-            3. Smart AI Insights
+            {t("features.tab3")}
           </button>
           <button
             onClick={() => setActiveFeatureTab("goals")}
@@ -73,7 +75,7 @@ export const Features = () => {
                 : "text-slate-600 hover:text-brand-600 hover:bg-slate-50"
             }`}
           >
-            4. Target Impian Tracker
+            {t("features.tab4")}
           </button>
         </div>
 
@@ -82,19 +84,19 @@ export const Features = () => {
           <div className="catalis-card bg-white border border-slate-200/90 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 lg:p-12 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-center animate-fadeIn">
             <div className="lg:col-span-6 space-y-4 sm:space-y-6">
               <span className="inline-block text-[10px] sm:text-xs font-black text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
-                Simulasi Pengalokasian
+                {t("features.t1_badge")}
               </span>
               <h3 className="text-xl sm:text-3xl font-black text-slate-900 leading-snug">
-                Alokasi Gaji Otomatis dengan Metode Ideal 50 / 30 / 20
+                {t("features.t1_title")}
               </h3>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Cukup masukkan estimasi gaji bulanan Anda, MoneFin secara otomatis membaginya menjadi tiga pilar utama: Kebutuhan Pokok (50%), Keinginan (30%), dan Tabungan/Investasi (20%).
+                {t("features.t1_desc")}
               </p>
 
               {/* Interactive Slider Input */}
               <div className="space-y-2 pt-1">
                 <div className="flex justify-between items-center text-xs font-bold text-slate-700">
-                  <span>Estimasi Gaji Bulanan:</span>
+                  <span>{t("features.t1_slider_label")}:</span>
                   <span className="text-brand-600 text-sm sm:text-base font-black">{formatRupiah(simulatedIncome)}</span>
                 </div>
                 <input
@@ -116,14 +118,14 @@ export const Features = () => {
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-700 flex items-center gap-1.5 text-[11px] sm:text-xs">
                     <span className="w-2.5 h-2.5 rounded-full bg-brand-600 shrink-0" />
-                    Kebutuhan Pokok (50%)
+                    {t("features.t1_cat1")}
                   </span>
                   <span className="text-slate-900 font-black text-[11px] sm:text-xs">{formatRupiah(simulatedIncome * 0.5)}</span>
                 </div>
                 <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                   <div className="bg-brand-600 h-full rounded-full transition-all duration-300" style={{ width: "50%" }} />
                 </div>
-                <p className="text-[10px] text-slate-500">Makan, tagihan, sewa, listrik, dan biaya rutin</p>
+                <p className="text-[10px] text-slate-500">{t("features.t1_cat1_desc")}</p>
               </div>
 
               {/* Category 2: Wants (30%) */}
@@ -131,14 +133,14 @@ export const Features = () => {
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-700 flex items-center gap-1.5 text-[11px] sm:text-xs">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-                    Keinginan (30%)
+                    {t("features.t1_cat2")}
                   </span>
                   <span className="text-slate-900 font-black text-[11px] sm:text-xs">{formatRupiah(simulatedIncome * 0.3)}</span>
                 </div>
                 <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                   <div className="bg-emerald-500 h-full rounded-full transition-all duration-300" style={{ width: "30%" }} />
                 </div>
-                <p className="text-[10px] text-slate-500">Belanja, liburan, streaming, dan hobi</p>
+                <p className="text-[10px] text-slate-500">{t("features.t1_cat2_desc")}</p>
               </div>
 
               {/* Category 3: Savings (20%) */}
@@ -146,14 +148,14 @@ export const Features = () => {
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-700 flex items-center gap-1.5 text-[11px] sm:text-xs">
                     <span className="w-2.5 h-2.5 rounded-full bg-teal-500 shrink-0" />
-                    Tabungan (20%)
+                    {t("features.t1_cat3")}
                   </span>
                   <span className="text-slate-900 font-black text-[11px] sm:text-xs">{formatRupiah(simulatedIncome * 0.2)}</span>
                 </div>
                 <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                   <div className="bg-teal-500 h-full rounded-full transition-all duration-300" style={{ width: "20%" }} />
                 </div>
-                <p className="text-[10px] text-slate-500">Dana darurat, reksadana, emas, dan impian</p>
+                <p className="text-[10px] text-slate-500">{t("features.t1_cat3_desc")}</p>
               </div>
             </div>
           </div>
@@ -164,13 +166,13 @@ export const Features = () => {
           <div className="catalis-card bg-white border border-slate-200/90 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 lg:p-12 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-center animate-fadeIn">
             <div className="lg:col-span-6 space-y-4 sm:space-y-6">
               <span className="inline-block text-[10px] sm:text-xs font-black text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
-                Pusat Dompet Terpadu
+                {t("features.t2_badge")}
               </span>
               <h3 className="text-xl sm:text-3xl font-black text-slate-900 leading-snug">
-                Pantau Rekening Bank &amp; E-Wallet dalam Satu Tampilan
+                {t("features.t2_title")}
               </h3>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Tidak perlu lagi membuka 5 aplikasi bank berbeda setiap malam. MoneFin merangkum saldo BCA, Mandiri, BRI, GoPay, OVO, ShopeePay hingga uang tunai Anda ke dalam satu ringkasan bersih.
+                {t("features.t2_desc")}
               </p>
             </div>
 
@@ -182,7 +184,7 @@ export const Features = () => {
                   </div>
                   <div>
                     <p className="font-bold text-slate-900">BCA Tabungan Utama</p>
-                    <p className="text-[10px] text-slate-500">Saldo Saat Ini</p>
+                    <p className="text-[10px] text-slate-500">{t("features.t2_balance_label")}</p>
                   </div>
                 </div>
                 <span className="font-black text-slate-900">Rp 28.500.000</span>
@@ -195,7 +197,7 @@ export const Features = () => {
                   </div>
                   <div>
                     <p className="font-bold text-slate-900">GoPay E-Wallet</p>
-                    <p className="text-[10px] text-slate-500">Saldo Saat Ini</p>
+                    <p className="text-[10px] text-slate-500">{t("features.t2_balance_label")}</p>
                   </div>
                 </div>
                 <span className="font-black text-slate-900">Rp 4.250.000</span>
@@ -208,7 +210,7 @@ export const Features = () => {
                   </div>
                   <div>
                     <p className="font-bold text-slate-900">Mandiri Dana Darurat</p>
-                    <p className="text-[10px] text-slate-500">Saldo Saat Ini</p>
+                    <p className="text-[10px] text-slate-500">{t("features.t2_balance_label")}</p>
                   </div>
                 </div>
                 <span className="font-black text-slate-900">Rp 16.000.000</span>
@@ -227,13 +229,13 @@ export const Features = () => {
           <div className="catalis-card bg-white border border-slate-200/90 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 lg:p-12 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-center animate-fadeIn">
             <div className="lg:col-span-6 space-y-4 sm:space-y-6">
               <span className="inline-block text-[10px] sm:text-xs font-black text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
-                Analisis Finansial Cerdas
+                {t("features.t3_badge")}
               </span>
               <h3 className="text-xl sm:text-3xl font-black text-slate-900 leading-snug">
-                AI Advisor yang Membimbing Setiap Keputusan Keuangan
+                {t("features.t3_title")}
               </h3>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                MoneFin menganalisis tren pengeluaran Anda dan memberikan saran proaktif jika terjadi lonjakan boros di kategori makanan, transportasi, atau langganan tak terpakai.
+                {t("features.t3_desc")}
               </p>
               <div className="flex gap-2">
                 <button
@@ -248,7 +250,7 @@ export const Features = () => {
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
-                  Rekomendasi Hemat
+                  {t("features.t3_btn1")}
                 </button>
                 <button
                   onClick={() => {
@@ -262,7 +264,7 @@ export const Features = () => {
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
-                  Strategi Investasi
+                  {t("features.t3_btn2")}
                 </button>
               </div>
             </div>
@@ -280,24 +282,24 @@ export const Features = () => {
                 {isGeneratingAi ? (
                   <div className="py-6 text-center space-y-2">
                     <span className="w-6 h-6 border-2 border-brand-400 border-t-white rounded-full animate-spin inline-block" />
-                    <p className="text-[11px] text-slate-300 font-semibold">Memproses data...</p>
+                    <p className="text-[11px] text-slate-300 font-semibold">{t("features.t3_loading")}</p>
                   </div>
                 ) : aiInsightPrompt === "analisis" ? (
                   <div className="space-y-2.5 leading-relaxed text-slate-300 text-[11px] sm:text-xs">
                     <p className="font-semibold text-emerald-300">
-                      💡 Potensi Penghematan: Rp 450.000
+                      💡 {t("features.t3_a1_title")}
                     </p>
                     <p>
-                      Pengeluaran kategori <strong className="text-white">"Kopi &amp; Dine Out"</strong> meningkat 24%. Dengan membatasi transaksi ke 3x seminggu, Anda dapat mengalokasikan ekstra Rp 450.000 ke Dana Darurat.
+                      {t("features.t3_a1_desc")}
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-2.5 leading-relaxed text-slate-300 text-[11px] sm:text-xs">
                     <p className="font-semibold text-emerald-300">
-                      📈 Proyeksi Growth Dana Darurat
+                      📈 {t("features.t3_a2_title")}
                     </p>
                     <p>
-                      Dengan tabungan <strong className="text-white">Rp 2.500.000/bln</strong>, target dana darurat Rp 45.000.000 tercapai dalam <strong className="text-white">16 bulan</strong>.
+                      {t("features.t3_a2_desc")}
                     </p>
                   </div>
                 )}
@@ -311,42 +313,64 @@ export const Features = () => {
           <div className="catalis-card bg-white border border-slate-200/90 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 lg:p-12 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-center animate-fadeIn">
             <div className="lg:col-span-6 space-y-4 sm:space-y-6">
               <span className="inline-block text-[10px] sm:text-xs font-black text-brand-600 uppercase tracking-widest bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
-                Target Impian Visual
+                {t("features.t4_badge")}
               </span>
               <h3 className="text-xl sm:text-3xl font-black text-slate-900 leading-snug">
-                Capai Target DP Rumah, Liburan, &amp; Gadget Tanpa Stres
+                {t("features.t4_title")}
               </h3>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Tetapkan target keuangan spesifik, MoneFin akan menghitung berapa nominal harian/bulanan yang perlu Anda sisihkan lengkap dengan progress bar visual.
+                {t("features.t4_desc")}
               </p>
             </div>
 
             <div className="lg:col-span-6 space-y-3">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between items-center font-bold">
-                  <span className="text-slate-900 font-extrabold text-xs sm:text-sm">🏠 DP Rumah Impian</span>
-                  <span className="text-brand-600 text-[11px]">65%</span>
+              <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                  <svg className="w-16 h-16 text-brand-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z"/></svg>
                 </div>
-                <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-brand-600 h-full rounded-full transition-all duration-500" style={{ width: "65%" }} />
+                <div className="flex justify-between items-start relative z-10">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm">DP Rumah Impian</h4>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{t("features.t4_target")}: Dec 2026</p>
+                  </div>
+                  <span className="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2 py-0.5 rounded-full">
+                    65%
+                  </span>
                 </div>
-                <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
-                  <span>Rp 65.000.000</span>
-                  <span>Target: Rp 100.000.000</span>
+                
+                <div className="space-y-1.5 relative z-10 pt-1">
+                  <div className="w-full bg-slate-200 h-2 sm:h-2.5 rounded-full overflow-hidden">
+                    <div className="bg-brand-600 h-full rounded-full" style={{ width: "65%" }} />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-bold text-slate-600">
+                    <span>Rp 65.000.000</span>
+                    <span>Rp 100.000.000</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between items-center font-bold">
-                  <span className="text-slate-900 font-extrabold text-xs sm:text-sm">✈️ Liburan Jepang 2027</span>
-                  <span className="text-emerald-600 text-[11px]">85%</span>
+              <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                  <svg className="w-16 h-16 text-rose-600" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
                 </div>
-                <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: "85%" }} />
+                <div className="flex justify-between items-start relative z-10">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Dana Liburan Jepang</h4>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{t("features.t4_target")}: Sep 2026</p>
+                  </div>
+                  <span className="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2 py-0.5 rounded-full">
+                    25%
+                  </span>
                 </div>
-                <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
-                  <span>Rp 21.250.000</span>
-                  <span>Target: Rp 25.000.000</span>
+                
+                <div className="space-y-1.5 relative z-10 pt-1">
+                  <div className="w-full bg-slate-200 h-2 sm:h-2.5 rounded-full overflow-hidden">
+                    <div className="bg-rose-500 h-full rounded-full" style={{ width: "25%" }} />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-bold text-slate-600">
+                    <span>Rp 5.000.000</span>
+                    <span>Rp 20.000.000</span>
+                  </div>
                 </div>
               </div>
             </div>

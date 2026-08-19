@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { Utensils, Wallet, Car, ShoppingBag, Eye } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 function formatRupiah(n) {
   const abs = Math.abs(n).toLocaleString('id-ID');
@@ -10,6 +11,7 @@ function formatRupiah(n) {
 }
 
 export default function RecentTransactions({ transactions = [] }) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const ref = useRef(null);
@@ -25,11 +27,11 @@ export default function RecentTransactions({ transactions = [] }) {
     return () => observer.disconnect();
   }, []);
 
-  const formattedTransactions = transactions.map(t => {
-    const d = new Date(t.transaction_date);
+  const formattedTransactions = transactions.map(txn => {
+    const d = new Date(txn.transaction_date);
     const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-    const tag = t.type;
-    const amt = tag === 'expense' ? -t.amount : t.amount;
+    const tag = txn.type;
+    const amt = tag === 'expense' ? -txn.amount : txn.amount;
     
     let IconComponent = ShoppingBag;
     let iconColor = 'text-orange-600';
@@ -39,20 +41,20 @@ export default function RecentTransactions({ transactions = [] }) {
       IconComponent = Wallet;
       iconColor = 'text-brand-600';
       bgClass = 'bg-brand-50';
-    } else if (t.category?.name?.toLowerCase().includes('food') || t.category?.name?.toLowerCase().includes('makanan')) {
+    } else if (txn.category?.name?.toLowerCase().includes('food') || txn.category?.name?.toLowerCase().includes('makanan')) {
       IconComponent = Utensils;
       iconColor = 'text-emerald-600';
       bgClass = 'bg-emerald-50';
-    } else if (t.category?.name?.toLowerCase().includes('transport')) {
+    } else if (txn.category?.name?.toLowerCase().includes('transport')) {
       IconComponent = Car;
       iconColor = 'text-blue-600';
       bgClass = 'bg-blue-50';
     }
 
     return {
-      id: t.id,
+      id: txn.id,
       date: dateStr,
-      category: t.category?.name || 'Lain-lain',
+      category: txn.category?.name || (t("transactions.unknown") || 'Lain-lain'),
       tag: tag,
       amount: amt,
       icon: <IconComponent className={`w-4 h-4 ${iconColor}`} />,
@@ -60,17 +62,17 @@ export default function RecentTransactions({ transactions = [] }) {
     };
   });
 
-  const filteredTransactions = formattedTransactions.filter(t => {
+  const filteredTransactions = formattedTransactions.filter(txn => {
     if (activeFilter === "all") return true;
-    return t.tag === activeFilter;
+    return txn.tag === activeFilter;
   });
 
   return (
     <div ref={ref} className={`reveal card-hover xl:col-span-2 bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-100/50 ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "340ms" }}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-bold text-slate-900 text-lg">Recent Transactions</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Daftar transaksi mutakhir di seluruh rekening</p>
+          <h2 className="font-bold text-slate-900 text-lg">{t("dashboard.recent_transactions") || "Recent Transactions"}</h2>
+          <p className="text-xs text-slate-400 mt-0.5">{t("dashboard.recent_transactions_desc") || "Daftar transaksi mutakhir di seluruh rekening"}</p>
         </div>
         
         {/* View all button */}
@@ -79,7 +81,7 @@ export default function RecentTransactions({ transactions = [] }) {
           className="ripple-container press-scale text-xs font-bold text-brand-700 bg-brand-50 px-3.5 py-2 rounded-xl hover:bg-brand-100 transition-colors flex items-center gap-1.5 self-start sm:self-auto"
         >
           <Eye className="w-3.5 h-3.5" />
-          Lihat Semua
+          {t("dashboard.view_all") || "Lihat Semua"}
         </Link>
       </div>
 
@@ -87,7 +89,7 @@ export default function RecentTransactions({ transactions = [] }) {
       <div className="flex items-center gap-1.5 mt-5 border-b border-slate-100 pb-3 overflow-x-auto flex-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none">
         {['all', 'income', 'expense'].map((filter) => {
           const isActive = activeFilter === filter;
-          const label = filter === 'all' ? 'Semua' : filter === 'income' ? 'Pemasukan' : 'Pengeluaran';
+          const label = filter === 'all' ? (t("dashboard.all") || 'Semua') : filter === 'income' ? (t("dashboard.income") || 'Pemasukan') : (t("dashboard.expense") || 'Pengeluaran');
           return (
             <button
               key={filter}

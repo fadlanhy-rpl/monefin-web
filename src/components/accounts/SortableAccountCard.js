@@ -13,6 +13,88 @@ import {
   Check, 
   GripHorizontal
 } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
+
+/**
+ * Modern floating options popover for cards
+ */
+function CardOptionsMenu({
+  acc,
+  isOpen,
+  onToggle,
+  onEdit,
+  onDelete,
+  isDarkTheme = false,
+  language
+}) {
+  return (
+    <div className="relative z-30">
+      <button 
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(acc.id);
+        }}
+        className={`p-1.5 sm:p-2 rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center ${
+          isDarkTheme 
+            ? 'text-white/60 hover:text-white hover:bg-white/15 active:bg-white/25' 
+            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200'
+        }`}
+        aria-label="Options"
+      >
+        <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
+      </button>
+      
+      {isOpen && (
+        <>
+          {/* Invisible backdrop to dismiss popover on outside click */}
+          <div 
+            className="fixed inset-0 z-40 cursor-default" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(acc.id);
+            }} 
+          />
+          
+          {/* Popover Card */}
+          <div className="absolute right-0 mt-2 w-36 sm:w-40 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100/90 p-1.5 z-50 text-slate-800 animate-in fade-in zoom-in-95 duration-150 ring-1 ring-black/5">
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(acc);
+                onToggle(acc.id);
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:bg-emerald-50 text-slate-700 hover:text-[#00685F] flex items-center gap-2.5 transition-all duration-150 cursor-pointer group/btn"
+            >
+              <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover/btn:bg-emerald-100/80 flex items-center justify-center text-slate-500 group-hover/btn:text-[#00685F] transition-colors shrink-0">
+                <Pencil className="w-3 h-3" />
+              </div>
+              <span className="truncate">{language === 'en' ? "Edit" : "Ubah"}</span>
+            </button>
+
+            <div className="h-px bg-slate-100 my-1 mx-1" />
+
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(acc.id);
+                onToggle(acc.id);
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:bg-rose-50 text-slate-700 hover:text-rose-600 flex items-center gap-2.5 transition-all duration-150 cursor-pointer group/btn"
+            >
+              <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover/btn:bg-rose-100/80 flex items-center justify-center text-slate-500 group-hover/btn:text-rose-600 transition-colors shrink-0">
+                <Trash2 className="w-3 h-3" />
+              </div>
+              <span className="truncate">{language === 'en' ? "Delete" : "Hapus"}</span>
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function SortableAccountCard({
   acc,
@@ -24,6 +106,7 @@ export default function SortableAccountCard({
   handleCopy,
   copiedId
 }) {
+  const { t, language } = useLanguage();
   const {
     attributes,
     listeners,
@@ -40,6 +123,8 @@ export default function SortableAccountCard({
     zIndex: isDragging ? 999 : "auto",
     position: "relative",
   };
+
+  const isMenuOpen = activeMenuId === acc.id;
 
   const renderCardContent = () => {
     // BCA Card (Primary Premium Green Gradient)
@@ -64,9 +149,10 @@ export default function SortableAccountCard({
                 <div className="flex items-center gap-1 mt-1 select-none">
                   <span className="text-[10px] sm:text-xs text-white/70 font-mono tracking-wider">{acc.account_number}</span>
                   <button 
+                    type="button"
                     onClick={() => handleCopy(acc.id, acc.account_number)}
                     className="p-1 hover:bg-white/15 rounded text-white/50 hover:text-white transition cursor-pointer relative z-30"
-                    title="Salin Nomor Rekening"
+                    title={language === 'en' ? "Copy Account Number" : "Salin Nomor Rekening"}
                   >
                     {copiedId === acc.id ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
                   </button>
@@ -75,31 +161,15 @@ export default function SortableAccountCard({
             </div>
             
             {/* Options Menu */}
-            <div className="relative z-30">
-              <button 
-                onClick={() => toggleMenu(acc.id)}
-                className="text-white/40 hover:text-white transition p-1 hover:bg-white/10 rounded-xl cursor-pointer"
-              >
-                <MoreVertical className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-              </button>
-              
-              {activeMenuId === acc.id && (
-                <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-40 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
-                  <button 
-                    onClick={() => { openEditModal(acc); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-[#00685F]" /> Ubah
-                  </button>
-                  <button 
-                    onClick={() => { handleDelete(acc.id); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus
-                  </button>
-                </div>
-              )}
-            </div>
+            <CardOptionsMenu 
+              acc={acc}
+              isOpen={isMenuOpen}
+              onToggle={toggleMenu}
+              onEdit={openEditModal}
+              onDelete={handleDelete}
+              isDarkTheme={true}
+              language={language}
+            />
           </div>
 
           {/* EMV Card Chip Visual for Realism */}
@@ -109,13 +179,13 @@ export default function SortableAccountCard({
           </div>
 
           <div className="relative z-10 mt-1 sm:mt-2">
-            <p className="text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none">Available Balance</p>
+            <p className="text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none">{language === 'en' ? "Available Balance" : "Saldo Tersedia"}</p>
             <h3 className="text-xl sm:text-4xl font-extrabold mt-1 sm:mt-1.5 tracking-tight">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
           </div>
 
           <div className="relative z-10 flex justify-between items-end border-t border-white/10 pt-2.5 sm:pt-4 mt-1 sm:mt-2">
             <div className="min-w-0">
-              <p className="text-[8px] font-bold text-white/40 uppercase tracking-wide">Account Holder</p>
+              <p className="text-[8px] font-bold text-white/40 uppercase tracking-wide">{language === 'en' ? "Account Holder" : "Pemilik Rekening"}</p>
               <p className="font-extrabold text-[10px] sm:text-sm tracking-wide mt-0.5 truncate">{acc.account_holder || "N/A"}</p>
             </div>
             {/* Card Brand */}
@@ -150,9 +220,10 @@ export default function SortableAccountCard({
                 <div className="flex items-center gap-1 mt-1 select-none">
                   <span className="text-[10px] sm:text-xs text-white/40 font-mono tracking-wider">{acc.account_number}</span>
                   <button 
+                    type="button"
                     onClick={() => handleCopy(acc.id, acc.account_number)}
                     className="p-1 hover:bg-white/15 rounded text-white/30 hover:text-white transition cursor-pointer relative z-30"
-                    title="Salin Nomor Rekening"
+                    title={language === 'en' ? "Copy Account Number" : "Salin Nomor Rekening"}
                   >
                     {copiedId === acc.id ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
                   </button>
@@ -161,31 +232,15 @@ export default function SortableAccountCard({
             </div>
             
             {/* Options Menu */}
-            <div className="relative z-30">
-              <button 
-                onClick={() => toggleMenu(acc.id)}
-                className="text-white/20 hover:text-white transition p-1.5 hover:bg-white/10 rounded-xl cursor-pointer"
-              >
-                <MoreVertical className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-              </button>
-              
-              {activeMenuId === acc.id && (
-                <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-40 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
-                  <button 
-                    onClick={() => { openEditModal(acc); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-[#00685F]" /> Ubah
-                  </button>
-                  <button 
-                    onClick={() => { handleDelete(acc.id); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus
-                  </button>
-                </div>
-              )}
-            </div>
+            <CardOptionsMenu 
+              acc={acc}
+              isOpen={isMenuOpen}
+              onToggle={toggleMenu}
+              onEdit={openEditModal}
+              onDelete={handleDelete}
+              isDarkTheme={true}
+              language={language}
+            />
           </div>
 
           {/* EMV Card Chip Visual for Realism */}
@@ -195,14 +250,14 @@ export default function SortableAccountCard({
           </div>
 
           <div className="mt-1 sm:mt-2">
-            <p className="text-[8px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none">Total Savings</p>
+            <p className="text-[8px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none">{language === 'en' ? "Total Savings" : "Total Tabungan"}</p>
             <h3 className="text-xl sm:text-4xl font-extrabold mt-1 sm:mt-1.5 tracking-tight">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
           </div>
 
           <div className="flex justify-between items-center pt-2 mt-1 sm:mt-2">
             <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl select-none shrink-0">
               <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-              <span className="text-[8px] font-bold text-white/60 uppercase">Status: {acc.status || "Active"}</span>
+              <span className="text-[8px] font-bold text-white/60 uppercase">Status: {language === 'en' ? "Active" : "Aktif"}</span>
             </div>
             {/* MasterCard Card logo */}
             <div className="flex gap-0.5 select-none opacity-40 group-hover:opacity-75 transition-opacity shrink-0">
@@ -237,42 +292,26 @@ export default function SortableAccountCard({
               <div className="min-w-0">
                 <h4 className="font-extrabold text-sm sm:text-xl text-slate-900 tracking-tight leading-tight truncate">{acc.name}</h4>
                 <span className="bg-[#00685F]/10 text-[#00685F] text-[8px] sm:text-[10px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-tighter mt-1 inline-block select-none shrink-0">
-                  {acc.label || "E-Wallet"}
+                  {acc.label || (language === 'en' ? "E-Wallet" : "Dompet Digital")}
                 </span>
               </div>
             </div>
             
             {/* Options Menu */}
-            <div className="relative z-30">
-              <button 
-                onClick={() => toggleMenu(acc.id)}
-                className="text-slate-300 hover:text-slate-500 transition p-1.5 hover:bg-slate-50 rounded-xl cursor-pointer"
-              >
-                <MoreVertical className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-              </button>
-              
-              {activeMenuId === acc.id && (
-                <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-40 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
-                  <button 
-                    onClick={() => { openEditModal(acc); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-[#00685F]" /> Ubah
-                  </button>
-                  <button 
-                    onClick={() => { handleDelete(acc.id); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus
-                  </button>
-                </div>
-              )}
-            </div>
+            <CardOptionsMenu 
+              acc={acc}
+              isOpen={isMenuOpen}
+              onToggle={toggleMenu}
+              onEdit={openEditModal}
+              onDelete={handleDelete}
+              isDarkTheme={false}
+              language={language}
+            />
           </div>
           
           <div className="flex justify-between items-end relative z-10 mt-1">
             <div className="min-w-0">
-              <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Balance</p>
+              <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{language === 'en' ? "Available Balance" : "Saldo Tersedia"}</p>
               <h3 className="text-xl sm:text-3xl font-black text-slate-900 mt-1 truncate">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
             </div>
             <div className="flex -space-x-2 select-none shrink-0">
@@ -315,47 +354,31 @@ export default function SortableAccountCard({
               <div className="min-w-0">
                 <h4 className="font-extrabold text-sm sm:text-xl text-slate-900 tracking-tight leading-tight truncate">{acc.name}</h4>
                 <span className="bg-gray-100 text-gray-500 text-[8px] sm:text-[10px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-tighter mt-1 inline-block select-none shrink-0">
-                  {acc.label || "Cash"}
+                  {acc.label || (language === 'en' ? "Cash" : "Tunai")}
                 </span>
               </div>
             </div>
             
             {/* Options Menu */}
-            <div className="relative z-30">
-              <button 
-                onClick={() => toggleMenu(acc.id)}
-                className="text-slate-300 hover:text-slate-500 transition p-1.5 hover:bg-slate-50 rounded-xl cursor-pointer"
-              >
-                <MoreVertical className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-              </button>
-              
-              {activeMenuId === acc.id && (
-                <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-40 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
-                  <button 
-                    onClick={() => { openEditModal(acc); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-[#00685F]" /> Ubah
-                  </button>
-                  <button 
-                    onClick={() => { handleDelete(acc.id); toggleMenu(acc.id); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus
-                  </button>
-                </div>
-              )}
-            </div>
+            <CardOptionsMenu 
+              acc={acc}
+              isOpen={isMenuOpen}
+              onToggle={toggleMenu}
+              onEdit={openEditModal}
+              onDelete={handleDelete}
+              isDarkTheme={false}
+              language={language}
+            />
           </div>
           
           <div className="mt-1">
-            <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">In Hand</p>
+            <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{language === 'en' ? "Cash in Hand" : "Saldo Tunai"}</p>
             <h3 className="text-xl sm:text-3xl font-black text-slate-900 mt-1 truncate">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
           </div>
           
           <div className="flex justify-between items-center text-[7px] sm:text-[10px] font-bold text-gray-300 border-t border-slate-50 pt-2.5 sm:pt-4 mt-2 select-none relative z-10">
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Terakhir Update</span>
-            <span className="text-slate-400 truncate">{acc.lastUpdated || "Hari ini, 08:45"}</span>
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {language === 'en' ? "Last Updated" : "Terakhir Update"}</span>
+            <span className="text-slate-400 truncate">{acc.lastUpdated || (language === 'en' ? "Today, 08:45" : "Hari ini, 08:45")}</span>
           </div>
 
           {/* Soft background pattern */}

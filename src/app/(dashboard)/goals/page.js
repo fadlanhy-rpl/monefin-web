@@ -12,8 +12,10 @@ import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { CheckCircle2 } from "lucide-react";
 import { getGoals, createGoal, updateGoal, deleteGoal, depositGoal, withdrawGoal } from "../../../services/goal.service";
 import { getAccounts } from "../../../services/account.service";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function GoalsPage() {
+  const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
   // Active Goals State
@@ -36,6 +38,7 @@ export default function GoalsPage() {
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form States - Goal
   const [formTitle, setFormTitle] = useState("");
@@ -99,7 +102,7 @@ export default function GoalsPage() {
     setFormCurrent("");
     setFormDeadlineDate("");
     setFormType("linear");
-    setFormTag("Safety");
+    setFormTag(language === 'en' ? "Safety" : "Keamanan");
     setFormIcon("target");
     setIsGoalModalOpen(true);
   };
@@ -127,14 +130,16 @@ export default function GoalsPage() {
 
   const handleConfirmDelete = async () => {
     if (!deletingId) return;
+    setIsDeleting(true);
     try {
       await deleteGoal(deletingId);
       setGoals(prev => prev.filter(g => g.id !== deletingId));
-      triggerToast("Target tabungan berhasil dihapus.");
+      triggerToast(language === 'en' ? "Savings goal deleted successfully." : "Target tabungan berhasil dihapus.");
     } catch (error) {
       console.error("Failed to delete goal:", error);
-      triggerToast(error?.response?.data?.message || "Gagal menghapus goal.");
+      triggerToast(error?.response?.data?.message || (language === 'en' ? "Failed to delete goal." : "Gagal menghapus goal."));
     } finally {
+      setIsDeleting(false);
       setIsConfirmOpen(false);
       setDeletingId(null);
     }
@@ -147,7 +152,7 @@ export default function GoalsPage() {
     const currentVal = parseFloat(formCurrent) || 0;
 
     if (targetVal <= 0) {
-      alert("Target nominal harus bernilai positif!");
+      alert(language === 'en' ? "Target amount must be a positive number!" : "Target nominal harus bernilai positif!");
       return;
     }
 
@@ -165,16 +170,16 @@ export default function GoalsPage() {
     try {
       if (modalMode === "add") {
         await createGoal(payload);
-        triggerToast("Target tabungan baru berhasil dibuat!");
+        triggerToast(language === 'en' ? "New savings goal created successfully!" : "Target tabungan baru berhasil dibuat!");
       } else {
         await updateGoal(editingGoal.id, payload);
-        triggerToast("Target tabungan berhasil diperbarui!");
+        triggerToast(language === 'en' ? "Savings goal updated successfully!" : "Target tabungan berhasil diperbarui!");
       }
       fetchGoalsData();
       setIsGoalModalOpen(false);
     } catch (error) {
       console.error("Failed to save goal:", error);
-      triggerToast(error?.response?.data?.message || "Gagal menyimpan goal.");
+      triggerToast(error?.response?.data?.message || (language === 'en' ? "Failed to save goal." : "Gagal menyimpan goal."));
     }
   };
 
@@ -195,12 +200,12 @@ export default function GoalsPage() {
     const amt = parseFloat(depositAmount) || 0;
 
     if (amt <= 0) {
-      alert("Nominal transaksi harus bernilai positif!");
+      alert(language === 'en' ? "Transaction amount must be positive!" : "Nominal transaksi harus bernilai positif!");
       return;
     }
 
     if (!selectedAccountId) {
-      alert("Pilih akun keuangan terlebih dahulu!");
+      alert(language === 'en' ? "Please select a funding account first!" : "Pilih akun keuangan terlebih dahulu!");
       return;
     }
 
@@ -214,10 +219,10 @@ export default function GoalsPage() {
       
       if (depositActionType === "deposit") {
         const res = await depositGoal(activeDepositGoal.id, payload);
-        triggerToast(res.message || `Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${activeDepositGoal.name}! 💰`);
+        triggerToast(res.message || (language === 'en' ? `Successfully deposited Rp ${amt.toLocaleString("id-ID")} to ${activeDepositGoal.name}! 💰` : `Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${activeDepositGoal.name}! 💰`));
       } else {
         const res = await withdrawGoal(activeDepositGoal.id, payload);
-        triggerToast(res.message || `Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${activeDepositGoal.name}! 🏧`);
+        triggerToast(res.message || (language === 'en' ? `Successfully withdrew Rp ${amt.toLocaleString("id-ID")} from ${activeDepositGoal.name}! 🏧` : `Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${activeDepositGoal.name}! 🏧`));
       }
       
       fetchGoalsData();
@@ -225,7 +230,7 @@ export default function GoalsPage() {
       setIsDepositModalOpen(false);
     } catch (error) {
       console.error("Failed to process deposit/withdraw:", error);
-      triggerToast(error?.response?.data?.message || "Transaksi gagal.");
+      triggerToast(error?.response?.data?.message || (language === 'en' ? "Transaction failed." : "Transaksi gagal."));
     }
   };
 
@@ -234,11 +239,13 @@ export default function GoalsPage() {
     try {
       const newPinnedState = !g.is_pinned;
       await updateGoal(g.id, { is_pinned: newPinnedState });
-      triggerToast(newPinnedState ? "Target disematkan di Halaman 1!" : "Sematkan target dilepas.");
+      triggerToast(newPinnedState 
+        ? (language === 'en' ? "Goal pinned to Page 1!" : "Target disematkan di Halaman 1!") 
+        : (language === 'en' ? "Goal unpinned." : "Sematkan target dilepas."));
       fetchGoalsData();
     } catch (error) {
       console.error("Failed to toggle pin:", error);
-      triggerToast("Gagal mengubah status semat.");
+      triggerToast(language === 'en' ? "Failed to update pin status." : "Gagal mengubah status semat.");
     }
   };
 
@@ -335,9 +342,11 @@ export default function GoalsPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Hapus Target Tabungan?"
-        message="Apakah Anda yakin ingin menghapus target tabungan ini? Progress akumulasi dana akan dihentikan."
-        confirmText="Ya, Hapus"
+        title={t("goals.delete_title") || (language === 'en' ? "Delete this Goal?" : "Hapus Target Tabungan?")}
+        message={t("goals.delete_desc") || (language === 'en' ? "Are you sure you want to delete this savings goal? Stored historical data will be removed." : "Apakah Anda yakin ingin menghapus target tabungan ini? Progress akumulasi dana akan dihentikan.")}
+        confirmText={language === 'en' ? "Yes, Delete" : "Ya, Hapus"}
+        cancelText={language === 'en' ? "Cancel" : "Batal"}
+        isLoading={isDeleting}
       />
     </DashboardLayout>
   );

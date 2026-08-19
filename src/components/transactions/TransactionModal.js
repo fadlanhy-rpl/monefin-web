@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, ChevronDown, Check } from "lucide-react";
 import DatePicker from "../ui/DatePicker";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function TransactionModal({
   isOpen,
@@ -22,6 +23,7 @@ export default function TransactionModal({
   categories = [],
   accounts = []
 }) {
+  const { t } = useLanguage();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
 
@@ -66,7 +68,7 @@ export default function TransactionModal({
         {/* Modal Header */}
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-extrabold text-slate-900">
-            {modalMode === "add" ? "Add Transaction" : "Edit Transaction"}
+            {modalMode === "add" ? (t("transactions.add_transaction") || "Add Transaction") : (t("transactions.edit_transaction") || "Edit Transaction")}
           </h3>
           <button 
             onClick={onClose}
@@ -87,20 +89,20 @@ export default function TransactionModal({
                 onClick={() => setFormType("income")}
                 className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${formType === "income" ? "bg-[#00685F] text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
               >
-                Pemasukan (Income)
+                {t("dashboard.income") || "Income"}
               </button>
               <button
                 type="button"
                 onClick={() => setFormType("expense")}
                 className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${formType === "expense" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
               >
-                Pengeluaran (Expense)
+                {t("dashboard.expense") || "Expense"}
               </button>
             </div>
 
             {/* Amount */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Jumlah (Amount)</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.amount") || "Amount"}</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
                 <input
@@ -117,7 +119,7 @@ export default function TransactionModal({
 
             {/* Category Dropdown */}
             <div className="space-y-1.5 relative" ref={categoryRef}>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Kategori (Category)</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.category") || "Category"}</label>
               <button
                 type="button"
                 onClick={() => {
@@ -127,7 +129,7 @@ export default function TransactionModal({
                 className={`w-full px-4 py-3.5 bg-slate-50 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer ${isCategoryOpen ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white" : "border-slate-100 hover:border-slate-200"}`}
               >
                 <span className={selectedCategory ? "text-slate-900" : "text-slate-400 font-medium"}>
-                  {selectedCategory ? selectedCategory.name : "Pilih Kategori"}
+                  {selectedCategory ? selectedCategory.name : (t("transactions.select_category") || "Select Category")}
                 </span>
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isCategoryOpen ? "rotate-180 text-[#00685F]" : ""}`} />
               </button>
@@ -153,7 +155,7 @@ export default function TransactionModal({
 
             {/* Account Dropdown */}
             <div className="space-y-1.5 relative" ref={accountRef}>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Rekening (Account)</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.account") || "Account"}</label>
               <button
                 type="button"
                 onClick={() => {
@@ -163,7 +165,7 @@ export default function TransactionModal({
                 className={`w-full px-4 py-3.5 bg-slate-50 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer ${isAccountOpen ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white" : "border-slate-100 hover:border-slate-200"}`}
               >
                 <span className={selectedAccount ? "text-slate-900" : "text-slate-400 font-medium"}>
-                  {selectedAccount ? selectedAccount.name : "Pilih Rekening"}
+                  {selectedAccount ? selectedAccount.name : (t("transactions.select_account") || "Select Account")}
                 </span>
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isAccountOpen ? "rotate-180 text-[#00685F]" : ""}`} />
               </button>
@@ -189,23 +191,23 @@ export default function TransactionModal({
 
             {/* Date */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tanggal (Date)</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.date") || "Date"}</label>
               <DatePicker
                 value={formDate}
                 onChange={setFormDate}
-                placeholder="Pilih Tanggal"
+                placeholder={t("transactions.select_date") || "Select Date"}
               />
             </div>
 
             {/* Note */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Catatan (Note)</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.note") || "Note"}</label>
               <input
                 type="text"
                 value={formNote}
                 onChange={(e) => setFormNote(e.target.value)}
                 className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-semibold"
-                placeholder="Keterangan transaksi..."
+                placeholder={t("transactions.note_placeholder") || "Transaction details..."}
               />
             </div>
           </div>
@@ -217,13 +219,13 @@ export default function TransactionModal({
               onClick={onClose}
               className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
             >
-              Batal
+              {t("transactions.cancel") || "Cancel"}
             </button>
             <button
               type="submit"
               className="flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
             >
-              Simpan
+              {t("transactions.save") || "Save"}
             </button>
           </div>
         </form>

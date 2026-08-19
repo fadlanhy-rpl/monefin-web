@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getGoals } from "../../../../services/goal.service";
 import GoalDetailModal from "../../../../components/goals/GoalDetailModal";
+import { useLanguage } from "../../../../context/LanguageContext";
 
 const iconMap = {
   laptop: Laptop,
@@ -34,6 +35,7 @@ const iconMap = {
 };
 
 export default function AchievedGoalsPage() {
+  const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [achievedGoals, setAchievedGoals] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,7 +84,7 @@ export default function AchievedGoalsPage() {
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#00685F] hover:underline mb-2 group"
               >
                 <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
-                <span>Kembali ke Target Tabungan</span>
+                <span>{t("goals.back_to_goals") || "Kembali ke Target Tabungan"}</span>
               </Link>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-sm shrink-0">
@@ -90,10 +92,10 @@ export default function AchievedGoalsPage() {
                 </div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    Achieved Goals
+                    {t("goals.achieved_title") || "Achieved Goals"}
                   </h1>
                   <p className="text-xs sm:text-sm text-slate-400 font-semibold">
-                    Daftar seluruh impian dan target keuangan yang berhasil Anda raih! 🎉
+                    {t("goals.achieved_subtitle") || "Daftar seluruh impian dan target keuangan yang berhasil Anda raih! 🎉"}
                   </p>
                 </div>
               </div>
@@ -105,7 +107,7 @@ export default function AchievedGoalsPage() {
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-teal-200 uppercase tracking-widest">Total Dana Terkumpul</p>
+                <p className="text-[10px] font-bold text-teal-200 uppercase tracking-widest">{t("goals.total_achieved_funds") || "Total Dana Terkumpul"}</p>
                 <h3 className="text-lg sm:text-xl font-black tracking-tight">Rp {totalSaved.toLocaleString("id-ID")}</h3>
               </div>
             </div>
@@ -119,14 +121,14 @@ export default function AchievedGoalsPage() {
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari target yang telah tercapai..."
+                placeholder={t("goals.search_placeholder") || "Cari target yang telah tercapai..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#00685F]/20 focus:border-[#00685F] transition"
               />
             </div>
             <div className="text-xs font-bold text-slate-400 select-none self-end sm:self-center">
-              Menampilkan {filteredGoals.length} dari {achievedGoals.length} Target Tercapai
+              {t("goals.showing_page") || "Menampilkan"} {filteredGoals.length} {t("goals.of") || "dari"} {achievedGoals.length} {t("goals.achieved_goals") || "Target Tercapai"}
             </div>
           </div>
         </div>
@@ -153,26 +155,26 @@ export default function AchievedGoalsPage() {
                 <Trophy className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900">Belum Ada Target yang Tercapai</h3>
+                <h3 className="text-lg font-extrabold text-slate-900">{language === 'en' ? "No Achieved Goals Yet" : "Belum Ada Target yang Tercapai"}</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-1 leading-relaxed">
                   {searchQuery 
-                    ? `Tidak ditemukan pencapaian dengan kata kunci "${searchQuery}"`
-                    : "Selesaikan setoran target tabungan Anda untuk melihat pencapaian luar biasa Anda di sini!"}
+                    ? (language === 'en' ? `No achievements found matching "${searchQuery}"` : `Tidak ditemukan pencapaian dengan kata kunci "${searchQuery}"`)
+                    : (language === 'en' ? "Complete deposits on your savings goals to view your accomplishments here!" : "Selesaikan setoran target tabungan Anda untuk melihat pencapaian luar biasa Anda di sini!")}
                 </p>
               </div>
               <Link 
                 href="/goals" 
                 className="inline-block bg-[#00685F] text-white px-6 py-3 rounded-2xl text-xs font-bold hover:bg-[#004D46] transition shadow-md"
               >
-                Lihat Target Aktif
+                {language === 'en' ? "View Active Goals" : "Lihat Target Aktif"}
               </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredGoals.map((g) => {
                 const completedDate = g.updated_at 
-                  ? new Date(g.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-                  : "Hari ini";
+                  ? new Date(g.updated_at).toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                  : (language === 'en' ? "Today" : "Hari ini");
                 const targetAmt = parseFloat(g.target_amount) || 0;
 
                 return (
@@ -190,22 +192,22 @@ export default function AchievedGoalsPage() {
                           <div className="flex items-center gap-2">
                             <h3 className="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight group-hover:text-[#00685F] transition-colors">{g.name}</h3>
                           </div>
-                          <p className="text-xs font-semibold text-slate-400 truncate mt-0.5">{g.description || "Target tabungan impian"}</p>
+                          <p className="text-xs font-semibold text-slate-400 truncate mt-0.5">{g.description || (language === 'en' ? "Dream savings goal" : "Target tabungan impian")}</p>
                         </div>
                       </div>
                       <span className="bg-emerald-50 text-emerald-600 text-[10px] font-black px-3 py-1 rounded-xl border border-emerald-100 flex items-center gap-1.5 shrink-0 select-none">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> ACHIEVED
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {language === 'en' ? "ACHIEVED" : "TERCAPAI"}
                       </span>
                     </div>
 
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/60 flex items-center justify-between flex-wrap gap-2">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Nominal Realisasi</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{language === 'en' ? "Total Realized Amount" : "Total Nominal Realisasi"}</p>
                         <h4 className="text-xl font-black text-[#00685F] tracking-tight mt-0.5">Rp {targetAmt.toLocaleString("id-ID")}</h4>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold bg-white px-3 py-1.5 rounded-xl border border-slate-100">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Tercapai: {completedDate}</span>
+                        <span>{language === 'en' ? `Achieved: ${completedDate}` : `Tercapai: ${completedDate}`}</span>
                       </div>
                     </div>
                   </div>

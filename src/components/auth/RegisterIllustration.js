@@ -2,8 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { TrendingUp, Rss, PiggyBank } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function RegisterIllustration() {
+  const { t } = useLanguage();
   const wrapperRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -157,11 +159,11 @@ export default function RegisterIllustration() {
 
       {/* TEKS SLOGAN */}
       <div className="z-10">
-        <h2 className="text-2xl xl:text-4xl font-extrabold text-white leading-tight max-w-md">
-          Master Your Money with Smart Insights
+        <h2 className="text-2xl xl:text-4xl font-extrabold text-white leading-tight max-w-lg">
+          {t("auth.slogan_title")}
         </h2>
-        <p className="text-white/70 mt-2 xl:mt-4 text-xs xl:text-sm max-w-md font-medium">
-          Join over 50,000 users worldwide who trust MoneFin for their wealth management and financial clarity.
+        <p className="text-white/70 mt-2 xl:mt-4 text-xs xl:text-sm max-w-lg font-medium">
+          {t("auth.slogan_desc")}
         </p>
       </div>
     </div>

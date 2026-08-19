@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function LoginForm() {
   const router = useRouter();
   const { login, loading } = useAuth();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,23 +48,23 @@ export default function LoginForm() {
           className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-[#00685F] transition-colors group mb-2"
         >
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>Kembali ke Beranda</span>
+          <span>{t("auth.back_home")}</span>
         </Link>
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome Back</h1>
-          <p className="text-gray-400 mt-2 text-sm">Manage your finances effortlessly</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{t("auth.login_title")}</h1>
+          <p className="text-gray-400 mt-2 text-sm">{t("auth.login_subtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Email Address</label>
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t("auth.email")}</label>
             <div className="relative mt-1.5 group">
               <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-300 group-focus-within:text-[#00685F] transition-colors">
                 <Mail className="w-5 h-5" />
               </span>
               <input 
                 type="email" 
-                placeholder="name@company.com" 
+                placeholder={t("auth.email_placeholder")} 
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -72,7 +74,7 @@ export default function LoginForm() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Password</label>
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t("auth.password")}</label>
             <div className="relative mt-1.5 group">
               <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-300 group-focus-within:text-[#00685F] transition-colors">
                 <Lock className="w-5 h-5" />
@@ -103,9 +105,9 @@ export default function LoginForm() {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded border-gray-200 text-[#00685F] focus:ring-[#00685F]"
               />
-              <span className="text-xs font-semibold text-gray-500">Remember me</span>
+              <span className="text-xs font-semibold text-gray-500">{t("auth.remember_me")}</span>
             </label>
-            <Link href="/forgot-password" className="text-xs font-bold text-[#00685F] hover:underline">Forgot Password?</Link>
+            <Link href="/forgot-password" className="text-xs font-bold text-[#00685F] hover:underline">{t("auth.forgot_password")}</Link>
           </div>
 
           <button 
@@ -116,17 +118,17 @@ export default function LoginForm() {
             {isSubmitting ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                Signing in...
+                {t("auth.signing_in")}
               </>
             ) : (
-              <>Sign In to MoneFin <ArrowRight className="w-4 h-4" /></>
+              <>{t("auth.login_btn")} <ArrowRight className="w-4 h-4" /></>
             )}
           </button>
         </form>
 
         <div className="relative flex items-center py-2">
           <div className="flex-grow border-t border-gray-100"></div>
-          <span className="flex-shrink mx-4 text-gray-300 text-[10px] font-black uppercase tracking-widest">or continue with</span>
+          <span className="flex-shrink mx-4 text-gray-300 text-[10px] font-black uppercase tracking-widest">{t("auth.or_continue")}</span>
           <div className="flex-grow border-t border-gray-100"></div>
         </div>
 
@@ -139,18 +141,18 @@ export default function LoginForm() {
         </a>
 
         <p className="text-center text-sm font-medium text-gray-400">
-          Don&apos;t have an account? 
-          <Link href="/register" className="text-[#00685F] font-bold hover:underline ml-1">Sign Up</Link>
+          {t("auth.no_account")} 
+          <Link href="/register" className="text-[#00685F] font-bold hover:underline ml-1">{t("auth.sign_up")}</Link>
         </p>
       </div>
 
       {/* Footer Links */}
       <div className="w-full flex flex-col sm:flex-row justify-center lg:justify-between items-center gap-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest pt-6 border-t border-gray-50 lg:border-t-0">
-        <p>© 2024 MoneFin</p>
+        <p>{t("auth.copyright")}</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-[#00685F] transition-colors">Privacy</a>
-          <a href="#" className="hover:text-[#00685F] transition-colors">Terms</a>
-          <a href="#" className="hover:text-[#00685F] transition-colors">Security</a>
+          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.privacy")}</a>
+          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.terms")}</a>
+          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.security")}</a>
         </div>
       </div>
     </div>

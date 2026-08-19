@@ -10,8 +10,10 @@ import CategoryModal from "../../../components/categories/CategoryModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { getCategories, createCategory, updateCategory, deleteCategory } from "../../../services/category.service";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function CategoriesPage() {
+  const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,6 +55,7 @@ export default function CategoriesPage() {
   // Confirm Modal State
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form States
   const [formName, setFormName] = useState("");
@@ -158,6 +161,7 @@ export default function CategoriesPage() {
 
   const handleConfirmDelete = async () => {
     if (!deletingCategory) return;
+    setIsDeleting(true);
     try {
       await deleteCategory(deletingCategory.id);
       
@@ -171,11 +175,12 @@ export default function CategoriesPage() {
         setCurrentPage(newTotalPages);
       }
       
-      showToast(`Kategori "${deletingCategory.name}" berhasil dihapus.`);
+      showToast(language === 'en' ? `Category "${deletingCategory.name}" deleted successfully.` : `Kategori "${deletingCategory.name}" berhasil dihapus.`);
     } catch (error) {
       console.error("Failed to delete category:", error);
-      showToast(error?.response?.data?.message || "Gagal menghapus kategori.");
+      showToast(error?.response?.data?.message || (language === 'en' ? "Failed to delete category." : "Gagal menghapus kategori."));
     } finally {
+      setIsDeleting(false);
       setIsConfirmOpen(false);
       setDeletingCategory(null);
     }
@@ -362,9 +367,13 @@ export default function CategoriesPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Hapus Kategori?"
-        message={`Apakah Anda yakin ingin menghapus kategori "${deletingCategory?.name || ''}"? Seluruh statistik terkait kategori ini akan disesuaikan.`}
-        confirmText="Ya, Hapus"
+        title={t("categories.delete_title") || (language === 'en' ? "Delete Category?" : "Hapus Kategori?")}
+        message={language === 'en' 
+          ? `Are you sure you want to delete category "${deletingCategory?.name || ''}"? Associated analytics will be adjusted.`
+          : `Apakah Anda yakin ingin menghapus kategori "${deletingCategory?.name || ''}"? Seluruh statistik terkait kategori ini akan disesuaikan.`}
+        confirmText={language === 'en' ? "Yes, Delete" : "Ya, Hapus"}
+        cancelText={language === 'en' ? "Cancel" : "Batal"}
+        isLoading={isDeleting}
       />
 
     </DashboardLayout>

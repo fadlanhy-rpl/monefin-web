@@ -1,16 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const MONTH_NAMES_ID = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
+const MONTH_NAMES_EN = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 const DAY_NAMES_ID = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const DAY_NAMES_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function DatePicker({ value, onChange, placeholder = "Pilih Tanggal" }) {
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+
+  const MONTH_NAMES = language === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_ID;
+  const DAY_NAMES = language === 'en' ? DAY_NAMES_EN : DAY_NAMES_ID;
 
   // Parse initial date from YYYY-MM-DD
   const parseDateStr = (dateStr) => {
@@ -119,13 +130,13 @@ export default function DatePicker({ value, onChange, placeholder = "Pilih Tangg
     if (!dateStr) return placeholder;
     const d = parseDateStr(dateStr);
     const day = d.getDate();
-    const mName = MONTH_NAMES_ID[d.getMonth()];
+    const mName = MONTH_NAMES[d.getMonth()];
     const y = d.getFullYear();
     
     // Check if today
     const now = new Date();
     if (d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-      return `Hari ini, ${day} ${mName} ${y}`;
+      return `${language === 'en' ? 'Today' : 'Hari ini'}, ${day} ${mName} ${y}`;
     }
     return `${day} ${mName} ${y}`;
   };
@@ -167,7 +178,7 @@ export default function DatePicker({ value, onChange, placeholder = "Pilih Tangg
 
             <div className="text-center">
               <h4 className="text-sm font-extrabold text-slate-900 tracking-tight">
-                {MONTH_NAMES_ID[month]} {year}
+                {MONTH_NAMES[month]} {year}
               </h4>
             </div>
 
@@ -182,7 +193,7 @@ export default function DatePicker({ value, onChange, placeholder = "Pilih Tangg
 
           {/* Days of Week */}
           <div className="grid grid-cols-7 gap-1 text-center mb-1">
-            {DAY_NAMES_ID.map((d, idx) => (
+            {DAY_NAMES.map((d, idx) => (
               <span
                 key={d}
                 className={`text-[10px] font-black uppercase tracking-wider ${
@@ -245,14 +256,14 @@ export default function DatePicker({ value, onChange, placeholder = "Pilih Tangg
               onClick={handleToday}
               className="text-xs font-extrabold text-[#00685F] hover:underline flex items-center gap-1 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" /> Hari Ini
+              <Sparkles className="w-3.5 h-3.5" /> {language === 'en' ? 'Today' : 'Hari Ini'}
             </button>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
               className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
             >
-              Tutup
+              {language === 'en' ? 'Close' : 'Tutup'}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { X, ArrowDownRight, ArrowUpRight, Wallet, Percent, ChevronDown, Check } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const quickAmounts = [50000, 100000, 500000, 1000000];
 const percentOptions = [10, 20, 30, 50];
@@ -17,6 +18,7 @@ export default function DepositModal({
   setActionType,
   handleDepositSubmit
 }) {
+  const { t, language } = useLanguage();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const accountRef = useRef(null);
 
@@ -66,7 +68,7 @@ export default function DepositModal({
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 select-none">
-              {actionType === "deposit" ? "Setor Tabungan" : "Tarik Tabungan"}
+              {actionType === "deposit" ? (t("goals.deposit_title") || "Setor Tabungan") : (t("goals.withdraw_title") || "Tarik Tabungan")}
             </h3>
             <p className="text-xs text-slate-400 font-semibold mt-0.5">{goal.title}</p>
           </div>
@@ -92,7 +94,7 @@ export default function DepositModal({
               }`}
             >
               <ArrowDownRight className="w-4 h-4 text-[#00685F]" />
-              <span>Setor (Deposit)</span>
+              <span>{t("goals.deposit_tab") || (language === 'en' ? "Deposit" : "Setor (Deposit)")}</span>
             </button>
             <button
               type="button"
@@ -104,7 +106,7 @@ export default function DepositModal({
               }`}
             >
               <ArrowUpRight className="w-4 h-4 text-amber-600" />
-              <span>Tarik (Withdraw)</span>
+              <span>{t("goals.withdraw_tab") || (language === 'en' ? "Withdraw" : "Tarik (Withdraw)")}</span>
             </button>
           </div>
         </div>
@@ -114,7 +116,9 @@ export default function DepositModal({
           {/* Account Selector */}
           <div className="space-y-1.5 relative" ref={accountRef}>
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">
-              {actionType === "deposit" ? "Pilih Akun Sumber (Dipotong)" : "Pilih Akun Tujuan (Ditambah)"}
+              {actionType === "deposit" 
+                ? (language === 'en' ? "Source Account (Deducted)" : "Pilih Akun Sumber (Dipotong)")
+                : (language === 'en' ? "Destination Account (Added)" : "Pilih Akun Tujuan (Ditambah)")}
             </label>
             <button
               type="button"
@@ -131,8 +135,8 @@ export default function DepositModal({
                 </div>
                 <span className="truncate">
                   {selectedAccount 
-                    ? `${selectedAccount.name} (Saldo: Rp ${parseFloat(selectedAccount.balance).toLocaleString("id-ID")})`
-                    : "Pilih Akun Keuangan"}
+                    ? `${selectedAccount.name} (${language === 'en' ? 'Balance' : 'Saldo'}: Rp ${parseFloat(selectedAccount.balance).toLocaleString("id-ID")})`
+                    : (language === 'en' ? "Select Account" : "Pilih Akun Keuangan")}
                 </span>
               </div>
               <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isAccountOpen ? "rotate-180 text-[#00685F]" : ""}`} />
@@ -141,7 +145,7 @@ export default function DepositModal({
             {isAccountOpen && (
               <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] max-h-56 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                 {accounts.length === 0 ? (
-                  <div className="px-4 py-3 text-xs font-semibold text-slate-400 text-center">Tidak ada akun keuangan</div>
+                  <div className="px-4 py-3 text-xs font-semibold text-slate-400 text-center">{language === 'en' ? "No accounts found" : "Tidak ada akun keuangan"}</div>
                 ) : (
                   accounts.map((acc) => {
                     const isSelected = String(acc.id) === String(selectedAccountId) || (!selectedAccountId && acc.id === accounts[0]?.id);
@@ -163,7 +167,7 @@ export default function DepositModal({
                           <Wallet className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#00685F]" : "text-slate-400"}`} />
                           <span className="truncate">{acc.name}</span>
                           <span className={`text-[11px] font-medium ${isSelected ? "text-[#00685F]" : "text-slate-400"}`}>
-                            (Saldo: Rp {parseFloat(acc.balance).toLocaleString("id-ID")})
+                            ({language === 'en' ? 'Balance' : 'Saldo'}: Rp {parseFloat(acc.balance).toLocaleString("id-ID")})
                           </span>
                         </div>
                         {isSelected && <Check className="w-4 h-4 text-[#00685F] shrink-0" />}
@@ -176,7 +180,7 @@ export default function DepositModal({
 
             {selectedAccount && (
               <p className="text-[10px] text-slate-500 font-bold px-1 select-none flex justify-between pt-0.5">
-                <span>Saldo Akun Tersedia:</span>
+                <span>{language === 'en' ? "Available Balance:" : "Saldo Akun Tersedia:"}</span>
                 <span className="text-[#00685F] font-black">Rp {parseFloat(selectedAccount.balance).toLocaleString("id-ID")}</span>
               </p>
             )}
@@ -185,7 +189,9 @@ export default function DepositModal({
           {/* Amount Input */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">
-              {actionType === "deposit" ? "Nominal Dana Disetor" : "Nominal Dana Ditarik"}
+              {actionType === "deposit" 
+                ? (language === 'en' ? "Deposit Amount" : "Nominal Dana Disetor") 
+                : (language === 'en' ? "Withdrawal Amount" : "Nominal Dana Ditarik")}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
@@ -202,15 +208,15 @@ export default function DepositModal({
             </div>
             <p className="text-[10px] text-slate-400 font-semibold pt-0.5 select-none flex justify-between">
               <span>Goal: Rp {goal.target.toLocaleString("id-ID")}</span>
-              <span>Tersimpan: Rp {goal.current.toLocaleString("id-ID")}</span>
+              <span>{language === 'en' ? "Saved" : "Tersimpan"}: Rp {goal.current.toLocaleString("id-ID")}</span>
             </p>
           </div>
 
-          {/* Percentage Allocation Shortcuts (From Salary / Account Balance) */}
+          {/* Percentage Allocation Shortcuts */}
           {actionType === "deposit" && selectedAccount && (
             <div className="space-y-1.5 select-none pt-1">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                <span>Alokasi Persentase dari Saldo Akun</span>
+                <span>{language === 'en' ? "Allocation Percentage of Balance" : "Alokasi Persentase dari Saldo Akun"}</span>
                 <Percent className="w-3 h-3 text-[#00685F]" />
               </label>
               <div className="grid grid-cols-4 gap-1.5">
@@ -230,7 +236,7 @@ export default function DepositModal({
 
           {/* Quick Nominal Add Shortcuts */}
           <div className="space-y-1.5 select-none pt-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Pintasan Cepat</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">{t("goals.quick_add") || "Pilihan Cepat"}</label>
             <div className="grid grid-cols-2 gap-2">
               {quickAmounts.map((amt) => (
                 <button
@@ -252,7 +258,7 @@ export default function DepositModal({
               onClick={onClose}
               className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
             >
-              Batal
+              {t("common.cancel") || (language === 'en' ? "Cancel" : "Batal")}
             </button>
             <button
               type="submit"
@@ -260,7 +266,7 @@ export default function DepositModal({
                 actionType === "deposit" ? "bg-[#00685F] hover:bg-[#004D46]" : "bg-amber-600 hover:bg-amber-700"
               }`}
             >
-              {actionType === "deposit" ? "Simpan Setoran" : "Konfirmasi Penarikan"}
+              {actionType === "deposit" ? (t("goals.confirm_deposit") || "Konfirmasi Setor") : (t("goals.confirm_withdraw") || "Konfirmasi Tarik")}
             </button>
           </div>
         </form>
