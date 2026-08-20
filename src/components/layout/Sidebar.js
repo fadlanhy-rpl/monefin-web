@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
+import { LanguageSwitcherPill } from "../ui/LanguageSwitcher";
 
 export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const pathname = usePathname();
@@ -204,6 +205,11 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           </svg>
           {t("sidebar.settings") || "Settings"}
         </Link>
+
+        {/* Language Switcher Pill */}
+        <div className="mt-3">
+          <LanguageSwitcherPill />
+        </div>
       </div>
     </>
   );
