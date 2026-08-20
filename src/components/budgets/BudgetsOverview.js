@@ -1,5 +1,6 @@
 import { ArrowRight, Lightbulb } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function BudgetsOverview({
   isVisible,
@@ -11,6 +12,7 @@ export default function BudgetsOverview({
   strokeDashoffset
 }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
 
   return (
     <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 pb-10 transition-all duration-700 delay-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
@@ -19,18 +21,18 @@ export default function BudgetsOverview({
         <div className="flex-1 space-y-4 w-full">
           <h3 className="text-lg sm:text-xl font-bold text-slate-900">{t("dashboard.spending_analytics") || "Spending Overview"}</h3>
           <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-            {t("budgets.overview_insight_p1") || "You've spent"} {overallPercentage}{t("budgets.overview_insight_p2") || "% of your total monthly budget across all categories. You have"} {t("budgets.overview_insight_p3") || ""} {remainingBudget.toLocaleString('id-ID')} {language === 'en' ? "remaining." : ""}
+            {t("budgets.overview_insight_p1") || "You've spent"} {overallPercentage}{t("budgets.overview_insight_p2") || "% of your total monthly budget across all categories. You have"} {t("budgets.overview_insight_p3") || ""} {formatCurrency(remainingBudget)} {language === 'en' ? "remaining." : ""}
           </p>
           
           {/* Side-by-Side 2-Column Grid on all screen sizes with divide line */}
           <div className="grid grid-cols-2 divide-x divide-slate-100 pt-2 w-full select-none">
             <div className="pr-3 sm:pr-4">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("budgets.total_budget") || "Total Budget"}</p>
-              <p className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 truncate">Rp {totalLimit.toLocaleString('id-ID')}</p>
+              <p className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 truncate">{formatCurrency(totalLimit)}</p>
             </div>
             <div className="pl-3 sm:pl-4">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("budgets.total_spent") || "Total Spent"}</p>
-              <p className="text-sm sm:text-lg font-black text-brand-600 mt-0.5 truncate">Rp {totalSpent.toLocaleString('id-ID')}</p>
+              <p className="text-sm sm:text-lg font-black text-brand-600 mt-0.5 truncate">{formatCurrency(totalSpent)}</p>
             </div>
           </div>
         </div>
