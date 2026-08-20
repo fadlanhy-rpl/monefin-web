@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function BudgetModal({
   isOpen,
@@ -14,6 +15,7 @@ export default function BudgetModal({
   categories = []
 }) {
   const { t, language } = useLanguage();
+  const { currencySymbol } = useCurrency();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -137,7 +139,7 @@ export default function BudgetModal({
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">
-                  Rp
+                  {currencySymbol}
                 </span>
                 <input
                   type="text"

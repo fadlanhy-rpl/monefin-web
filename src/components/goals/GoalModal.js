@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const MONTH_NAMES_ID = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -52,6 +53,7 @@ export default function GoalModal({
   setFormIcon
 }) {
   const { t, language } = useLanguage();
+  const { currencySymbol } = useCurrency();
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 

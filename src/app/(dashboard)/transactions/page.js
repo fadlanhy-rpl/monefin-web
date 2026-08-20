@@ -30,7 +30,7 @@ function formatDateInput(dateStr) {
 function TransactionsPage() {
   const searchParams = useSearchParams();
   const { t } = useLanguage();
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, currencyCode } = useCurrency();
 
   const [categoryIdFilter, setCategoryIdFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
@@ -316,7 +316,7 @@ function TransactionsPage() {
     const categoryStatsRows = [
       "",
       `"STATISTIK PER KATEGORI"`,
-      `"Kategori"${sep}"Jml Transaksi"${sep}"Total Pemasukan (Rp)"${sep}"Total Pengeluaran (Rp)"`
+      `"Kategori"${sep}"Jml Transaksi"${sep}"Total Pemasukan (${currencyCode})"${sep}"Total Pengeluaran (${currencyCode})"`
     ];
     Object.keys(categoryStats).sort().forEach(cat => {
       const stats = categoryStats[cat];

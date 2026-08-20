@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Sparkles, ChevronDown, Check, Landmark, Smartphone, Banknote } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function AccountModal({
   isOpen,
@@ -22,6 +23,7 @@ export default function AccountModal({
   isSubmitting
 }) {
   const { t, language } = useLanguage();
+  const { currencySymbol } = useCurrency();
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
 
@@ -156,7 +158,7 @@ export default function AccountModal({
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("accounts.balance") || "Saldo (Balance)"}</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
+                <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">{currencySymbol}</span>
                 <input
                   type="text"
                   inputMode="numeric"
