@@ -10,6 +10,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function BudgetsGrid({
   viewMode,
@@ -26,6 +27,8 @@ export default function BudgetsGrid({
   handleDelete
 }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const [activeMenuId, setActiveMenuId] = useState(null);
 
   return (
     <div className="space-y-6">
@@ -118,11 +121,11 @@ export default function BudgetsGrid({
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-gray-400">Rp {b.spent.toLocaleString('id-ID')} / Rp {b.limit.toLocaleString('id-ID')}</span>
+                    <span className="text-gray-400">{formatCurrency(b.spent)} / {formatCurrency(b.limit)}</span>
                     <span className={`${textColor} font-black`}>
                       {percent >= 1.0 
-                        ? `${t("budgets.over_by") || "Over by"} Rp ${(b.spent - b.limit).toLocaleString('id-ID')}` 
-                        : `${t("budgets.left") || "left"} Rp ${(b.limit - b.spent).toLocaleString('id-ID')}`
+                        ? `${t("budgets.over_by") || "Over by"} ${formatCurrency(b.spent - b.limit)}` 
+                        : `${t("budgets.left") || "left"} ${formatCurrency(b.limit - b.spent)}`
                       }
                     </span>
                   </div>
@@ -231,11 +234,11 @@ export default function BudgetsGrid({
                 {/* Right: Amounts & Status Badge */}
                 <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                   <div className="text-right">
-                    <p className="text-[10px] sm:text-xs font-bold text-slate-800">Rp {b.spent.toLocaleString('id-ID')}</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-800">{formatCurrency(b.spent)}</p>
                     <p className={`text-[9px] sm:text-[10px] font-bold leading-tight mt-0.5 ${textColor}`}>
                       {percent >= 1.0 
-                        ? `${t("budgets.over_by") || "Over by"} Rp ${(b.spent - b.limit).toLocaleString('id-ID')}` 
-                        : `${t("budgets.left") || "left"} Rp ${(b.limit - b.spent).toLocaleString('id-ID')}`
+                        ? `${t("budgets.over_by") || "Over by"} ${formatCurrency(b.spent - b.limit)}` 
+                        : `${t("budgets.left") || "left"} ${formatCurrency(b.limit - b.spent)}`
                       }
                     </p>
                   </div>

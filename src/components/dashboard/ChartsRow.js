@@ -3,13 +3,10 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 
-function formatRupiah(n) {
-  const abs = Math.abs(n).toLocaleString('id-ID');
-  return (n < 0 ? '- ' : '+ ') + 'Rp ' + abs;
-}
-
+import { useCurrency } from "../../hooks/useCurrency";
 export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categoryData = [] }) {
   const { t } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
   
@@ -38,7 +35,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
     setHoveredBar({ index, type });
     setTooltip({ 
       show: true, 
-      text: `${type === 'this' ? (period === 'weekly' ? t("dashboard.this_week") : t("dashboard.this_month")) : (period === 'weekly' ? t("dashboard.last_week") : t("dashboard.last_month"))}: ${formatRupiah(amount).replace('+ ', '')}`, 
+      text: `${type === 'this' ? (period === 'weekly' ? t("dashboard.this_week") : t("dashboard.this_month")) : (period === 'weekly' ? t("dashboard.last_week") : t("dashboard.last_month"))}: ${formatCurrency(amount)}`, 
       x: x + 14, 
       y: y - 36 
     });
@@ -225,7 +222,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
                   {activeDonutInfo.label}
                 </span>
                 <span className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5 transition-all duration-300 truncate w-full px-1">
-                  {formatRupiah(activeDonutInfo.amount).replace('+ ', '')}
+                  {formatCurrency(activeDonutInfo.amount)}
                 </span>
                 <span className="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full mt-1 transition-all">
                   {activeDonutInfo.pct}%
@@ -250,7 +247,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }}></span>
                       <span className="truncate" title={d.label}>{d.label}</span>
                     </span>
-                    <span className="font-bold text-slate-800 shrink-0">{formatRupiah(d.amount).replace('+ ', '')}</span>
+                    <span className="font-extrabold text-slate-900 tabular-nums">{formatCurrency(d.amount)}</span>
                   </div>
                   {/* Small visual bar indicator */}
                   <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">

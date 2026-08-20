@@ -8,10 +8,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useGlobalSearch } from "../../hooks/useGlobalSearch";
 import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
 
-function formatRupiah(n) {
-  const abs = Math.abs(n).toLocaleString("id-ID");
-  return (n < 0 ? "- " : "") + "Rp " + abs;
-}
+import { useCurrency } from "../../hooks/useCurrency";
 
 function getRelativeTime(dateString) {
   if (!dateString) return "";
@@ -32,6 +29,7 @@ function getRelativeTime(dateString) {
 export default function Header({ setMobileOpen }) {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { formatCurrency } = useCurrency();
 
   const userPhoto = user?.photo
     ? `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}/storage/${user.photo}`
@@ -284,7 +282,7 @@ export default function Header({ setMobileOpen }) {
                         renderItem={(t) => ({
                           href: "/transactions",
                           label: t.description,
-                          meta: `${t.type === "income" ? "+" : "-"}${formatRupiah(t.amount)}`,
+                          meta: `${t.type === "income" ? "+ " : "- "}${formatCurrency(Math.abs(t.amount))}`,
                           metaColor: t.type === "income" ? "text-emerald-600" : "text-red-500",
                           sub: t.category || "—",
                           icon: t.type === "income"
@@ -316,7 +314,7 @@ export default function Header({ setMobileOpen }) {
                         renderItem={(a) => ({
                           href: "/accounts",
                           label: a.name,
-                          meta: formatRupiah(a.balance),
+                          meta: formatCurrency(a.balance),
                           metaColor: "text-slate-700",
                           sub: a.type,
                           icon: <CreditCard className="w-4 h-4 text-indigo-400" />,
@@ -331,9 +329,9 @@ export default function Header({ setMobileOpen }) {
                         renderItem={(g) => ({
                           href: "/goals",
                           label: g.title,
-                          meta: formatRupiah(g.current_amount),
+                          meta: formatCurrency(g.current_amount),
                           metaColor: "text-brand-700",
-                          sub: `Target: ${formatRupiah(g.target_amount)}`,
+                          sub: `Target: ${formatCurrency(g.target_amount)}`,
                           icon: <Target className="w-4 h-4 text-amber-500" />,
                         })}
                       />

@@ -12,10 +12,12 @@ import ConfirmModal from "../../../components/ui/ConfirmModal";
 import { CheckCircle2 } from "lucide-react";
 import { getGoals, createGoal, updateGoal, deleteGoal, depositGoal, withdrawGoal } from "../../../services/goal.service";
 import { getAccounts } from "../../../services/account.service";
+import { useCurrency } from "../../../hooks/useCurrency";
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function GoalsPage() {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
 
   // Active Goals State
@@ -219,10 +221,10 @@ export default function GoalsPage() {
       
       if (depositActionType === "deposit") {
         const res = await depositGoal(activeDepositGoal.id, payload);
-        triggerToast(res.message || (language === 'en' ? `Successfully deposited Rp ${amt.toLocaleString("id-ID")} to ${activeDepositGoal.name}! 💰` : `Berhasil menyetor Rp ${amt.toLocaleString("id-ID")} ke ${activeDepositGoal.name}! 💰`));
+        triggerToast(res.message || (language === 'en' ? `Successfully deposited ${formatCurrency(amt)} to ${activeDepositGoal.name}! 💰` : `Berhasil menyetor ${formatCurrency(amt)} ke ${activeDepositGoal.name}! 💰`));
       } else {
         const res = await withdrawGoal(activeDepositGoal.id, payload);
-        triggerToast(res.message || (language === 'en' ? `Successfully withdrew Rp ${amt.toLocaleString("id-ID")} from ${activeDepositGoal.name}! 🏧` : `Berhasil menarik Rp ${amt.toLocaleString("id-ID")} dari ${activeDepositGoal.name}! 🏧`));
+        triggerToast(res.message || (language === 'en' ? `Successfully withdrew ${formatCurrency(amt)} from ${activeDepositGoal.name}! 🏧` : `Berhasil menarik ${formatCurrency(amt)} dari ${activeDepositGoal.name}! 🏧`));
       }
       
       fetchGoalsData();

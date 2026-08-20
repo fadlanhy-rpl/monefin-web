@@ -96,6 +96,8 @@ function CardOptionsMenu({
   );
 }
 
+import { useCurrency } from "../../hooks/useCurrency";
+
 export default function SortableAccountCard({
   acc,
   index,
@@ -107,6 +109,7 @@ export default function SortableAccountCard({
   copiedId
 }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const {
     attributes,
     listeners,
@@ -180,7 +183,7 @@ export default function SortableAccountCard({
 
           <div className="relative z-10 mt-1 sm:mt-2">
             <p className="text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none">{language === 'en' ? "Available Balance" : "Saldo Tersedia"}</p>
-            <h3 className="text-xl sm:text-4xl font-extrabold mt-1 sm:mt-1.5 tracking-tight">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
+            <h3 className="text-xl sm:text-4xl font-extrabold mt-1 sm:mt-1.5 tracking-tight">{formatCurrency(acc.balance)}</h3>
           </div>
 
           <div className="relative z-10 flex justify-between items-end border-t border-white/10 pt-2.5 sm:pt-4 mt-1 sm:mt-2">
@@ -251,7 +254,7 @@ export default function SortableAccountCard({
 
           <div className="mt-1 sm:mt-2">
             <p className="text-[8px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none">{language === 'en' ? "Total Savings" : "Total Tabungan"}</p>
-            <h3 className="text-xl sm:text-4xl font-extrabold mt-1 sm:mt-1.5 tracking-tight">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
+            <h3 className="text-xl sm:text-4xl font-extrabold mt-1 sm:mt-1.5 tracking-tight">{formatCurrency(acc.balance)}</h3>
           </div>
 
           <div className="flex justify-between items-center pt-2 mt-1 sm:mt-2">
@@ -312,7 +315,7 @@ export default function SortableAccountCard({
           <div className="flex justify-between items-end relative z-10 mt-1">
             <div className="min-w-0">
               <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{language === 'en' ? "Available Balance" : "Saldo Tersedia"}</p>
-              <h3 className="text-xl sm:text-3xl font-black text-slate-900 mt-1 truncate">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
+              <h3 className="text-xl sm:text-3xl font-black text-slate-900 mt-1 truncate">{formatCurrency(acc.balance)}</h3>
             </div>
             <div className="flex -space-x-2 select-none shrink-0">
               {(acc.wallets || ["GP", "OV"]).map((w, wIdx) => (
@@ -373,7 +376,7 @@ export default function SortableAccountCard({
           
           <div className="mt-1">
             <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{language === 'en' ? "Cash in Hand" : "Saldo Tunai"}</p>
-            <h3 className="text-xl sm:text-3xl font-black text-slate-900 mt-1 truncate">Rp {Number(acc.balance).toLocaleString("id-ID")}</h3>
+            <h3 className="text-xl sm:text-3xl font-black text-slate-900 mt-1 truncate">{formatCurrency(acc.balance)}</h3>
           </div>
           
           <div className="flex justify-between items-center text-[7px] sm:text-[10px] font-bold text-gray-300 border-t border-slate-50 pt-2.5 sm:pt-4 mt-2 select-none relative z-10">

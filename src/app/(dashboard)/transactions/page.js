@@ -15,6 +15,7 @@ import { getCategories } from "../../../services/category.service";
 import { getAccounts } from "../../../services/account.service";
 import { formatDate } from "../../../lib/utils";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../hooks/useCurrency";
 
 // Formatter Helpers
 function formatDateInput(dateStr) {
@@ -29,6 +30,7 @@ function formatDateInput(dateStr) {
 function TransactionsPage() {
   const searchParams = useSearchParams();
   const { t } = useLanguage();
+  const { formatCurrency } = useCurrency();
 
   const [categoryIdFilter, setCategoryIdFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
@@ -286,8 +288,8 @@ function TransactionsPage() {
     const netCashflow = totalIncome - totalExpense;
 
     const formatCurrencyNum = (num) => {
-      if (!num || num === 0) return "0";
-      return Math.round(num).toLocaleString('id-ID');
+      if (!num || num === 0) return formatCurrency(0);
+      return formatCurrency(num);
     };
 
     const nowStr = new Date().toLocaleString('id-ID', {
@@ -333,9 +335,9 @@ function TransactionsPage() {
       `"Total Record"${sep}"${transactions.length} Transaksi"`,
       "",
       `"RINGKASAN KEUANGAN"`,
-      `"Total Pemasukan"${sep}"Rp ${formatCurrencyNum(totalIncome)}"`,
-      `"Total Pengeluaran"${sep}"Rp ${formatCurrencyNum(totalExpense)}"`,
-      `"Net Cashflow"${sep}"${netCashflow >= 0 ? '+' : '-'}Rp ${formatCurrencyNum(Math.abs(netCashflow))}"`
+      `"Total Pemasukan"${sep}"${formatCurrencyNum(totalIncome)}"`,
+      `"Total Pengeluaran"${sep}"${formatCurrencyNum(totalExpense)}"`,
+      `"Net Cashflow"${sep}"${netCashflow >= 0 ? '+' : '-'}${formatCurrencyNum(Math.abs(netCashflow))}"`
     ];
 
     // Header Tabel
@@ -346,9 +348,9 @@ function TransactionsPage() {
       "Kategori",
       "Akun / Sumber Dana",
       "Keterangan / Catatan",
-      "Pemasukan (Rp)",
-      "Pengeluaran (Rp)",
-      "Nominal Net (Rp)"
+      "Pemasukan",
+      "Pengeluaran",
+      "Nominal Net"
     ];
 
     // Data Baris Transaksi
@@ -363,7 +365,7 @@ function TransactionsPage() {
 
       const incomeVal = !isExpense ? formatCurrencyNum(amt) : "-";
       const expenseVal = isExpense ? formatCurrencyNum(amt) : "-";
-      const netVal = (isExpense ? "-Rp " : "+Rp ") + formatCurrencyNum(amt);
+      const netVal = (isExpense ? "- " : "+ ") + formatCurrencyNum(amt);
 
       return [
         idx + 1,
@@ -386,9 +388,9 @@ function TransactionsPage() {
       "",
       "",
       "",
-      `"Rp ${formatCurrencyNum(totalIncome)}"`,
-      `"Rp ${formatCurrencyNum(totalExpense)}"`,
-      `"${netCashflow >= 0 ? '+' : '-'}Rp ${formatCurrencyNum(Math.abs(netCashflow))}"`
+      `"${formatCurrencyNum(totalIncome)}"`,
+      `"${formatCurrencyNum(totalExpense)}"`,
+      `"${netCashflow >= 0 ? '+' : '-'}${formatCurrencyNum(Math.abs(netCashflow))}"`
     ].join(sep);
 
     const fullCsvContent = "\uFEFF" + [

@@ -1,5 +1,6 @@
 import { PlusCircle } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function AccountsHeader({
   isVisible,
@@ -7,6 +8,7 @@ export default function AccountsHeader({
   openAddModal
 }) {
   const { t } = useLanguage();
+  const { formatCurrency } = useCurrency();
 
   return (
     <div className={`transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 sm:gap-8`}>
@@ -21,7 +23,7 @@ export default function AccountsHeader({
       {/* Card Total Saldo (Reduced padding to p-4 on mobile and adjusted font size to text-2xl sm:text-4xl to prevent wrapping of Rp balance) */}
       <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center lg:items-end w-full lg:w-fit min-w-0 sm:min-w-[320px] transition-all hover:shadow-md duration-300">
         <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest text-center lg:text-right">{t("accounts.total_balance") || "Total Saldo Seluruh Akun"}</p>
-        <h3 className="text-2xl sm:text-4xl font-black text-[#00685F] mt-1.5 text-center lg:text-right">Rp {totalBalance.toLocaleString("id-ID")}</h3>
+        <h3 className="text-2xl sm:text-4xl font-black text-[#00685F] mt-1.5 text-center lg:text-right">{formatCurrency(totalBalance)}</h3>
         
         {/* Adjusted padding to px-4 py-2.5 and text-xs on mobile to prevent "Tambah Akun Baru" from wrapping into two lines */}
         <button 

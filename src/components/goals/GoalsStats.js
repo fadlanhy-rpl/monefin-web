@@ -1,11 +1,13 @@
 import { TrendingUp, Sparkles } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function GoalsStats({
   savingRate,
   savingRateIncrease
 }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -18,7 +20,7 @@ export default function GoalsStats({
           <p className="text-sm font-bold text-slate-900 leading-tight">{t("goals.saving_rate") || "Laju Menabung"}</p>
           <p className="text-[10px] font-bold text-gray-400 mt-0.5 select-none">{t("goals.saving_rate_desc") || "Rata-rata 30 hari terakhir"}</p>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <h4 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Rp {savingRate.toLocaleString("id-ID")}</h4>
+            <h4 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(savingRate)}</h4>
             <span className="text-emerald-500 font-black text-xs shrink-0">↑ {savingRateIncrease}%</span>
           </div>
           {/* Static design representation as requested */}

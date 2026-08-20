@@ -22,6 +22,7 @@ import {
 import { getGoals } from "../../../../services/goal.service";
 import GoalDetailModal from "../../../../components/goals/GoalDetailModal";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useCurrency } from "../../../../hooks/useCurrency";
 
 const iconMap = {
   laptop: Laptop,
@@ -36,6 +37,7 @@ const iconMap = {
 
 export default function AchievedGoalsPage() {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [achievedGoals, setAchievedGoals] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,7 +110,7 @@ export default function AchievedGoalsPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-teal-200 uppercase tracking-widest">{t("goals.total_achieved_funds") || "Total Dana Terkumpul"}</p>
-                <h3 className="text-lg sm:text-xl font-black tracking-tight">Rp {totalSaved.toLocaleString("id-ID")}</h3>
+                <h3 className="text-lg sm:text-xl font-black tracking-tight">{formatCurrency(totalSaved)}</h3>
               </div>
             </div>
           </div>
@@ -203,7 +205,7 @@ export default function AchievedGoalsPage() {
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/60 flex items-center justify-between flex-wrap gap-2">
                       <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{language === 'en' ? "Total Realized Amount" : "Total Nominal Realisasi"}</p>
-                        <h4 className="text-xl font-black text-[#00685F] tracking-tight mt-0.5">Rp {targetAmt.toLocaleString("id-ID")}</h4>
+                        <h4 className="text-xl font-black text-[#00685F] tracking-tight mt-0.5">{formatCurrency(targetAmt)}</h4>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold bg-white px-3 py-1.5 rounded-xl border border-slate-100">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
