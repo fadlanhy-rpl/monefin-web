@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Lightbulb } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -14,7 +15,9 @@ export default function AccountsStats({
       <div className="lg:col-span-2 bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
         <div className="flex justify-between items-center mb-8 select-none">
           <h4 className="font-extrabold text-lg sm:text-xl text-slate-900 tracking-tight">{language === 'en' ? "Popular Account Stats" : "Statistik Akun Terpopuler"}</h4>
-          <a href="#" className="text-[#00685F] text-xs font-bold hover:underline">{language === 'en' ? "View Details" : "Lihat Detail"}</a>
+          <Link href="/reports" className="text-[#00685F] text-xs font-bold hover:underline">
+            {language === 'en' ? "View Details" : "Lihat Detail"}
+          </Link>
         </div>
         <div className="space-y-6">
           {/* Bank Bar */}
