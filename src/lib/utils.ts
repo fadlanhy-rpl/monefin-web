@@ -6,15 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /** Format a decimal string or number as IDR or USD currency with conversion */
-export function formatCurrency(value: string | number, currency: string = 'IDR'): string {
+export function formatCurrency(value: string | number, currency: string = 'IDR', exchangeRate: number = 15500): string {
   let num = typeof value === 'string' ? parseFloat(value) : value;
   
   // Asumsi base currency di database adalah IDR. 
-  // Jika user memilih USD, kita konversi nilainya (Misal rate: 1 USD = Rp 15.500)
-  const EXCHANGE_RATE_USD_TO_IDR = 15500;
-
+  // Jika user memilih USD, kita konversi nilainya
   if (currency === 'USD') {
-    num = num / EXCHANGE_RATE_USD_TO_IDR;
+    num = num / exchangeRate;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
