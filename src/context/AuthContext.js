@@ -18,6 +18,7 @@ import {
   resendOtp as apiResendOtp,
   forgotPassword as apiForgotPassword,
   resetPassword as apiResetPassword,
+  deleteAccount as apiDeleteAccount,
 } from "../services/auth.service";
 import { getAuthToken, setAuthToken } from "../lib/api";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ const AuthContext = createContext({
   resendOtp: async () => {},
   forgotPassword: async () => {},
   resetPassword: async () => {},
+  deleteAccount: async () => {},
   setUser: () => {},
   checkAuth: async () => {},
 });
@@ -305,6 +307,32 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // -------------------------------------------------------
+  // Delete Account
+  // -------------------------------------------------------
+  const deleteAccount = async () => {
+    setLoading(true);
+    try {
+      await apiDeleteAccount();
+    } catch (err) {
+      console.error("Delete Account API failed:", err);
+      const msg = err.data?.message || err.message || "Gagal menghapus akun.";
+      setLoading(false);
+      return { success: false, error: msg };
+    } 
+    
+    // Success, clear local session and redirect
+    setAuthToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+    setLoading(false);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user_data");
+    }
+    router.push("/");
+    return { success: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -320,6 +348,7 @@ export function AuthProvider({ children }) {
         resendOtp,
         forgotPassword,
         resetPassword,
+        deleteAccount,
         setUser,
         checkAuth,
       }}
