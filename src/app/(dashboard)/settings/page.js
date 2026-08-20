@@ -12,7 +12,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function SettingsPage() {
-  const { user, updatePassword, updateProfile } = useAuth();
+  const { user, updatePassword, updateProfile, deleteAccount } = useAuth();
   const { changeLanguage, language: currentGlobalLang } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
@@ -170,9 +170,19 @@ export default function SettingsPage() {
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     setDeleteModalOpen(false);
-    showToast("Permintaan penghapusan akun telah diproses.");
+    
+    // Show a loading toast
+    showToast(language === 'en' ? "Deleting account..." : "Menghapus akun...");
+
+    const result = await deleteAccount();
+    if (result.success) {
+      // The auth context will automatically clear session and redirect to /
+      // No need to show toast because the page will redirect
+    } else {
+      showToast(result.error || (language === 'en' ? "Failed to delete account." : "Gagal menghapus akun."));
+    }
   };
 
   return (

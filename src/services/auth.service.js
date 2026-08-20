@@ -115,3 +115,14 @@ export async function resetPassword(data) {
     body: data,
   });
 }
+
+/**
+ * Hapus akun secara permanen
+ */
+export async function deleteAccount() {
+  const result = await fetchAPI(`${ENDPOINT}/profile`, {
+    method: "DELETE",
+  });
+  setAuthToken(null);
+  return result;
+}
