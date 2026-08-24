@@ -67,8 +67,8 @@ export default function BudgetsOverview({
           <h3 className="text-lg sm:text-xl font-bold text-slate-900">{language === 'en' ? "Smart Saving Tip" : "Tips Hemat Cerdas"}</h3>
           <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
             {language === 'en' 
-              ? "Based on your current dining trends, switching to home cooking on weekends could save you Rp 450,000 next month." 
-              : "Berdasarkan tren pengeluaran makan di luar, beralih ke masak sendiri di akhir pekan dapat menghemat Rp 450.000 bulan depan."}
+              ? `Based on your current dining trends, switching to home cooking on weekends could save you ${formatCurrency(450000)} next month.` 
+              : `Berdasarkan tren pengeluaran makan di luar, beralih ke masak sendiri di akhir pekan dapat menghemat ${formatCurrency(450000)} bulan depan.`}
           </p>
           <button className="flex items-center gap-2 text-brand-600 font-bold text-xs sm:text-sm group cursor-pointer hover:underline">
             {language === 'en' ? "Enable Auto-Savings" : "Aktifkan Tabungan Otomatis"} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

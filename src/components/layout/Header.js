@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useGlobalSearch } from "../../hooks/useGlobalSearch";
 import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
@@ -192,6 +192,14 @@ export default function Header({ setMobileOpen }) {
               setNotifOpen(false); 
               setProfileOpen(false); 
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && searchQuery.trim()) {
+                e.preventDefault();
+                const q = searchQuery.trim();
+                closeSearch();
+                router.push(`/transactions?search=${encodeURIComponent(q)}`);
+              }
+            }}
             onBlur={() => {
               setTimeout(() => {
                 setIsFocused(false);
@@ -280,7 +288,7 @@ export default function Header({ setMobileOpen }) {
                         items={results.transactions}
                         onItemClick={closeSearch}
                         renderItem={(t) => ({
-                          href: "/transactions",
+                          href: `/transactions?search=${encodeURIComponent(t.description || searchQuery.trim())}`,
                           label: t.description,
                           meta: `${t.type === "income" ? "+ " : "- "}${formatCurrency(Math.abs(t.amount))}`,
                           metaColor: t.type === "income" ? "text-emerald-600" : "text-red-500",
@@ -297,7 +305,7 @@ export default function Header({ setMobileOpen }) {
                         items={results.categories}
                         onItemClick={closeSearch}
                         renderItem={(c) => ({
-                          href: "/categories",
+                          href: `/categories?search=${encodeURIComponent(c.name)}`,
                           label: c.name,
                           meta: c.type === "income" ? "Pemasukan" : "Pengeluaran",
                           metaColor: c.type === "income" ? "text-emerald-600" : "text-red-500",
@@ -312,7 +320,7 @@ export default function Header({ setMobileOpen }) {
                         items={results.accounts}
                         onItemClick={closeSearch}
                         renderItem={(a) => ({
-                          href: "/accounts",
+                          href: `/accounts?search=${encodeURIComponent(a.name)}`,
                           label: a.name,
                           meta: formatCurrency(a.balance),
                           metaColor: "text-slate-700",
@@ -327,12 +335,14 @@ export default function Header({ setMobileOpen }) {
                         items={results.goals}
                         onItemClick={closeSearch}
                         renderItem={(g) => ({
-                          href: "/goals",
+                          href: g.is_achieved
+                            ? `/goals/achieved?search=${encodeURIComponent(g.title)}`
+                            : `/goals?search=${encodeURIComponent(g.title)}`,
                           label: g.title,
-                          meta: formatCurrency(g.current_amount),
-                          metaColor: "text-brand-700",
-                          sub: `Target: ${formatCurrency(g.target_amount)}`,
-                          icon: <Target className="w-4 h-4 text-amber-500" />,
+                          meta: g.is_achieved ? "Tercapai 🎉" : formatCurrency(g.current_amount),
+                          metaColor: g.is_achieved ? "text-emerald-600 font-extrabold" : "text-brand-700",
+                          sub: g.is_achieved ? `Terkumpul: ${formatCurrency(g.target_amount)}` : `Target: ${formatCurrency(g.target_amount)}`,
+                          icon: g.is_achieved ? <Trophy className="w-4 h-4 text-amber-500" /> : <Target className="w-4 h-4 text-amber-500" />,
                         })}
                       />
                     </>

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowUpDown, Search, TrendingUp, TrendingDown, Award, AlertCircle, Minus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowUpDown, Search, TrendingUp, TrendingDown, Award, AlertCircle, Minus, X } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const MONTH_ID = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const MONTH_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -19,16 +21,6 @@ function monthLabelShort(ym, lang) {
   return ((lang === 'en' ? MONTH_SHORT_EN : MONTH_SHORT_ID)[parseInt(m, 10) - 1] || m) + " " + y.slice(2);
 }
 
-const fmt = (v) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(v ?? 0);
-
-const fmtCompact = (val) => {
-  const abs = Math.abs(val ?? 0);
-  if (abs >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1) + "M";
-  if (abs >= 1_000_000) return (val / 1_000_000).toFixed(1) + "Jt";
-  if (abs >= 1_000) return (val / 1_000).toFixed(0) + "Rb";
-  return String(val ?? 0);
-};
 
 function BarCell({ value, max, color }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
@@ -58,10 +50,19 @@ function GrowthBadge({ current, previous }) {
 }
 
 export default function ReportsTable({ monthlyData = [], loading = false }) {
-  const { t, language } = useLanguage();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { language } = useLanguage();
+  const { formatCurrency, formatCompact } = useCurrency();
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams?.get("search") || "");
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("desc");
+
+  useEffect(() => {
+    const q = searchParams?.get("search");
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
 
   const rawData = monthlyData.map((d, i) => {
     const prev = i > 0 ? monthlyData[i - 1] : null;
@@ -128,8 +129,18 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
               placeholder={language === 'en' ? "Search month or status..." : "Cari bulan atau status..."}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#00685F]/20 focus:border-[#00685F] transition"
+              className="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#00685F]/20 focus:border-[#00685F] transition"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200/60 transition-colors"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -208,14 +219,14 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
 
                     {/* Income */}
                     <td className="px-5 py-3.5 text-right">
-                      <p className="text-xs font-bold text-emerald-700 whitespace-nowrap">{fmtCompact(row.income)}</p>
-                      <p className="text-[9px] text-slate-400 font-semibold">{fmt(row.income)}</p>
+                      <p className="text-xs font-bold text-emerald-700 whitespace-nowrap">{formatCompact(row.income)}</p>
+                      <p className="text-[9px] text-slate-400 font-semibold">{formatCurrency(row.income)}</p>
                     </td>
 
                     {/* Expense */}
                     <td className="px-5 py-3.5 text-right">
-                      <p className="text-xs font-bold text-red-500 whitespace-nowrap">{fmtCompact(row.expense)}</p>
-                      <p className="text-[9px] text-slate-400 font-semibold">{fmt(row.expense)}</p>
+                      <p className="text-xs font-bold text-red-500 whitespace-nowrap">{formatCompact(row.expense)}</p>
+                      <p className="text-[9px] text-slate-400 font-semibold">{formatCurrency(row.expense)}</p>
                     </td>
 
                     {/* Expense Ratio bar */}
@@ -231,9 +242,9 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
                           : <TrendingDown className="w-3.5 h-3.5 text-red-500 shrink-0" />}
                         <div>
                           <p className={`text-xs font-black whitespace-nowrap ${isPositive ? "text-emerald-700" : "text-red-500"}`}>
-                            {isPositive ? "+" : "-"}{fmtCompact(Math.abs(row.cashflow))}
+                            {isPositive ? "+" : "-"}{formatCompact(Math.abs(row.cashflow))}
                           </p>
-                          <p className="text-[9px] text-slate-400 font-semibold">{fmt(Math.abs(row.cashflow))}</p>
+                          <p className="text-[9px] text-slate-400 font-semibold">{formatCurrency(Math.abs(row.cashflow))}</p>
                         </div>
                       </div>
                     </td>
@@ -267,12 +278,12 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
                   <p className="text-[9px] text-slate-400 font-semibold">{months} {language === 'en' ? "months" : "bulan"}</p>
                 </td>
                 <td className="px-5 py-4 text-right">
-                  <p className="text-xs font-black text-emerald-700 whitespace-nowrap">{fmtCompact(totalIncome)}</p>
-                  <p className="text-[9px] text-slate-400 font-semibold">{fmt(totalIncome)}</p>
+                  <p className="text-xs font-black text-emerald-700 whitespace-nowrap">{formatCompact(totalIncome)}</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{formatCurrency(totalIncome)}</p>
                 </td>
                 <td className="px-5 py-4 text-right">
-                  <p className="text-xs font-black text-red-500 whitespace-nowrap">{fmtCompact(totalExpense)}</p>
-                  <p className="text-[9px] text-slate-400 font-semibold">{fmt(totalExpense)}</p>
+                  <p className="text-xs font-black text-red-500 whitespace-nowrap">{formatCompact(totalExpense)}</p>
+                  <p className="text-[9px] text-slate-400 font-semibold">{formatCurrency(totalExpense)}</p>
                 </td>
                 <td className="px-5 py-4">
                   <BarCell value={totalExpense} max={totalIncome > 0 ? totalIncome : maxExpense} color={totalExpense / totalIncome > 0.8 ? "#ef4444" : "#00685F"} />
@@ -282,9 +293,9 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
                     {totalCashflow >= 0 ? <TrendingUp className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <TrendingDown className="w-3.5 h-3.5 text-red-500 shrink-0" />}
                     <div>
                       <p className={`text-xs font-black whitespace-nowrap ${totalCashflow >= 0 ? "text-emerald-700" : "text-red-500"}`}>
-                        {totalCashflow >= 0 ? "+" : "-"}{fmtCompact(Math.abs(totalCashflow))}
+                        {totalCashflow >= 0 ? "+" : "-"}{formatCompact(Math.abs(totalCashflow))}
                       </p>
-                      <p className="text-[9px] text-slate-400 font-semibold">{fmt(Math.abs(totalCashflow))}</p>
+                      <p className="text-[9px] text-slate-400 font-semibold">{formatCurrency(Math.abs(totalCashflow))}</p>
                     </div>
                   </div>
                 </td>

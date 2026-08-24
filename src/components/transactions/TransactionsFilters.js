@@ -1,4 +1,4 @@
-import { ChevronDown, Check, Search, Download } from "lucide-react";
+import { ChevronDown, Check, Search, Download, X } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 export default function TransactionsFilters({
@@ -182,9 +182,19 @@ export default function TransactionsFilters({
             type="text" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-slate-50 border border-slate-100 rounded-xl py-2 pl-9 pr-4 text-xs w-full focus:ring-1 focus:ring-[#00685F] focus:bg-white outline-none text-slate-600 transition-all" 
+            className="bg-slate-50 border border-slate-100 rounded-xl py-2 pl-9 pr-8 text-xs w-full focus:ring-1 focus:ring-[#00685F] focus:bg-white outline-none text-slate-600 transition-all" 
             placeholder={t("transactions.search_placeholder") || "Search transactions..."}
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200/60 transition-colors"
+              title="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
         <button 
           onClick={handleExport}

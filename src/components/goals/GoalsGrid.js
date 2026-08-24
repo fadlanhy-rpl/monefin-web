@@ -168,10 +168,10 @@ export default function GoalsGrid({
       return t("goals.congratulations") || "Selamat! Target tabungan Anda sudah tercapai sepenuhnya. Waktunya menikmati hasil usaha Anda! 🎉";
     }
     const months = Math.ceil(remaining / 850000);
-    const p1 = t("goals.insight_calculation_p1") || "Dengan laju menabung rata-rata Rp 850.000/bln saat ini, Anda membutuhkan sekitar";
-    const p2 = t("goals.insight_calculation_p2") || "bulan lagi untuk mencapai target Rp";
+    const p1 = t("goals.insight_calculation_p1") || `Dengan laju menabung rata-rata ${formatCurrency(850000)}/bln saat ini, Anda membutuhkan sekitar`;
+    const p2 = t("goals.insight_calculation_p2") || "bulan lagi untuk mencapai target";
     const p3 = t("goals.insight_calculation_p3") || ". Tetap semangat! 💪";
-    return `${p1} ${months} ${p2} ${g.target.toLocaleString("id-ID")}${p3}`;
+    return `${p1} ${months} ${p2} ${formatCurrency(g.target)}${p3}`;
   };
 
   const getDeadlineText = (deadline) => {

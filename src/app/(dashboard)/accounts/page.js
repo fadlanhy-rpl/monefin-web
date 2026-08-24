@@ -1,23 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import AccountsHeader from "../../../components/accounts/AccountsHeader";
 import AccountsGrid from "../../../components/accounts/AccountsGrid";
 import AccountsStats from "../../../components/accounts/AccountsStats";
 import AccountModal from "../../../components/accounts/AccountModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
+import { Search, X } from "lucide-react";
 import { getAccounts, createAccount, updateAccount, deleteAccount, reorderAccounts } from "../../../services/account.service";
 import toast from "react-hot-toast";
 import { useLanguage } from "../../../context/LanguageContext";
 
-export default function AccountsPage() {
+function AccountsPageContent() {
+  const router = useRouter();
   const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
+
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
 
   // Accounts state-based data store
   const [accounts, setAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Sync with searchParams
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
+
+  // Filtered accounts based on search
+  const filteredAccounts = !searchQuery.trim()
+    ? accounts
+    : accounts.filter(a => 
+        a.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        a.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.account_holder?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
   // Modal & Confirm states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -183,6 +206,29 @@ export default function AccountsPage() {
           openAddModal={openAddModal}
         />
 
+        {/* Active Search Banner */}
+        {searchQuery && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-brand-50/70 border border-brand-200/80 px-4 py-3 rounded-2xl text-xs text-brand-900 shadow-xs animate-fadeIn">
+            <div className="flex items-center gap-2 min-w-0">
+              <Search className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="truncate">
+                {language === 'en' ? 'Showing search result for:' : 'Menampilkan hasil pencarian untuk:'}{' '}
+                <span className="font-bold text-slate-900">"{searchQuery}"</span>
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                router.replace("/accounts");
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-brand-100/60 text-brand-700 hover:text-brand-900 font-bold rounded-xl border border-brand-200 transition-all text-xs shrink-0 cursor-pointer shadow-xs active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              {language === 'en' ? 'Show All Accounts' : 'Tampilkan Semua Rekening'}
+            </button>
+          </div>
+        )}
+
         {/* Grid Cards Section */}
         <div className={`transition-all duration-700 delay-300 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           {isLoading ? (
@@ -191,7 +237,7 @@ export default function AccountsPage() {
             </div>
           ) : (
             <AccountsGrid 
-              accounts={accounts}
+              accounts={filteredAccounts}
               openEditModal={openEditModal}
               handleDelete={handleDeleteClick}
               onReorder={handleReorder}
@@ -242,5 +288,13 @@ export default function AccountsPage() {
         isLoading={isDeleting}
       />
     </DashboardLayout>
+  );
+}
+
+export default function AccountsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AccountsPageContent />
+    </Suspense>
   );
 }

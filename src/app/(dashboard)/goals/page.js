@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import GoalsHeader from "../../../components/goals/GoalsHeader";
 import GoalsGrid from "../../../components/goals/GoalsGrid";
@@ -9,22 +10,42 @@ import AchievedGoals from "../../../components/goals/AchievedGoals";
 import GoalModal from "../../../components/goals/GoalModal";
 import DepositModal from "../../../components/goals/DepositModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Search, X } from "lucide-react";
 import { getGoals, createGoal, updateGoal, deleteGoal, depositGoal, withdrawGoal } from "../../../services/goal.service";
 import { getAccounts } from "../../../services/account.service";
 import { useCurrency } from "../../../hooks/useCurrency";
 import { useLanguage } from "../../../context/LanguageContext";
 
-export default function GoalsPage() {
+function GoalsPageContent() {
+  const router = useRouter();
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
+
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
 
   // Active Goals State
   const [goals, setGoals] = useState([]);
 
   // Achieved Goals State
   const [achievedGoals, setAchievedGoals] = useState([]);
+
+  // Sync with searchParams
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
+
+  // Filtered goals based on search
+  const filteredGoals = !searchQuery.trim()
+    ? goals
+    : goals.filter(g => 
+        g.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        g.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
   // Accounts State for Deposit / Withdraw
   const [accounts, setAccounts] = useState([]);
@@ -262,10 +283,33 @@ export default function GoalsPage() {
           openAddModal={openAddModal}
         />
 
+        {/* Active Search Banner */}
+        {searchQuery && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-brand-50/70 border border-brand-200/80 px-4 py-3 rounded-2xl text-xs text-brand-900 shadow-xs animate-fadeIn">
+            <div className="flex items-center gap-2 min-w-0">
+              <Search className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="truncate">
+                {language === 'en' ? 'Showing search result for:' : 'Menampilkan hasil pencarian untuk:'}{' '}
+                <span className="font-bold text-slate-900">"{searchQuery}"</span>
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                router.replace("/goals");
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-brand-100/60 text-brand-700 hover:text-brand-900 font-bold rounded-xl border border-brand-200 transition-all text-xs shrink-0 cursor-pointer shadow-xs active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              {language === 'en' ? 'Show All Goals' : 'Tampilkan Semua Target'}
+            </button>
+          </div>
+        )}
+
         {/* Goals Active Cards Grid */}
         <div className={`transition-all duration-700 delay-300 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           <GoalsGrid 
-            goals={goals}
+            goals={filteredGoals}
             openEditModal={openEditModal}
             handleDelete={handleDeleteClick}
             openDepositModal={openDepositModal}
@@ -351,5 +395,13 @@ export default function GoalsPage() {
         isLoading={isDeleting}
       />
     </DashboardLayout>
+  );
+}
+
+export default function GoalsPage() {
+  return (
+    <Suspense fallback={null}>
+      <GoalsPageContent />
+    </Suspense>
   );
 }

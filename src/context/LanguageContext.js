@@ -37,18 +37,15 @@ function updateHtmlLang(lang) {
 export function LanguageProvider({ children }) {
   const { user } = useAuth();
 
-  // Priority order: cookie → localStorage → default
-  const getInitialLanguage = () => {
-    const cookie = getCookieLocale();
-    if (cookie) return cookie;
-    if (typeof localStorage !== "undefined") {
-      const ls = localStorage.getItem("language");
-      if (SUPPORTED_LOCALES.includes(ls)) return ls;
-    }
-    return DEFAULT_LOCALE;
-  };
+  const [language, setLanguage] = useState(DEFAULT_LOCALE);
 
-  const [language, setLanguage] = useState(getInitialLanguage);
+  useEffect(() => {
+    const persisted = getCookieLocale() || (typeof localStorage !== "undefined" && localStorage.getItem("language"));
+    if (persisted && SUPPORTED_LOCALES.includes(persisted)) {
+      setLanguage(persisted);
+      updateHtmlLang(persisted);
+    }
+  }, []);
 
   // Internal apply — updates state, cookie, localStorage, and html lang attribute
   const applyLanguage = useCallback((lang) => {
@@ -60,14 +57,12 @@ export function LanguageProvider({ children }) {
     }
     updateHtmlLang(lang);
   }, []);
-
   // Sync with DB user preferences (highest priority, runs after login)
   useEffect(() => {
     if (user?.preferences?.language && SUPPORTED_LOCALES.includes(user.preferences.language)) {
       applyLanguage(user.preferences.language);
     }
   }, [user, applyLanguage]);
-
   // Ensure html lang is correct on mount
   useEffect(() => {
     updateHtmlLang(language);

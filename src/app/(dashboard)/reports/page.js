@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import ReportsHeader  from "../../../components/reports/ReportsHeader";
 import ReportsOverview from "../../../components/reports/ReportsOverview";
@@ -8,6 +8,7 @@ import ReportsCharts  from "../../../components/reports/ReportsCharts";
 import ReportsTable   from "../../../components/reports/ReportsTable";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { getReportCompare, getReportCategoryBreakdown, exportReportCSV } from "../../../services/report.service";
+import { useCurrency } from "../../../hooks/useCurrency";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../../context/LanguageContext";
 
@@ -38,9 +39,10 @@ function getPresetRange(presetId) {
   }
 }
 
-export default function ReportsPage() {
+function ReportsPageContent() {
   const router = useRouter();
   const { language } = useLanguage();
+  const { currencyCode, exchangeRate } = useCurrency();
 
   // ── UI state ────────────────────────────────────────────────────────────────
   const [isVisible,  setIsVisible]  = useState(false);
@@ -121,6 +123,8 @@ export default function ReportsPage() {
     exportReportCSV({
       start_date: filterRange.start_month ? filterRange.start_month + "-01" : undefined,
       end_date:   filterRange.end_month   ? filterRange.end_month   + "-31" : undefined,
+      currency:   currencyCode,
+      exchange_rate: exchangeRate
     });
   };
 
@@ -188,5 +192,13 @@ export default function ReportsPage() {
         </div>
       )}
     </DashboardLayout>
+  );
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReportsPageContent />
+    </Suspense>
   );
 }

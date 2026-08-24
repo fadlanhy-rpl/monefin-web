@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import { getTrash, restoreTrash, forceDeleteTrash } from "../../../services/trash.service";
 import { useLanguage } from "../../../context/LanguageContext";
-import { formatCurrency, formatDate } from "../../../lib/utils";
+import { useCurrency } from "../../../hooks/useCurrency";
+import { formatDate } from "../../../lib/utils";
 import toast from "react-hot-toast";
 import { Trash2, RotateCcw, AlertTriangle, X } from "lucide-react";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
 
 export default function TrashbinPage() {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
