@@ -4,13 +4,11 @@ import { useEffect, useState, useRef } from "react";
 import { Lightbulb, Check, ChevronLeft } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
-function formatRupiah(n) {
-  const abs = Math.abs(n).toLocaleString('id-ID');
-  return 'Rp ' + abs;
-}
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function SmartInsight({ status = null, savings = 0 }) {
   const { t } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [budgetValue, setBudgetValue] = useState(1500000);
@@ -103,7 +101,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
             <div className="mt-5 space-y-2">
               <div className="flex justify-between items-baseline">
                 <span className="text-xs text-slate-400 font-semibold">Batas Anggaran:</span>
-                <span className="text-sm font-extrabold text-brand-700">{formatRupiah(budgetValue)}</span>
+                <span className="text-sm font-extrabold text-brand-700">{formatCurrency(budgetValue)}</span>
               </div>
               <input 
                 type="range" 
@@ -116,8 +114,8 @@ export default function SmartInsight({ status = null, savings = 0 }) {
                 className="w-full accent-brand-600 cursor-pointer h-1.5 bg-slate-100 rounded-lg appearance-none"
               />
               <div className="flex justify-between text-[9px] text-slate-400 font-bold">
-                <span>Rp 500rb</span>
-                <span>Rp 3jt</span>
+                <span>{formatCurrency(500000)}</span>
+                <span>{formatCurrency(3000000)}</span>
               </div>
             </div>
           </div>

@@ -2,9 +2,11 @@
 
 import { Wallet, ShoppingCart, BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function TransactionsStats({ totalIncome, totalExpenses, netCashFlow, isVisible }) {
   const { t } = useLanguage();
+  const { formatCurrency } = useCurrency();
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Income Card */}
@@ -12,7 +14,7 @@ export default function TransactionsStats({ totalIncome, totalExpenses, netCashF
         <div className="flex justify-between items-start">
           <div>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("transactions.total_income") || "Total Income"}</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-2">Rp {totalIncome.toLocaleString('id-ID')}</h3>
+            <h3 className="text-2xl font-black text-slate-900 mt-2">{formatCurrency(totalIncome)}</h3>
             <p className="text-[10px] text-gray-400 mt-1">{t("transactions.this_current_month") || "This current month"}</p>
           </div>
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl transition-transform duration-300 hover:scale-110 hover:rotate-6"><Wallet className="w-6 h-6" /></div>
@@ -42,7 +44,7 @@ export default function TransactionsStats({ totalIncome, totalExpenses, netCashF
         <div className="flex justify-between items-start">
           <div>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("transactions.total_expenses") || "Total Expenses"}</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-2">Rp {totalExpenses.toLocaleString('id-ID')}</h3>
+            <h3 className="text-2xl font-black text-slate-900 mt-2">{formatCurrency(totalExpenses)}</h3>
             <p className="text-[10px] text-gray-400 mt-1">{t("transactions.this_current_month") || "This current month"}</p>
           </div>
           <div className="p-2.5 bg-red-50 text-red-600 rounded-xl transition-transform duration-300 hover:scale-110 hover:-rotate-6"><ShoppingCart className="w-6 h-6" /></div>
@@ -72,7 +74,7 @@ export default function TransactionsStats({ totalIncome, totalExpenses, netCashF
         <div className="flex justify-between items-start">
           <div className="relative z-10">
             <p className="text-[10px] font-black text-[#00685F] uppercase tracking-widest">{t("transactions.net_cash_flow") || "Net Cash Flow"}</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-2">Rp {netCashFlow.toLocaleString('id-ID')}</h3>
+            <h3 className="text-2xl font-black text-slate-900 mt-2">{formatCurrency(netCashFlow)}</h3>
             <p className="text-[10px] text-[#00685F]/60 mt-1">{t("transactions.estimated_savings") || "Estimated savings potential"}</p>
           </div>
           <div className="p-2.5 bg-[#00685F] text-white rounded-xl relative z-10 transition-transform duration-300 hover:scale-110 hover:rotate-6"><BarChart3 className="w-6 h-6" /></div>

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const MONTH_NAMES_ID = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -52,6 +53,7 @@ export default function GoalModal({
   setFormIcon
 }) {
   const { t, language } = useLanguage();
+  const { currencySymbol } = useCurrency();
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -198,7 +200,7 @@ export default function GoalModal({
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.target_amount") || "Nominal Target"}</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
+              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">{currencySymbol}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -215,7 +217,7 @@ export default function GoalModal({
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.initial_amount") || "Tabungan Saat Ini"}</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
+              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">{currencySymbol}</span>
               <input
                 type="text"
                 inputMode="numeric"

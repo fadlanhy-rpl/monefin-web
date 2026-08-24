@@ -17,14 +17,6 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      {/* Prevent flash of wrong language: read locale cookie/localStorage before React hydrates */}
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var c=document.cookie.match(/(?:^|;)\s*NEXT_LOCALE=([^;]+)/);var v=c?decodeURIComponent(c[1]):localStorage.getItem('language');if(v==='en'||v==='id'){document.documentElement.lang=v;}}catch(e){}})();`
-          }}
-        />
-      </head>
       <body className={`${plusJakartaSans.variable} font-sans bg-[#f4f7f6] text-slate-800 min-h-screen antialiased`}>
         <AuthProvider>
           <LanguageProvider>

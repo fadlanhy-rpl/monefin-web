@@ -49,6 +49,8 @@ export const exportReportCSV = (params = {}) => {
   if (params.type)        qs.append("type",        params.type);
   if (params.category_id) qs.append("category_id", params.category_id);
   if (params.account_id)  qs.append("account_id",  params.account_id);
+  if (params.currency)    qs.append("currency",    params.currency);
+  if (params.exchange_rate) qs.append("exchange_rate", params.exchange_rate);
 
   // Build full API URL with auth token
   const token = getAuthToken();

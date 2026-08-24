@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import DashboardLayout from "../../../../components/layout/DashboardLayout";
 import { 
@@ -17,11 +18,13 @@ import {
   Shield, 
   Heart, 
   Car, 
-  Home
+  Home,
+  X
 } from "lucide-react";
 import { getGoals } from "../../../../services/goal.service";
 import GoalDetailModal from "../../../../components/goals/GoalDetailModal";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useCurrency } from "../../../../hooks/useCurrency";
 
 const iconMap = {
   laptop: Laptop,
@@ -34,13 +37,24 @@ const iconMap = {
   home: Home
 };
 
-export default function AchievedGoalsPage() {
+function AchievedGoalsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [achievedGoals, setAchievedGoals] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [loading, setLoading] = useState(true);
   const [selectedGoal, setSelectedGoal] = useState(null);
+
+  // Sync with searchParams
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setIsVisible(true);
@@ -108,7 +122,7 @@ export default function AchievedGoalsPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-teal-200 uppercase tracking-widest">{t("goals.total_achieved_funds") || "Total Dana Terkumpul"}</p>
-                <h3 className="text-lg sm:text-xl font-black tracking-tight">Rp {totalSaved.toLocaleString("id-ID")}</h3>
+                <h3 className="text-lg sm:text-xl font-black tracking-tight">{formatCurrency(totalSaved)}</h3>
               </div>
             </div>
           </div>
@@ -124,14 +138,47 @@ export default function AchievedGoalsPage() {
                 placeholder={t("goals.search_placeholder") || "Cari target yang telah tercapai..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#00685F]/20 focus:border-[#00685F] transition"
+                className="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#00685F]/20 focus:border-[#00685F] transition"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200/60 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             <div className="text-xs font-bold text-slate-400 select-none self-end sm:self-center">
               {t("goals.showing_page") || "Menampilkan"} {filteredGoals.length} {t("goals.of") || "dari"} {achievedGoals.length} {t("goals.achieved_goals") || "Target Tercapai"}
             </div>
           </div>
         </div>
+
+        {/* Active Search Banner */}
+        {searchQuery && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-brand-50/70 border border-brand-200/80 px-4 py-3 rounded-2xl text-xs text-brand-900 shadow-xs animate-fadeIn">
+            <div className="flex items-center gap-2 min-w-0">
+              <Search className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="truncate">
+                {language === 'en' ? 'Showing search result for:' : 'Menampilkan hasil pencarian untuk:'}{' '}
+                <span className="font-bold text-slate-900">"{searchQuery}"</span>
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                router.replace("/goals/achieved");
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-brand-100/60 text-brand-700 hover:text-brand-900 font-bold rounded-xl border border-brand-200 transition-all text-xs shrink-0 cursor-pointer shadow-xs active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              {language === 'en' ? 'Show All Achieved Goals' : 'Tampilkan Semua Target Tercapai'}
+            </button>
+          </div>
+        )}
 
         {/* Achieved Goals Grid List */}
         <div className={`transition-all duration-700 delay-400 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
@@ -203,7 +250,7 @@ export default function AchievedGoalsPage() {
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/60 flex items-center justify-between flex-wrap gap-2">
                       <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{language === 'en' ? "Total Realized Amount" : "Total Nominal Realisasi"}</p>
-                        <h4 className="text-xl font-black text-[#00685F] tracking-tight mt-0.5">Rp {targetAmt.toLocaleString("id-ID")}</h4>
+                        <h4 className="text-xl font-black text-[#00685F] tracking-tight mt-0.5">{formatCurrency(targetAmt)}</h4>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold bg-white px-3 py-1.5 rounded-xl border border-slate-100">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -225,5 +272,13 @@ export default function AchievedGoalsPage() {
         goal={selectedGoal}
       />
     </DashboardLayout>
+  );
+}
+
+export default function AchievedGoalsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AchievedGoalsPageContent />
+    </Suspense>
   );
 }

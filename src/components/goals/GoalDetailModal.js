@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Trophy, Sparkles, CheckCircle2, Calendar, Target, Laptop, Plane, GraduationCap, Shield, Heart, Car, Home } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const iconMap = {
   laptop: Laptop,
@@ -16,6 +17,7 @@ const iconMap = {
 
 export default function GoalDetailModal({ isOpen, onClose, goal }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export default function GoalDetailModal({ isOpen, onClose, goal }) {
               <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-100">{language === 'en' ? "100% Completed" : "100% Selesai"}</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Rp {targetAmount.toLocaleString("id-ID")}</h3>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{formatCurrency(targetAmount)}</h3>
             </div>
             
             {/* Full Progress Bar */}
@@ -103,7 +105,7 @@ export default function GoalDetailModal({ isOpen, onClose, goal }) {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{language === 'en' ? "Target Amount" : "Target Nominal"}</p>
               <div className="flex items-center gap-1.5 font-bold text-slate-800 truncate">
                 <Target className="w-4 h-4 text-[#00685F] shrink-0" />
-                <span className="truncate">Rp {targetAmount.toLocaleString("id-ID")}</span>
+                <span className="truncate">{formatCurrency(targetAmount)}</span>
               </div>
             </div>
           </div>

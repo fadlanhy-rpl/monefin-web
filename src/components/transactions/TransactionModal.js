@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, ChevronDown, Check } from "lucide-react";
 import DatePicker from "../ui/DatePicker";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function TransactionModal({
   isOpen,
@@ -23,7 +24,8 @@ export default function TransactionModal({
   categories = [],
   accounts = []
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { currencySymbol } = useCurrency();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
 
@@ -104,7 +106,7 @@ export default function TransactionModal({
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.amount") || "Amount"}</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
+                <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">{currencySymbol}</span>
                 <input
                   type="text"
                   inputMode="numeric"

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { X, ArrowDownRight, ArrowUpRight, Wallet, Percent, ChevronDown, Check } from "lucide-react";
+import { X, Calendar, Target, Plus, Minus, ArrowRight, ArrowDownRight, ArrowUpRight, Wallet, Percent, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const quickAmounts = [50000, 100000, 500000, 1000000];
 const percentOptions = [10, 20, 30, 50];
@@ -19,7 +20,9 @@ export default function DepositModal({
   handleDepositSubmit
 }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const accountRef = useRef(null);
 
   useEffect(() => {
@@ -135,7 +138,7 @@ export default function DepositModal({
                 </div>
                 <span className="truncate">
                   {selectedAccount 
-                    ? `${selectedAccount.name} (${language === 'en' ? 'Balance' : 'Saldo'}: Rp ${parseFloat(selectedAccount.balance).toLocaleString("id-ID")})`
+                    ? `${selectedAccount.name} (${language === 'en' ? 'Balance' : 'Saldo'}: ${formatCurrency(selectedAccount.balance)})`
                     : (language === 'en' ? "Select Account" : "Pilih Akun Keuangan")}
                 </span>
               </div>
@@ -167,7 +170,7 @@ export default function DepositModal({
                           <Wallet className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#00685F]" : "text-slate-400"}`} />
                           <span className="truncate">{acc.name}</span>
                           <span className={`text-[11px] font-medium ${isSelected ? "text-[#00685F]" : "text-slate-400"}`}>
-                            ({language === 'en' ? 'Balance' : 'Saldo'}: Rp {parseFloat(acc.balance).toLocaleString("id-ID")})
+                            ({language === 'en' ? 'Balance' : 'Saldo'}: {formatCurrency(acc.balance)})
                           </span>
                         </div>
                         {isSelected && <Check className="w-4 h-4 text-[#00685F] shrink-0" />}
@@ -181,7 +184,7 @@ export default function DepositModal({
             {selectedAccount && (
               <p className="text-[10px] text-slate-500 font-bold px-1 select-none flex justify-between pt-0.5">
                 <span>{language === 'en' ? "Available Balance:" : "Saldo Akun Tersedia:"}</span>
-                <span className="text-[#00685F] font-black">Rp {parseFloat(selectedAccount.balance).toLocaleString("id-ID")}</span>
+                <span className="text-[#00685F] font-black">{formatCurrency(selectedAccount.balance)}</span>
               </p>
             )}
           </div>
@@ -194,7 +197,7 @@ export default function DepositModal({
                 : (language === 'en' ? "Withdrawal Amount" : "Nominal Dana Ditarik")}
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">Rp</span>
+              <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">{formatCurrency(0).replace(/[0-9.,\s]/g, '')}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -207,8 +210,8 @@ export default function DepositModal({
               />
             </div>
             <p className="text-[10px] text-slate-400 font-semibold pt-0.5 select-none flex justify-between">
-              <span>Goal: Rp {goal.target.toLocaleString("id-ID")}</span>
-              <span>{language === 'en' ? "Saved" : "Tersimpan"}: Rp {goal.current.toLocaleString("id-ID")}</span>
+              <span>Goal: {formatCurrency(goal.target)}</span>
+              <span>{language === 'en' ? "Saved" : "Tersimpan"}: {formatCurrency(goal.current)}</span>
             </p>
           </div>
 
@@ -245,7 +248,7 @@ export default function DepositModal({
                   onClick={() => handleQuickAdd(amt)}
                   className="py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 text-slate-700 font-bold rounded-xl text-xs active:scale-[0.97] transition-all cursor-pointer flex items-center justify-center gap-1"
                 >
-                  <span>+ Rp {amt.toLocaleString("id-ID")}</span>
+                  <span>+ {formatCurrency(amt)}</span>
                 </button>
               ))}
             </div>

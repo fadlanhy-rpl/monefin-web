@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import CategoriesHeader from "../../../components/categories/CategoriesHeader";
 import CategoriesTabs from "../../../components/categories/CategoriesTabs";
@@ -8,20 +9,39 @@ import CategoriesGrid from "../../../components/categories/CategoriesGrid";
 import CategoriesStats from "../../../components/categories/CategoriesStats";
 import CategoryModal from "../../../components/categories/CategoryModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
-import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { getCategories, createCategory, updateCategory, deleteCategory } from "../../../services/category.service";
 import { useLanguage } from "../../../context/LanguageContext";
 
-export default function CategoriesPage() {
+function CategoriesPageContent() {
+  const router = useRouter();
   const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
 
   // Categories list state
   const [categories, setCategories] = useState([]);
 
   // Tab State: "expense" | "income"
   const [activeTab, setActiveTab] = useState("expense");
+
+  // Sync with searchParams
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+      if (q.trim()) {
+        const found = categories.find(c => c.name?.toLowerCase().includes(q.toLowerCase()));
+        if (found?.type) {
+          setActiveTab(found.type);
+        }
+      }
+      setCurrentPage(1);
+    }
+  }, [searchParams, categories]);
 
   // View Mode: "card" | "list"
   const [viewMode, setViewMode] = useState("card");
@@ -31,8 +51,14 @@ export default function CategoriesPage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const itemsPerPage = 8;
 
-  // Filtered Categories based on current tab
-  const filteredCategories = categories.filter((c) => c.type === activeTab);
+  // Filtered Categories based on current tab & search
+  const filteredCategories = categories.filter((c) => {
+    const matchTab = c.type === activeTab;
+    const matchSearch = !searchQuery.trim() || 
+      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      c.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchTab && matchSearch;
+  });
 
   // Total pages based on actual categories (8 per page)
   const totalPages = Math.max(1, Math.ceil(filteredCategories.length / itemsPerPage));
@@ -263,6 +289,29 @@ export default function CategoriesPage() {
           openAddModal={openAddModal}
         />
 
+        {/* Active Search Banner */}
+        {searchQuery && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-brand-50/70 border border-brand-200/80 px-4 py-3 rounded-2xl text-xs text-brand-900 shadow-xs animate-fadeIn">
+            <div className="flex items-center gap-2 min-w-0">
+              <Search className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="truncate">
+                {language === 'en' ? 'Showing search result for:' : 'Menampilkan hasil pencarian untuk:'}{' '}
+                <span className="font-bold text-slate-900">"{searchQuery}"</span>
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                router.replace("/categories");
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-brand-100/60 text-brand-700 hover:text-brand-900 font-bold rounded-xl border border-brand-200 transition-all text-xs shrink-0 cursor-pointer shadow-xs active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              {language === 'en' ? 'Show All Categories' : 'Tampilkan Semua Kategori'}
+            </button>
+          </div>
+        )}
+
         {/* Tab Switcher & View Switcher */}
         <div className={`transition-all duration-700 delay-100 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <CategoriesTabs 
@@ -377,5 +426,13 @@ export default function CategoriesPage() {
       />
 
     </DashboardLayout>
+  );
+}
+
+export default function CategoriesPage() {
+  return (
+    <Suspense fallback={null}>
+      <CategoriesPageContent />
+    </Suspense>
   );
 }

@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
-function CountUp({ target, prefix = "", locale = "id-ID", isHidden = false }) {
+function CountUp({ target, isHidden = false }) {
   const [value, setValue] = useState(0);
   const ref = useRef(null);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     if (isHidden) return;
@@ -38,7 +40,7 @@ function CountUp({ target, prefix = "", locale = "id-ID", isHidden = false }) {
     return <span>••••••</span>;
   }
 
-  return <span ref={ref}>{prefix}{value.toLocaleString(locale)}</span>;
+  return <span ref={ref}>{formatCurrency(value)}</span>;
 }
 
 export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpense = 0 }) {
@@ -76,7 +78,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
               <p className="text-xs text-white/70 font-semibold tracking-wider uppercase">{t("dashboard.total_balance") || "Total Balance"}</p>
               <div className="flex items-center gap-2 mt-2">
                 <p className="text-3xl font-extrabold tracking-tight tabular-nums min-h-[40px] flex items-center">
-                  <CountUp target={totalBalance} prefix="Rp " isHidden={!showBalance} />
+                  <CountUp target={totalBalance} isHidden={!showBalance} />
                 </p>
                 <button 
                   onClick={() => setShowBalance(!showBalance)} 
@@ -125,7 +127,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
           </p>
           <div className="flex items-baseline gap-2 mt-3">
             <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
-              <CountUp target={totalIncome} prefix="Rp " />
+              <CountUp target={totalIncome} />
             </p>
             <span className="flex items-center gap-0.5 text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md">
               <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -176,7 +178,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
           </p>
           <div className="flex items-baseline gap-2 mt-3">
             <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
-              <CountUp target={totalExpense} prefix="Rp " />
+              <CountUp target={totalExpense} />
             </p>
             <span className="flex items-center gap-0.5 text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md">
               <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>

@@ -5,26 +5,45 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Format a decimal string or number as IDR currency */
-export function formatCurrency(value: string | number, currency: string = 'IDR'): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  
-  if (currency === 'USD') {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(num);
-  }
+/** Format a decimal string or number as IDR, USD, EUR or SGD currency with conversion */
+export function formatCurrency(value: string | number, currency: string = 'IDR', exchangeRate: number = 15500): string {
+  let num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) num = 0;
 
-  // Default to IDR
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(num);
+  // Asumsi base currency di database adalah IDR.
+  // exchangeRate di sini adalah: 1 USD = N IDR
+  // Untuk EUR/SGD, kita konversi via USD terlebih dahulu
+  switch (currency) {
+    case 'USD': {
+      const converted = num / exchangeRate;
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency', currency: 'USD',
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
+      }).format(converted);
+    }
+    case 'EUR': {
+      // exchangeRate for EUR = 1 USD in IDR, eurRate = EUR per USD
+      // We receive the EUR/USD rate as exchangeRate when currency is EUR
+      const converted = num / exchangeRate;
+      return new Intl.NumberFormat('de-DE', {
+        style: 'currency', currency: 'EUR',
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
+      }).format(converted);
+    }
+    case 'SGD': {
+      const converted = num / exchangeRate;
+      return new Intl.NumberFormat('en-SG', {
+        style: 'currency', currency: 'SGD',
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
+      }).format(converted);
+    }
+    default:
+      // IDR — no conversion needed, base is IDR
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency', currency: 'IDR',
+        minimumFractionDigits: 0, maximumFractionDigits: 0,
+      }).format(num);
+  }
 }
 
 /** Format an ISO date string to a readable locale date (e.g. "10 Agu 2026") */

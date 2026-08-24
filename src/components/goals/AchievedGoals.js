@@ -1,14 +1,21 @@
 import { useState } from "react";
-import { ChevronRight, Plane, GraduationCap, Trophy } from "lucide-react";
+import { Medal, Laptop, Plane, GraduationCap, Shield, Heart, Car, Home, ChevronRight, Trophy } from "lucide-react";
 import Link from "next/link";
 import GoalDetailModal from "./GoalDetailModal";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 // Icon mapper for achieved goals
 function getAchievedIcon(iconType) {
   switch (iconType) {
     case "plane": return <Plane className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
     case "graduation-cap": return <GraduationCap className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
+    case "medal": return <Medal className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
+    case "laptop": return <Laptop className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
+    case "shield": return <Shield className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
+    case "heart": return <Heart className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
+    case "car": return <Car className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
+    case "home": return <Home className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
     default: return <Trophy className="w-6.5 h-6.5 sm:w-8 sm:h-8" />;
   }
 }
@@ -17,7 +24,10 @@ export default function AchievedGoals({
   achievedGoals
 }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [selectedGoal, setSelectedGoal] = useState(null);
+
+  if (!achievedGoals || achievedGoals.length === 0) return null;
 
   return (
     <div className="space-y-6 pt-4">
@@ -58,7 +68,7 @@ export default function AchievedGoals({
               </div>
             </div>
             <div className="text-right space-y-1 shrink-0 ml-1">
-              <p className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">Rp {mappedGoal.amount.toLocaleString("id-ID")}</p>
+              <p className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">{formatCurrency(mappedGoal.amount)}</p>
               <span className="bg-emerald-50 text-emerald-600 text-[9px] sm:text-[10px] font-black px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg select-none border border-emerald-100 block w-fit ml-auto">
                 {mappedGoal.badge}
               </span>

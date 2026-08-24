@@ -5,13 +5,11 @@ import Link from "next/link";
 import { Utensils, Wallet, Car, ShoppingBag, Eye } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
-function formatRupiah(n) {
-  const abs = Math.abs(n).toLocaleString('id-ID');
-  return (n < 0 ? '- ' : '+ ') + 'Rp ' + abs;
-}
+import { useCurrency } from "../../hooks/useCurrency";
 
 export default function RecentTransactions({ transactions = [] }) {
   const { t } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const ref = useRef(null);
@@ -135,7 +133,8 @@ export default function RecentTransactions({ transactions = [] }) {
                       </div>
                     </td>
                     <td className={`py-4 text-right font-bold ${amountClass} whitespace-nowrap`}>
-                      {formatRupiah(t.amount)}
+                      {t.amount < 0 ? '- ' : '+ '}
+                      {formatCurrency(Math.abs(t.amount))}
                     </td>
                   </tr>
                 );

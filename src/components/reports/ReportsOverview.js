@@ -2,17 +2,7 @@
 
 import { TrendingUp, TrendingDown, Target, Activity, AlertTriangle, CheckCircle, Info, Zap } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
-
-const fmt = (val) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val ?? 0);
-
-const fmtCompact = (val) => {
-  const abs = Math.abs(val ?? 0);
-  if (abs >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1) + "M";
-  if (abs >= 1_000_000) return (val / 1_000_000).toFixed(1) + "Jt";
-  if (abs >= 1_000) return (val / 1_000).toFixed(0) + "Rb";
-  return String(val ?? 0);
-};
+import { useCurrency } from "../../hooks/useCurrency";
 
 function HealthGauge({ rate, language }) {
   const pct = Math.min(Math.max(rate, 0), 100);
@@ -110,6 +100,7 @@ export default function ReportsOverview({
   loading      = false,
 }) {
   const { language } = useLanguage();
+  const { formatCurrency, formatCompact } = useCurrency();
   const isDeficit  = netSavings < 0;
   const rateScore  = savingRate >= 30 ? "A" : savingRate >= 20 ? "B" : savingRate >= 10 ? "C" : "D";
   const rateGood   = savingRate >= 20;
@@ -161,9 +152,9 @@ export default function ReportsOverview({
                 </span>
               </div>
               <p className="text-2xl font-black text-white tracking-tight leading-none">
-                {isDeficit ? "-" : ""}{fmtCompact(Math.abs(netSavings))}
+                {isDeficit ? "-" : ""}{formatCompact(Math.abs(netSavings))}
               </p>
-              <p className="text-[10px] text-white/70 font-semibold mt-1">{fmt(Math.abs(netSavings))}</p>
+              <p className="text-[10px] text-white/70 font-semibold mt-1">{formatCurrency(Math.abs(netSavings))}</p>
               <p className="text-[10px] font-semibold text-white/60 mt-2 flex items-center gap-1">
                 {isDeficit
                   ? <><TrendingDown className="w-3 h-3" /> {language === 'en' ? "Expenses exceed income" : "Pengeluaran melebihi pemasukan"}</>
@@ -202,19 +193,19 @@ export default function ReportsOverview({
 
         <KpiCard
           label={language === 'en' ? "Total Income" : "Total Pemasukan"}
-          compact={fmtCompact(totalIncome)}
-          value={fmt(totalIncome)}
-          icon={TrendingUp} iconBg="bg-emerald-50" iconColor="text-emerald-600"
-          sub={months > 0 ? (language === 'en' ? `Average ${fmtCompact(avgIncome)}/mo` : `Rata-rata ${fmtCompact(avgIncome)}/bln`) : undefined}
+          compact={formatCompact(totalIncome)}
+          value={formatCurrency(totalIncome)}
+          icon={TrendingUp} iconBg="bg-emerald-50" iconColor="text-emerald-500"
+          sub={months > 0 ? (language === 'en' ? `Average ${formatCompact(avgIncome)}/mo` : `Rata-rata ${formatCompact(avgIncome)}/bln`) : undefined}
           loading={loading}
         />
         <KpiCard
           label={language === 'en' ? "Total Expense" : "Total Pengeluaran"}
-          compact={fmtCompact(totalExpense)}
-          value={fmt(totalExpense)}
+          compact={formatCompact(totalExpense)}
+          value={formatCurrency(totalExpense)}
           icon={TrendingDown} iconBg="bg-red-50" iconColor="text-red-500"
-          sub={months > 0 ? (language === 'en' ? `Average ${fmtCompact(avgExpense)}/mo` : `Rata-rata ${fmtCompact(avgExpense)}/bln`) : undefined}
-          badge={burnRate > 0 ? `Burn ${burnRate}%` : undefined}
+          sub={months > 0 ? (language === 'en' ? `Average ${formatCompact(avgExpense)}/mo` : `Rata-rata ${formatCompact(avgExpense)}/bln`) : undefined}
+          badge={totalIncome > 0 ? `Burn ${burnRate}%` : undefined}
           badgeColor={burnRate > 80 ? "bg-red-100 text-red-600" : burnRate > 60 ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500"}
           loading={loading}
         />
@@ -245,13 +236,13 @@ export default function ReportsOverview({
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Best Month" : "Bulan Terbaik"}</p>
-            <p className="text-sm font-black text-[#00685F]">{bestMonth ? mLabel(bestMonth.month) : "-"}</p>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{bestMonth ? fmtCompact(bestMonth.income) : "-"} {language === 'en' ? "income" : "pemasukan"}</p>
+            <p className="text-xl font-black text-emerald-600">{bestMonth ? mLabel(bestMonth.month) : "-"}</p>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{bestMonth ? formatCompact(bestMonth.income) : "-"} {language === 'en' ? "income" : "pemasukan"}</p>
           </div>
-          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{language === 'en' ? "Max Expense" : "Pengeluaran Max"}</p>
-            <p className="text-sm font-black text-red-500">{worstMonth ? mLabel(worstMonth.month) : "-"}</p>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{worstMonth ? fmtCompact(worstMonth.expense) : "-"} {language === 'en' ? "expense" : "keluar"}</p>
+            <p className="text-xl font-black text-red-600">{worstMonth ? mLabel(worstMonth.month) : "-"}</p>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{worstMonth ? formatCompact(worstMonth.expense) : "-"} {language === 'en' ? "expense" : "keluar"}</p>
           </div>
         </div>
       )}
@@ -291,15 +282,15 @@ export default function ReportsOverview({
               ))}
               <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
                 <div className="text-center">
-                  <p className="text-sm font-black text-white">{fmtCompact(avgIncome)}</p>
+                  <p className="text-sm font-black text-white">{formatCompact(avgIncome)}</p>
                   <p className="text-[9px] text-slate-400 font-semibold">{language === 'en' ? "Avg Income/Mo" : "Avg Masuk/Bln"}</p>
                 </div>
                 <div className="text-center border-x border-white/10">
-                  <p className="text-sm font-black text-white">{fmtCompact(avgExpense)}</p>
+                  <p className="text-sm font-black text-white">{formatCompact(avgExpense)}</p>
                   <p className="text-[9px] text-slate-400 font-semibold">{language === 'en' ? "Avg Expense/Mo" : "Avg Keluar/Bln"}</p>
                 </div>
                 <div className="text-center">
-                  <p className={`text-sm font-black ${isDeficit ? "text-red-400" : "text-emerald-400"}`}>{fmtCompact(Math.abs(avgIncome - avgExpense))}</p>
+                  <p className={`text-sm font-black ${isDeficit ? "text-red-400" : "text-emerald-400"}`}>{formatCompact(Math.abs(avgIncome - avgExpense))}</p>
                   <p className="text-[9px] text-slate-400 font-semibold">{language === 'en' ? "Avg Net/Mo" : "Avg Net/Bln"}</p>
                 </div>
               </div>

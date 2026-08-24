@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import TransactionsStats from "../../../components/transactions/TransactionsStats";
 import TransactionsFilters from "../../../components/transactions/TransactionsFilters";
 import TransactionsTable from "../../../components/transactions/TransactionsTable";
 import TransactionModal from "../../../components/transactions/TransactionModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
-import { Plus } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "../../../services/transaction.service";
 import { getCategories } from "../../../services/category.service";
 import { getAccounts } from "../../../services/account.service";
 import { formatDate } from "../../../lib/utils";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../hooks/useCurrency";
 
 // Formatter Helpers
 function formatDateInput(dateStr) {
@@ -27,8 +28,10 @@ function formatDateInput(dateStr) {
 }
 
 function TransactionsPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { formatCurrency, currencyCode } = useCurrency();
 
   const [categoryIdFilter, setCategoryIdFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
@@ -62,10 +65,25 @@ function TransactionsPage() {
     return () => window.removeEventListener("scroll", handleScroll, true);
   }, []);
 
+  // Listen to searchParams updates (from header or URL navigation)
+  useEffect(() => {
+    const q = searchParams.get("search");
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+      if (q.trim()) {
+        setDateFilter("all_time");
+      }
+      setPage(1);
+    }
+  }, [searchParams]);
+
   // Listen to global header search event
   useEffect(() => {
     const handleHeaderSearch = (e) => {
       setSearchQuery(e.detail || "");
+      if (e.detail && e.detail.trim()) {
+        setDateFilter("all_time");
+      }
       setPage(1);
     };
     window.addEventListener("header-search", handleHeaderSearch);
@@ -286,8 +304,8 @@ function TransactionsPage() {
     const netCashflow = totalIncome - totalExpense;
 
     const formatCurrencyNum = (num) => {
-      if (!num || num === 0) return "0";
-      return Math.round(num).toLocaleString('id-ID');
+      if (!num || num === 0) return formatCurrency(0);
+      return formatCurrency(num);
     };
 
     const nowStr = new Date().toLocaleString('id-ID', {
@@ -314,7 +332,7 @@ function TransactionsPage() {
     const categoryStatsRows = [
       "",
       `"STATISTIK PER KATEGORI"`,
-      `"Kategori"${sep}"Jml Transaksi"${sep}"Total Pemasukan (Rp)"${sep}"Total Pengeluaran (Rp)"`
+      `"Kategori"${sep}"Jml Transaksi"${sep}"Total Pemasukan (${currencyCode})"${sep}"Total Pengeluaran (${currencyCode})"`
     ];
     Object.keys(categoryStats).sort().forEach(cat => {
       const stats = categoryStats[cat];
@@ -333,9 +351,9 @@ function TransactionsPage() {
       `"Total Record"${sep}"${transactions.length} Transaksi"`,
       "",
       `"RINGKASAN KEUANGAN"`,
-      `"Total Pemasukan"${sep}"Rp ${formatCurrencyNum(totalIncome)}"`,
-      `"Total Pengeluaran"${sep}"Rp ${formatCurrencyNum(totalExpense)}"`,
-      `"Net Cashflow"${sep}"${netCashflow >= 0 ? '+' : '-'}Rp ${formatCurrencyNum(Math.abs(netCashflow))}"`
+      `"Total Pemasukan"${sep}"${formatCurrencyNum(totalIncome)}"`,
+      `"Total Pengeluaran"${sep}"${formatCurrencyNum(totalExpense)}"`,
+      `"Net Cashflow"${sep}"${netCashflow >= 0 ? '+' : '-'}${formatCurrencyNum(Math.abs(netCashflow))}"`
     ];
 
     // Header Tabel
@@ -346,9 +364,9 @@ function TransactionsPage() {
       "Kategori",
       "Akun / Sumber Dana",
       "Keterangan / Catatan",
-      "Pemasukan (Rp)",
-      "Pengeluaran (Rp)",
-      "Nominal Net (Rp)"
+      "Pemasukan",
+      "Pengeluaran",
+      "Nominal Net"
     ];
 
     // Data Baris Transaksi
@@ -363,7 +381,7 @@ function TransactionsPage() {
 
       const incomeVal = !isExpense ? formatCurrencyNum(amt) : "-";
       const expenseVal = isExpense ? formatCurrencyNum(amt) : "-";
-      const netVal = (isExpense ? "-Rp " : "+Rp ") + formatCurrencyNum(amt);
+      const netVal = (isExpense ? "- " : "+ ") + formatCurrencyNum(amt);
 
       return [
         idx + 1,
@@ -386,9 +404,9 @@ function TransactionsPage() {
       "",
       "",
       "",
-      `"Rp ${formatCurrencyNum(totalIncome)}"`,
-      `"Rp ${formatCurrencyNum(totalExpense)}"`,
-      `"${netCashflow >= 0 ? '+' : '-'}Rp ${formatCurrencyNum(Math.abs(netCashflow))}"`
+      `"${formatCurrencyNum(totalIncome)}"`,
+      `"${formatCurrencyNum(totalExpense)}"`,
+      `"${netCashflow >= 0 ? '+' : '-'}${formatCurrencyNum(Math.abs(netCashflow))}"`
     ].join(sep);
 
     const fullCsvContent = "\uFEFF" + [
@@ -469,6 +487,30 @@ function TransactionsPage() {
           categories={categories}
           accounts={accounts}
         />
+
+        {/* Active Search Banner */}
+        {searchQuery && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-brand-50/70 border border-brand-200/80 px-4 py-3 rounded-2xl text-xs text-brand-900 shadow-xs animate-fadeIn">
+            <div className="flex items-center gap-2 min-w-0">
+              <Search className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="truncate">
+                {language === 'en' ? 'Showing search result for:' : 'Menampilkan hasil pencarian untuk:'}{' '}
+                <span className="font-bold text-slate-900">"{searchQuery}"</span>
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setDateFilter("last_30_days");
+                router.replace("/transactions");
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-brand-100/60 text-brand-700 hover:text-brand-900 font-bold rounded-xl border border-brand-200 transition-all text-xs shrink-0 cursor-pointer shadow-xs active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              {language === 'en' ? 'Show All Transactions' : 'Tampilkan Semua Transaksi'}
+            </button>
+          </div>
+        )}
 
         {/* Table Container */}
         <TransactionsTable 
