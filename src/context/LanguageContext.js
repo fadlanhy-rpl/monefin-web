@@ -6,8 +6,8 @@ import en from "../locales/en.json";
 import { useAuth } from "../hooks/useAuth";
 
 const MESSAGES = { id, en };
-const SUPPORTED_LOCALES = ["id", "en"];
-const DEFAULT_LOCALE = "id";
+const SUPPORTED_LOCALES = ["en", "id"];
+const DEFAULT_LOCALE = "en";
 const COOKIE_NAME = "NEXT_LOCALE"; // same convention as next-intl for future compatibility
 
 const LanguageContext = createContext();

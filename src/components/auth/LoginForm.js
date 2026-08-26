@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, ShieldAlert, Laptop, Globe, Clock, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import { useLanguage } from "../../context/LanguageContext";
@@ -17,6 +17,110 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasAlertTriggered = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || hasAlertTriggered.current) return;
+
+    const showRevocationAlert = (device, ip, time) => {
+      hasAlertTriggered.current = true;
+      toast.custom(
+        (t) => (
+          <div
+            className={`transition-all duration-300 ease-out ${
+              t.visible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-2 scale-95 pointer-events-none"
+            } max-w-sm sm:max-w-md w-full bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl pointer-events-auto border border-amber-200/90 overflow-hidden ring-1 ring-amber-400/20`}
+          >
+            <div className="p-4 sm:p-5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-md">
+                      Sesi Dikeluarkan
+                    </span>
+                    <button
+                      onClick={() => toast.dismiss(t.id)}
+                      className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-600 font-medium">
+                    Akun Anda baru saja dikeluarkan dari sesi lain:
+                  </p>
+                  <div className="mt-2.5 space-y-1.5 bg-slate-50/90 rounded-xl p-3 border border-slate-200/70 text-xs">
+                    <div className="flex items-center gap-2 text-slate-800 font-semibold">
+                      <Laptop className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate">{device || "Perangkat Tidak Diketahui"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>IP: <span className="font-mono text-slate-700 font-medium">{ip || "-"}</span></span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-500 text-[11px]">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{time || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-amber-500/10 px-4 py-2 border-t border-amber-200/60 flex items-center justify-between text-[11px] text-amber-800 font-medium">
+              <span>Silakan masuk kembali untuk melanjutkan.</span>
+            </div>
+          </div>
+        ),
+        { id: "session-revoked-alert", duration: 4500 }
+      );
+    };
+
+    const showGenericExpired = () => {
+      hasAlertTriggered.current = true;
+      toast("Sesi Anda telah berakhir. Silakan login kembali.", {
+        id: "session-revoked-alert",
+        icon: "🔒",
+        duration: 4000,
+      });
+    };
+
+    // 1. Prioritas utama: Cek dari sessionStorage
+    const storedInfo = sessionStorage.getItem("session_revoked_info");
+    if (storedInfo) {
+      try {
+        const info = JSON.parse(storedInfo);
+        sessionStorage.removeItem("session_revoked_info");
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        if (info.device && info.ip && info.time) {
+          showRevocationAlert(info.device, info.ip, info.time);
+          return;
+        } else {
+          showGenericExpired();
+          return;
+        }
+      } catch (e) {
+        sessionStorage.removeItem("session_revoked_info");
+      }
+    }
+
+    // 2. Fallback: Cek dari URL search params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("message") === "session_expired") {
+      const rDevice = params.get("r_device");
+      const rIp = params.get("r_ip");
+      const rTime = params.get("r_time");
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      if (rDevice && rIp && rTime) {
+        showRevocationAlert(rDevice, rIp, rTime);
+      } else {
+        showGenericExpired();
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,6 +131,9 @@ export default function LoginForm() {
     if (result.success) {
       toast.success("Login berhasil! Selamat datang kembali.");
       router.push("/dashboard");
+    } else if (result.require2fa) {
+      toast("Verifikasi dua faktor diperlukan. Cek email Anda.", { icon: "🔐" });
+      router.push(`/verify-2fa?email=${encodeURIComponent(result.email)}`);
     } else if (result.requireVerification) {
       toast("Email belum diverifikasi. Silakan cek email Anda.", { icon: "📧" });
       router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
@@ -150,9 +257,9 @@ export default function LoginForm() {
       <div className="w-full flex flex-col sm:flex-row justify-center lg:justify-between items-center gap-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest pt-6 border-t border-gray-50 lg:border-t-0">
         <p>{t("auth.copyright")}</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.privacy")}</a>
-          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.terms")}</a>
-          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.security")}</a>
+          <Link href="/privacy" className="hover:text-[#00685F] transition-colors">{t("auth.privacy")}</Link>
+          <Link href="/terms" className="hover:text-[#00685F] transition-colors">{t("auth.terms")}</Link>
+          <Link href="/security" className="hover:text-[#00685F] transition-colors">{t("auth.security")}</Link>
         </div>
       </div>
     </div>

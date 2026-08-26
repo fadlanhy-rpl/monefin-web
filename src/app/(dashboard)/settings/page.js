@@ -13,7 +13,7 @@ import { useLanguage } from "../../../context/LanguageContext";
 
 export default function SettingsPage() {
   const { user, updatePassword, updateProfile, deleteAccount } = useAuth();
-  const { changeLanguage, language: currentGlobalLang } = useLanguage();
+  const { changeLanguage, language: currentGlobalLang, t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -33,7 +33,7 @@ export default function SettingsPage() {
 
   // Form State - Preferences
   const [currency, setCurrency] = useState("IDR");
-  const [language, setLanguage] = useState("id");
+  const [language, setLanguage] = useState("en");
   const [emailNotif, setEmailNotif] = useState(true);
   const [txAlert, setTxAlert] = useState(true);
   const [budgetAlert, setBudgetAlert] = useState(true);
@@ -58,7 +58,7 @@ export default function SettingsPage() {
       
       if (user.preferences) {
         setCurrency(user.preferences.currency || "IDR");
-        setLanguage(user.preferences.language || "id");
+        setLanguage(user.preferences.language || "en");
         setEmailNotif(user.preferences.emailNotif ?? true);
         setTxAlert(user.preferences.txAlert ?? true);
         setBudgetAlert(user.preferences.budgetAlert ?? true);
@@ -193,10 +193,10 @@ export default function SettingsPage() {
         <div className={`transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3`}>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Pengaturan Akun</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t("settings.title")}</h1>
               <Settings className="w-5 h-5 text-[#00685F] hidden sm:block" />
             </div>
-            <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">Kelola profil, keamanan, notifikasi, dan preferensi aplikasi MoneFin Anda</p>
+            <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">{t("settings.subtitle")}</p>
           </div>
         </div>
 
@@ -242,7 +242,6 @@ export default function SettingsPage() {
               confirmPassword={confirmPassword}
               setConfirmPassword={setConfirmPassword}
               onSavePassword={handleSavePassword}
-              onForgotPassword={handleForgotPassword}
             />
           </div>
         )}

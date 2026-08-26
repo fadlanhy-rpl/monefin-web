@@ -100,7 +100,9 @@ function TransactionsPage() {
         const accRes = await getAccounts();
         if (accRes.data) setAccounts(accRes.data);
       } catch (error) {
-        console.error("Error fetching categories or accounts:", error);
+        if (error?.status !== 401) {
+          console.error("Error fetching categories or accounts:", error.message || error);
+        }
       }
     };
     fetchDropdownData();

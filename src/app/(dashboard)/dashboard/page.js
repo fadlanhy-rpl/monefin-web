@@ -34,7 +34,9 @@ export default function DashboardPage() {
           setData(res.data);
         }
       } catch (err) {
-        console.error("Gagal load dashboard", err);
+        if (err?.status !== 401) {
+          console.error("Gagal load dashboard", err.message || err);
+        }
       } finally {
         setLoading(false);
       }

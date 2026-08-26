@@ -13,6 +13,9 @@ export default function DashboardLayout({ children }) {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/login")) {
+        return;
+      }
       router.replace("/login");
     }
   }, [loading, isAuthenticated, router]);

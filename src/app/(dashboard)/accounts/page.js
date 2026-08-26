@@ -66,8 +66,10 @@ function AccountsPageContent() {
       const response = await getAccounts();
       setAccounts(response.data || []);
     } catch (error) {
-      console.error("Failed to fetch accounts:", error);
-      toast.error(language === 'en' ? "Failed to fetch accounts data" : "Gagal mengambil data akun");
+      if (error?.status !== 401) {
+        console.error("Failed to fetch accounts:", error.message || error);
+        toast.error(language === 'en' ? "Failed to fetch accounts data" : "Gagal mengambil data akun");
+      }
     } finally {
       setIsLoading(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Camera, Check, User, Mail, Briefcase, Phone, FileText } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function ProfileSection({
   fullName,
@@ -18,6 +19,8 @@ export default function ProfileSection({
   onSave,
   onCancel
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="bg-white p-5 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 sm:gap-8 lg:gap-12 hover:shadow-md transition-all duration-300">
       
@@ -50,16 +53,16 @@ export default function ProfileSection({
           </button>
         </div>
         <div className="mt-3 text-center">
-          <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest block">Format JPG/PNG</span>
-          <span className="text-[10px] text-slate-400 font-semibold">Max ukuran file 2MB</span>
+          <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest block">{t("settings.format_jpg_png")}</span>
+          <span className="text-[10px] text-slate-400 font-semibold">{t("settings.max_size")}</span>
         </div>
       </div>
 
       {/* Right Form Inputs */}
       <div className="flex-1 space-y-5 min-w-0">
         <div className="border-b border-slate-100 pb-3">
-          <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">Informasi Pribadi</h2>
-          <p className="text-xs text-slate-400">Perbarui data profil publik dan informasi kontak Anda</p>
+          <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">{t("settings.personal_info")}</h2>
+          <p className="text-xs text-slate-400">{t("settings.personal_info_desc")}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -67,7 +70,7 @@ export default function ProfileSection({
           <div className="space-y-1.5">
             <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-[#00685F]" />
-              <span>Full Name</span>
+              <span>{t("settings.full_name")}</span>
             </label>
             <input 
               type="text" 
@@ -83,11 +86,11 @@ export default function ProfileSection({
             <div className="flex items-center justify-between gap-2">
               <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 truncate">
                 <Mail className="w-3.5 h-3.5 text-[#00685F]" />
-                <span>Email Address</span>
+                <span>{t("settings.email_address")}</span>
               </label>
               <span className="bg-emerald-50 text-emerald-700 text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md border border-emerald-200/60 flex items-center gap-1 shrink-0 select-none">
                 <Check className="w-3 h-3 text-emerald-600" />
-                Verified
+                {t("settings.verified")}
               </span>
             </div>
             <input 
@@ -103,7 +106,7 @@ export default function ProfileSection({
           <div className="space-y-1.5">
             <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-[#00685F]" />
-              <span>Nomor Telepon</span>
+              <span>{t("settings.phone_number")}</span>
             </label>
             <input 
               type="tel" 
@@ -118,7 +121,7 @@ export default function ProfileSection({
           <div className="space-y-1.5">
             <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
               <Briefcase className="w-3.5 h-3.5 text-[#00685F]" />
-              <span>Profesi (Occupation)</span>
+              <span>{t("settings.occupation")}</span>
             </label>
             <input 
               type="text" 
@@ -136,13 +139,13 @@ export default function ProfileSection({
         <div className="space-y-1.5">
           <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5 text-[#00685F]" />
-            <span>Bio Singkat</span>
+            <span>{t("settings.short_bio")}</span>
           </label>
           <textarea
             rows="2"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Tuliskan ringkasan singkat tentang tujuan finansial Anda..."
+            placeholder={t("settings.bio_placeholder")}
             className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3 text-xs sm:text-sm font-semibold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none text-slate-800 transition-all resize-none"
           ></textarea>
         </div>
@@ -154,14 +157,14 @@ export default function ProfileSection({
             onClick={onCancel}
             className="w-full sm:w-auto text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 transition cursor-pointer px-5 py-2.5 rounded-xl hover:bg-slate-100 select-none text-center"
           >
-            Batal
+            {t("common.cancel")}
           </button>
           <button 
             type="button"
             onClick={onSave}
             className="w-full sm:w-auto bg-[#00685F] text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold hover:bg-[#004D46] transition-all shadow-md shadow-[#00685F]/20 active:scale-95 cursor-pointer text-center select-none"
           >
-            Simpan Perubahan
+            {t("common.save")}
           </button>
         </div>
 

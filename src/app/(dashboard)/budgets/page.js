@@ -74,8 +74,10 @@ export default function BudgetsPage() {
       setBudgets(formattedBudgets);
       setCategories(categoriesRes.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
-      notifyError(language === 'en' ? "Failed to load budget data" : "Gagal memuat data anggaran");
+      if (error?.status !== 401) {
+        console.error("Error fetching data:", error.message || error);
+        notifyError(language === 'en' ? "Failed to load budget data" : "Gagal memuat data anggaran");
+      }
     } finally {
       setIsLoading(false);
     }
