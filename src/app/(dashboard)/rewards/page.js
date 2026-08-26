@@ -52,13 +52,13 @@ export default function RewardsPage() {
         <div>
           <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#00685F]">
             <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>{t("rewards.page_subtitle") || "FINANCIAL DISCIPLINE & REWARDS"}</span>
+            <span>{t("rewards.page_subtitle", "FINANCIAL DISCIPLINE & REWARDS")}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
-            {t("rewards.page_title") || "Pencapaian & Hadiah"}
+            {t("rewards.page_title", "Pencapaian & Hadiah")}
           </h1>
           <p className="text-sm text-slate-500 font-medium mt-1">
-            {t("rewards.page_desc") || "Kembangkan kebiasaan finansial yang sehat, raih level tertinggi, dan buka lencana bergengsi."}
+            {t("rewards.page_desc", "Kembangkan kebiasaan finansial yang sehat, raih level tertinggi, dan buka lencana bergengsi.")}
           </p>
         </div>
 
@@ -66,10 +66,10 @@ export default function RewardsPage() {
           type="button"
           onClick={loadData}
           disabled={isLoading}
-          className="self-start sm:self-auto p-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-2xl shadow-sm transition-all flex items-center gap-2 text-xs font-bold cursor-pointer disabled:opacity-50"
+          className="self-start sm:self-auto px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-2xl shadow-xs transition-all flex items-center gap-2 text-xs font-bold cursor-pointer disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-[#00685F]" : ""}`} />
-          <span>{t("common.refresh") || "Segarkan"}</span>
+          <span>{t("common.refresh", "Segarkan")}</span>
         </button>
       </div>
 

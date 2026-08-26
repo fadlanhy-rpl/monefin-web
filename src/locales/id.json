@@ -153,9 +153,21 @@
   },
   "common": {
     "save": "Simpan",
-    "cancel": "Batal",
     "saved": "Tersimpan!",
-    "back": "Kembali"
+    "cancel": "Batal",
+    "edit": "Ubah",
+    "delete": "Hapus",
+    "add": "Tambah",
+    "back": "Kembali",
+    "refresh": "Segarkan",
+    "all": "Semua",
+    "search": "Cari...",
+    "filter": "Filter",
+    "loading": "Memuat...",
+    "close": "Tutup",
+    "actions": "Aksi",
+    "active": "Aktif",
+    "inactive": "Nonaktif"
   },
   "simulator": {
     "badge": "Kalkulator Masa Depan",
@@ -426,21 +438,6 @@
     "delete_title": "Hapus Akun?",
     "delete_desc": "Apakah Anda yakin ingin menghapus akun ini? Tindakan ini tidak dapat dibatalkan dan transaksi yang terhubung mungkin terpengaruh.",
     "deleting": "Menghapus..."
-  },
-  "common": {
-    "edit": "Ubah",
-    "delete": "Hapus",
-    "cancel": "Batal",
-    "save": "Simpan",
-    "add": "Tambah",
-    "back": "Kembali",
-    "search": "Cari...",
-    "filter": "Filter",
-    "loading": "Memuat...",
-    "close": "Tutup",
-    "actions": "Aksi",
-    "active": "Aktif",
-    "inactive": "Nonaktif"
   },
   "goals": {
     "title": "Target Tabungan",

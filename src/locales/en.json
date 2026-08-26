@@ -153,9 +153,21 @@
   },
   "common": {
     "save": "Save",
-    "cancel": "Cancel",
     "saved": "Saved!",
-    "back": "Back"
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "back": "Back",
+    "refresh": "Refresh",
+    "all": "All",
+    "search": "Search...",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "close": "Close",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive"
   },
   "simulator": {
     "badge": "Future Calculator",
@@ -426,21 +438,6 @@
     "delete_title": "Delete Account?",
     "delete_desc": "Are you sure you want to delete this account? This action cannot be undone and will affect associated transactions.",
     "deleting": "Deleting..."
-  },
-  "common": {
-    "edit": "Edit",
-    "delete": "Delete",
-    "cancel": "Cancel",
-    "save": "Save",
-    "add": "Add",
-    "back": "Back",
-    "search": "Search...",
-    "filter": "Filter",
-    "loading": "Loading...",
-    "close": "Close",
-    "actions": "Actions",
-    "active": "Active",
-    "inactive": "Inactive"
   },
   "goals": {
     "title": "Savings Goals",
