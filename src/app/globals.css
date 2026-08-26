@@ -530,6 +530,22 @@ input:focus {
   animation: spinSlow 25s linear infinite;
 }
 
+/* Smooth Badge & Filter Animations */
+@keyframes badgeFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-badge-in {
+  animation: badgeFadeIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Extra Small Device Responsiveness (288px - 380px) */
 @media (max-width: 380px) {
   html, body {

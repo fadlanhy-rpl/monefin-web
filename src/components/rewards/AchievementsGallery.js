@@ -1,7 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, Flame, Target, ShieldCheck, Award, Lock, CheckCircle2, Trophy, Sparkles } from "lucide-react";
+import { 
+  Zap, 
+  Flame, 
+  Target, 
+  ShieldCheck, 
+  Award, 
+  Lock, 
+  CheckCircle2, 
+  Trophy, 
+  Sparkles,
+  Layers,
+  ArrowLeftRight,
+  PiggyBank,
+  PieChart,
+  Inbox
+} from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 function BadgeIcon({ icon, className = "w-6 h-6" }) {
@@ -65,12 +80,12 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
   const totalCount = achievements.length;
 
   const categories = [
-    { key: "all", label: "Semua Kategori" },
-    { key: "transaction", label: "Transaksi" },
-    { key: "streak", label: "Streak" },
-    { key: "saving", label: "Tabungan" },
-    { key: "security", label: "Keamanan" },
-    { key: "budget", label: "Anggaran" },
+    { key: "all", label: "Semua Kategori", icon: Layers },
+    { key: "transaction", label: "Transaksi", icon: ArrowLeftRight },
+    { key: "streak", label: "Streak", icon: Flame },
+    { key: "saving", label: "Tabungan", icon: PiggyBank },
+    { key: "security", label: "Keamanan", icon: ShieldCheck },
+    { key: "budget", label: "Anggaran", icon: PieChart },
   ];
 
   const filteredAchievements = achievements.filter((a) => {
@@ -99,13 +114,15 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
           </div>
         </div>
 
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl self-start md:self-auto overflow-x-auto max-w-full scrollbar-none">
+        {/* Status Filter Tabs with Smooth Indicator */}
+        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl self-start md:self-auto overflow-x-auto max-w-full scrollbar-none border border-slate-200/50">
           <button
             type="button"
             onClick={() => setFilter("all")}
-            className={`px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-              filter === "all" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+            className={`px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
+              filter === "all" 
+                ? "bg-white text-slate-900 shadow-sm ring-1 ring-black/5 scale-[1.02]" 
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
             }`}
           >
             {t("common.all", "Semua")} ({totalCount})
@@ -113,8 +130,10 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
           <button
             type="button"
             onClick={() => setFilter("unlocked")}
-            className={`px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-              filter === "unlocked" ? "bg-white text-emerald-700 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+            className={`px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
+              filter === "unlocked" 
+                ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5 scale-[1.02]" 
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
             }`}
           >
             {t("rewards.unlocked", "Terbuka")} ({unlockedCount})
@@ -122,8 +141,10 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
           <button
             type="button"
             onClick={() => setFilter("locked")}
-            className={`px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-              filter === "locked" ? "bg-white text-slate-700 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+            className={`px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
+              filter === "locked" 
+                ? "bg-white text-slate-700 shadow-sm ring-1 ring-black/5 scale-[1.02]" 
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
             }`}
           >
             {t("rewards.locked", "Terkunci")} ({totalCount - unlockedCount})
@@ -131,32 +152,52 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
         </div>
       </div>
 
-      {/* Category Pills Bar */}
+      {/* Category Pills Bar with Smooth Transitions */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none max-w-full">
-        {categories.map((cat) => (
-          <button
-            key={cat.key}
-            type="button"
-            onClick={() => setCategoryFilter(cat.key)}
-            className={`px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
-              categoryFilter === cat.key
-                ? "bg-[#00685F] text-white border-[#00685F] shadow-2xs"
-                : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200/70"
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const IconComp = cat.icon;
+          const isActive = categoryFilter === cat.key;
+
+          return (
+            <button
+              key={cat.key}
+              type="button"
+              onClick={() => setCategoryFilter(cat.key)}
+              className={`px-3.5 sm:px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all duration-300 ease-out cursor-pointer border shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                isActive
+                  ? "bg-[#00685F] text-white border-[#00685F] shadow-md shadow-emerald-800/20 scale-[1.03] ring-2 ring-[#00685F]/20"
+                  : "bg-slate-50/90 hover:bg-slate-100 text-slate-600 border-slate-200/70 hover:scale-[1.01]"
+              }`}
+            >
+              <IconComp className={`w-3.5 h-3.5 transition-transform duration-300 ${isActive ? "scale-110 text-emerald-200" : "text-slate-400"}`} />
+              <span>{cat.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Badges Grid */}
+      {/* Badges Grid with Staggered Fade-in Animations */}
       {isLoading ? (
-        <div className="py-12 flex justify-center">
-          <span className="w-8 h-8 border-3 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
+        <div className="py-16 flex flex-col items-center justify-center gap-3">
+          <span className="w-9 h-9 border-3 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
+          <p className="text-xs text-slate-400 font-bold">Memuat lencana...</p>
+        </div>
+      ) : filteredAchievements.length === 0 ? (
+        <div className="py-14 flex flex-col items-center justify-center text-center animate-badge-in">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+            <Inbox className="w-7 h-7" />
+          </div>
+          <h4 className="text-sm font-black text-slate-700">Tidak Ada Lencana</h4>
+          <p className="text-xs text-slate-400 mt-1 max-w-xs">
+            Belum ada lencana pada filter ini. Coba pilih kategori lain.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-          {filteredAchievements.map((badge) => {
+        <div 
+          key={`${filter}-${categoryFilter}`}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4"
+        >
+          {filteredAchievements.map((badge, idx) => {
             const tierStyle = TIER_STYLES[badge.tier] || TIER_STYLES.bronze;
             const percent = badge.required_count > 0 
               ? Math.min(100, Math.round((badge.progress / badge.required_count) * 100)) 
@@ -166,17 +207,18 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
               <div
                 key={badge.id}
                 onClick={() => setSelectedBadge(badge)}
-                className={`p-4 sm:p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between cursor-pointer group ${
+                style={{ animationDelay: `${idx * 35}ms` }}
+                className={`animate-badge-in p-4 sm:p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between cursor-pointer group hover:shadow-lg ${
                   badge.is_unlocked
-                    ? `${tierStyle.bg} ${tierStyle.border} ${tierStyle.glow} shadow-2xs hover:shadow-md hover:scale-[1.01]`
-                    : "bg-slate-50/70 border-slate-100 opacity-60 hover:opacity-90 hover:border-slate-200"
+                    ? `${tierStyle.bg} ${tierStyle.border} ${tierStyle.glow} shadow-2xs hover:scale-[1.02]`
+                    : "bg-slate-50/70 border-slate-100 opacity-60 hover:opacity-90 hover:border-slate-200 hover:scale-[1.01]"
                 }`}
               >
                 <div>
                   {/* Top Row: Icon + XP + Tier badge */}
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div
-                      className={`w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 shrink-0 ${
+                      className={`w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-110 shrink-0 ${
                         badge.is_unlocked ? tierStyle.iconBg : "bg-slate-200 text-slate-400"
                       }`}
                     >
@@ -188,7 +230,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
                     </div>
 
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-2xs ${tierStyle.pill}`}>
+                      <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-2xs ${tierStyle.pill}`}>
                         {tierStyle.name}
                       </span>
                       <span className="text-[10px] sm:text-[11px] font-extrabold text-[#00685F] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
@@ -198,7 +240,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
                   </div>
 
                   {/* Title & Description */}
-                  <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug group-hover:text-[#00685F] transition-colors">
                     {badge.title}
                   </h4>
                   <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1 leading-relaxed line-clamp-2">
@@ -241,7 +283,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
       {/* BADGE DETAIL POPUP MODAL */}
       {selectedBadge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-100 text-center">
+          <div className="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-100 text-center animate-badge-in">
             
             {/* Big Icon */}
             <div className="flex justify-center pt-2">
