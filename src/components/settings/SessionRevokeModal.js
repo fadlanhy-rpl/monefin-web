@@ -100,7 +100,9 @@ export default function SessionRevokeModal({
           <div className="bg-amber-50/80 rounded-2xl p-3.5 border border-amber-200/60 mb-6 text-left flex items-start gap-2.5 text-xs text-amber-800 font-medium">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <span>
-              Tindakan ini akan mengeluarkan <strong>{otherCount} sesi</strong> aktif di perangkat lain secara bersamaan.
+              {t("settings.revoke_all_warning_prefix") || "Tindakan ini akan mengeluarkan "}
+              <strong>{otherCount}</strong>
+              {t("settings.revoke_all_warning_suffix") || " sesi aktif di perangkat lain secara bersamaan."}
             </span>
           </div>
         )}

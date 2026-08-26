@@ -8,19 +8,19 @@ import { getSessions, revokeSession, revokeOtherSessions } from "../../services/
 import SessionRevokeModal from "./SessionRevokeModal";
 import toast from "react-hot-toast";
 
-function formatRelativeTime(date) {
-  if (!date) return "Tidak diketahui";
+function formatRelativeTime(date, lang = "en") {
+  if (!date) return lang === "id" ? "Tidak diketahui" : "Unknown";
   const now = new Date();
   const d = new Date(date);
   const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return "Baru saja";
-  if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
-  return `${Math.floor(diff / 86400)} hari lalu`;
+  if (diff < 60) return lang === "id" ? "Baru saja" : "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)} ${lang === "id" ? "menit lalu" : "mins ago"}`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ${lang === "id" ? "jam lalu" : "hours ago"}`;
+  return `${Math.floor(diff / 86400)} ${lang === "id" ? "hari lalu" : "days ago"}`;
 }
 
-function formatIP(ip) {
-  if (!ip || ip === "IP tidak tersimpan") return "IP tidak tercatat";
+function formatIP(ip, lang = "en") {
+  if (!ip || ip === "IP tidak tersimpan") return lang === "id" ? "IP tidak tercatat" : "IP not recorded";
   if (ip === "127.0.0.1" || ip === "::1") return `${ip} (Localhost)`;
   return ip;
 }
@@ -43,7 +43,7 @@ export default function SecuritySection({
   setConfirmPassword,
   onSavePassword,
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toggle2fa } = useAuth();
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -297,7 +297,7 @@ export default function SecuritySection({
               <span className="w-5 h-5 border-2 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
             </div>
           ) : sessions.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-4">Tidak ada sesi aktif.</p>
+            <p className="text-xs text-slate-400 text-center py-4">{t("settings.no_active_sessions") || "Tidak ada sesi aktif."}</p>
           ) : (
             sessions.map((session) => (
               <div
@@ -318,12 +318,12 @@ export default function SecuritySection({
                       )}
                       {session.is_legacy && (
                         <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full">
-                          Sesi Lama
+                          {t("settings.legacy_session") || "Sesi Lama"}
                         </span>
                       )}
                     </p>
                     <p className="text-[10px] text-slate-400">
-                      {formatIP(session.ip_address)} • {session.last_used_at ? formatRelativeTime(session.last_used_at) : formatRelativeTime(session.created_at)}
+                      {formatIP(session.ip_address, language)} • {session.last_used_at ? formatRelativeTime(session.last_used_at, language) : formatRelativeTime(session.created_at, language)}
                     </p>
                   </div>
                 </div>
