@@ -7,7 +7,7 @@ import StreakCard from "../../../components/rewards/StreakCard";
 import AchievementsGallery from "../../../components/rewards/AchievementsGallery";
 import QuestsList from "../../../components/rewards/QuestsList";
 import { getGamificationSummary, getAchievements } from "../../../services/gamification.service";
-import { Sparkles, RefreshCw, Trophy, Flame } from "lucide-react";
+import { Sparkles, RefreshCw, Trophy } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function RewardsPage() {
@@ -46,7 +46,7 @@ export default function RewardsPage() {
 
   return (
     <DashboardLayout>
-      <div className="relative space-y-8 max-w-7xl mx-auto pb-12">
+      <div className="relative space-y-6 sm:space-y-8 max-w-7xl mx-auto pb-12 overflow-hidden">
         
         {/* Playful ambient background glows */}
         <div className="absolute -top-10 left-10 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
@@ -55,7 +55,6 @@ export default function RewardsPage() {
 
         {/* TOP HEADER */}
         <div className="pt-1">
-          {/* Title and Refresh Button */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#00685F]">
@@ -65,7 +64,7 @@ export default function RewardsPage() {
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
                 {t("rewards.page_title", "Pencapaian & Hadiah")}
               </h1>
-              <p className="text-sm text-slate-500 font-medium mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
                 {t("rewards.page_desc", "Kembangkan kebiasaan finansial yang sehat, raih level tertinggi, dan buka lencana bergengsi.")}
               </p>
             </div>
@@ -74,7 +73,7 @@ export default function RewardsPage() {
               type="button"
               onClick={loadData}
               disabled={isLoading}
-              className="self-start sm:self-auto px-4 py-2.5 bg-white border border-slate-200/90 hover:border-emerald-200 hover:bg-emerald-50/50 text-slate-700 rounded-2xl shadow-xs transition-all flex items-center gap-2 text-xs font-bold cursor-pointer disabled:opacity-50"
+              className="self-start sm:self-auto px-4 py-2.5 bg-white border border-slate-200/90 hover:border-emerald-200 hover:bg-emerald-50/50 text-slate-700 rounded-2xl shadow-xs transition-all flex items-center gap-2 text-xs font-bold cursor-pointer disabled:opacity-50 shrink-0"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-[#00685F]" : "text-slate-500"}`} />
               <span>{t("common.refresh", "Segarkan")}</span>
@@ -83,7 +82,7 @@ export default function RewardsPage() {
         </div>
 
         {/* HERO STATS: Level Card & Streak Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-stretch">
           <div className="lg:col-span-2">
             <LevelCard data={summary} />
           </div>
@@ -97,7 +96,7 @@ export default function RewardsPage() {
         </div>
 
         {/* MAIN SECTIONS: Quests & Achievements */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <QuestsList
             quests={summary?.quests || []}
             onClaimSuccess={handleClaimSuccess}
