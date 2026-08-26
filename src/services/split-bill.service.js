@@ -1,42 +1,52 @@
-import api from "../lib/axios";
+import { fetchAPI } from "../lib/api";
 
 export const getSplitBills = async (params = {}) => {
-  const res = await api.get("/split-bills", { params });
-  return res.data;
+  const query = new URLSearchParams();
+  if (params.status && params.status !== "all") query.append("status", params.status);
+  if (params.search) query.append("search", params.search);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return await fetchAPI(`/split-bills${qs}`);
 };
 
 export const createSplitBill = async (data) => {
-  const res = await api.post("/split-bills", data);
-  return res.data;
+  return await fetchAPI("/split-bills", {
+    method: "POST",
+    body: data,
+  });
 };
 
 export const calculateSplitPreview = async (data) => {
-  const res = await api.post("/split-bills/calculate-preview", data);
-  return res.data;
+  return await fetchAPI("/split-bills/calculate-preview", {
+    method: "POST",
+    body: data,
+  });
 };
 
 export const getSplitBillDetail = async (id) => {
-  const res = await api.get(`/split-bills/${id}`);
-  return res.data;
+  return await fetchAPI(`/split-bills/${id}`);
 };
 
 export const deleteSplitBill = async (id) => {
-  const res = await api.delete(`/split-bills/${id}`);
-  return res.data;
+  return await fetchAPI(`/split-bills/${id}`, {
+    method: "DELETE",
+  });
 };
 
 export const markParticipantPayment = async (billId, participantId, data) => {
-  const res = await api.post(`/split-bills/${billId}/participants/${participantId}/pay`, data);
-  return res.data;
+  return await fetchAPI(`/split-bills/${billId}/participants/${participantId}/pay`, {
+    method: "POST",
+    body: data,
+  });
 };
 
 export const recordMyExpenseToAccount = async (billId, data) => {
-  const res = await api.post(`/split-bills/${billId}/record-expense`, data);
-  return res.data;
+  return await fetchAPI(`/split-bills/${billId}/record-expense`, {
+    method: "POST",
+    body: data,
+  });
 };
 
 export const getWhatsAppShareText = async (billId, participantId = null) => {
-  const params = participantId ? { participant_id: participantId } : {};
-  const res = await api.get(`/split-bills/${billId}/whatsapp-text`, { params });
-  return res.data;
+  const qs = participantId ? `?participant_id=${participantId}` : "";
+  return await fetchAPI(`/split-bills/${billId}/whatsapp-text${qs}`);
 };
