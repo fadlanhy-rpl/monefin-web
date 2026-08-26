@@ -249,6 +249,7 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "transactions": "Transactions",
+    "recurring": "Recurring",
     "categories": "Categories",
     "budgets": "Budgets",
     "accounts": "Accounts",
@@ -256,6 +257,15 @@
     "reports": "Reports",
     "trashbin": "Trashbin",
     "settings": "Settings"
+  },
+  "notifications": {
+    "title": "All Notifications",
+    "unread_desc": "You have {count} unread notification(s).",
+    "mark_all_read": "Mark All as Read",
+    "auto_delete_notice": "Notifications are automatically cleared after 30 days.",
+    "no_notifications": "No notifications found.",
+    "load_more": "Load More",
+    "loading": "Loading notifications..."
   },
   "dashboard": {
     "title": "Financial Overview",

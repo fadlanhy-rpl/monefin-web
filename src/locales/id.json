@@ -249,6 +249,7 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "transactions": "Transaksi",
+    "recurring": "Transaksi Rutin",
     "categories": "Kategori",
     "budgets": "Anggaran",
     "accounts": "Rekening",
@@ -256,6 +257,15 @@
     "reports": "Laporan",
     "trashbin": "Tempat Sampah",
     "settings": "Pengaturan"
+  },
+  "notifications": {
+    "title": "Semua Notifikasi",
+    "unread_desc": "Anda memiliki {count} notifikasi yang belum dibaca.",
+    "mark_all_read": "Tandai Semua Dibaca",
+    "auto_delete_notice": "Notifikasi otomatis dihapus setelah 30 hari.",
+    "no_notifications": "Belum ada notifikasi saat ini.",
+    "load_more": "Tampilkan Lebih Banyak",
+    "loading": "Memuat notifikasi..."
   },
   "dashboard": {
     "title": "Ringkasan Finansial",
