@@ -18,6 +18,7 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [googleUrl, setGoogleUrl] = useState(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`);
+  const hasAlertTriggered = useRef(false);
 
   useEffect(() => {
     if (typeof navigator !== "undefined" && navigator?.brave && typeof navigator.brave.isBrave === "function") {
