@@ -24,10 +24,10 @@ export default function StreakCard({ streak = 0, longestStreak = 0, freezes = 0 
           </div>
           <div>
             <h3 className="text-lg font-black text-slate-800 tracking-tight">
-              {t("rewards.habit_streak") || "Daily Habit Streak"}
+              {t("rewards.habit_streak", "Daily Habit Streak")}
             </h3>
             <p className="text-xs text-slate-400 font-medium">
-              {t("rewards.streak_desc") || "Catat transaksi setiap hari untuk menjaga api disiplinmu!"}
+              {t("rewards.streak_desc", "Catat transaksi setiap hari untuk menjaga api disiplinmu!")}
             </p>
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function StreakCard({ streak = 0, longestStreak = 0, freezes = 0 
             {streak}
           </span>
           <span className="text-xs font-bold text-slate-400 block mt-0.5">
-            {t("rewards.days") || "Hari"}
+            {t("rewards.days", "Hari")}
           </span>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function StreakCard({ streak = 0, longestStreak = 0, freezes = 0 
           </div>
           <div>
             <p className="font-extrabold text-slate-800">
-              {t("rewards.saver_shield_title") || "Saver Shield (Perlindungan Streak)"}
+              {t("rewards.saver_shield_title", "Saver Shield (Perlindungan Streak)")}
             </p>
             <p className="text-[11px] text-slate-500 mt-0.5">
               {freezes > 0

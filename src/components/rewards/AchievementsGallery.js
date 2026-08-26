@@ -73,11 +73,11 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-500" />
             <h3 className="text-lg font-black text-slate-900 tracking-tight">
-              {t("rewards.achievements_title") || "Koleksi Lencana & Prestasi"}
+              {t("rewards.achievements_title", "Koleksi Lencana & Prestasi")}
             </h3>
           </div>
           <p className="text-xs text-slate-400 font-medium mt-0.5">
-            {t("rewards.achievements_desc") || "Buka lencana khusus dengan mencapai milestone finansial penting."}
+            {t("rewards.achievements_desc", "Buka lencana khusus dengan mencapai milestone finansial penting.")}
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
               filter === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {t("common.all") || "Semua"} ({totalCount})
+            {t("common.all", "Semua")} ({totalCount})
           </button>
           <button
             type="button"
@@ -99,7 +99,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
               filter === "unlocked" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {t("rewards.unlocked") || "Terbuka"} ({unlockedCount})
+            {t("rewards.unlocked", "Terbuka")} ({unlockedCount})
           </button>
           <button
             type="button"
@@ -108,7 +108,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
               filter === "locked" ? "bg-white text-slate-700 shadow-sm" : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {t("rewards.locked") || "Terkunci"} ({totalCount - unlockedCount})
+            {t("rewards.locked", "Terkunci")} ({totalCount - unlockedCount})
           </button>
         </div>
       </div>
@@ -174,12 +174,12 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
                   {badge.is_unlocked ? (
                     <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span>{t("rewards.unlocked_badge") || "Telah Dibuka"}</span>
+                      <span>{t("rewards.unlocked_badge", "Telah Dibuka")}</span>
                     </div>
                   ) : (
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-[11px] font-bold text-slate-400">
-                        <span>{t("rewards.progress") || "Progres"}</span>
+                        <span>{t("rewards.progress", "Progres")}</span>
                         <span>{badge.progress} / {badge.required_count} ({percent}%)</span>
                       </div>
                       <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">

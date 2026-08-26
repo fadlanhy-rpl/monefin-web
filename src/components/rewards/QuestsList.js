@@ -39,10 +39,10 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
           </div>
           <div>
             <h3 className="text-lg font-black text-slate-900 tracking-tight">
-              {t("rewards.quests_title") || "Misi & Tantangan Finansial"}
+              {t("rewards.quests_title", "Misi & Tantangan Finansial")}
             </h3>
             <p className="text-xs text-slate-400 font-medium">
-              {t("rewards.quests_desc") || "Selesaikan misi harian & mingguan untuk meraih bonus XP berlimpah."}
+              {t("rewards.quests_desc", "Selesaikan misi harian & mingguan untuk meraih bonus XP berlimpah.")}
             </p>
           </div>
         </div>
@@ -52,7 +52,7 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
       <div className="space-y-4">
         {quests.length === 0 ? (
           <p className="text-xs text-slate-400 text-center py-6">
-            {t("rewards.no_quests") || "Tidak ada misi aktif saat ini."}
+            {t("rewards.no_quests", "Tidak ada misi aktif saat ini.")}
           </p>
         ) : (
           quests.map((quest) => {
@@ -77,7 +77,7 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
                 <div className="flex-1 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                      {quest.type === "daily" ? (t("rewards.daily") || "Harian") : (t("rewards.weekly") || "Mingguan")}
+                      {quest.type === "daily" ? t("rewards.daily", "Harian") : t("rewards.weekly", "Mingguan")}
                     </span>
                     <span className="text-xs font-bold text-[#00685F] bg-emerald-100/70 px-2.5 py-0.5 rounded-full">
                       +{quest.xp_reward} XP
@@ -94,7 +94,7 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
                   {/* Progress bar */}
                   <div className="space-y-1 pt-1 max-w-md">
                     <div className="flex justify-between text-[11px] font-bold text-slate-400">
-                      <span>{t("rewards.progress") || "Progres"}</span>
+                      <span>{t("rewards.progress", "Progres")}</span>
                       <span>{quest.current_count} / {quest.target_count} ({percent}%)</span>
                     </div>
                     <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -113,7 +113,7 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
                   {quest.is_claimed ? (
                     <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-100">
                       <Check className="w-4 h-4" />
-                      <span>{t("rewards.claimed") || "Telah Diklaim"}</span>
+                      <span>{t("rewards.claimed", "Telah Diklaim")}</span>
                     </div>
                   ) : canClaim ? (
                     <button
@@ -127,11 +127,11 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
                       ) : (
                         <Sparkles className="w-4 h-4 text-amber-300" />
                       )}
-                      <span>{t("rewards.claim_reward") || "Klaim Hadiah"}</span>
+                      <span>{t("rewards.claim_reward", "Klaim Hadiah")}</span>
                     </button>
                   ) : (
                     <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3.5 py-2 rounded-xl block text-center">
-                      {t("rewards.in_progress") || "Sedang Berjalan"}
+                      {t("rewards.in_progress", "Sedang Berjalan")}
                     </span>
                   )}
                 </div>

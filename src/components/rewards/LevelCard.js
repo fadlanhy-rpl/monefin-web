@@ -32,7 +32,7 @@ export default function LevelCard({ data }) {
             </div>
             <div>
               <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-400">
-                {t("rewards.rank_level") || "LEVEL KEMAHIRAN"}
+                {t("rewards.rank_level", "LEVEL KEMAHIRAN")}
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
                 Level {level}
@@ -53,7 +53,7 @@ export default function LevelCard({ data }) {
         <div className="space-y-2">
           <div className="flex justify-between items-center text-xs font-bold">
             <span className="text-slate-300">
-              {t("rewards.xp_progress") || "Progres Level Berikutnya"}
+              {t("rewards.xp_progress", "Progres Level Berikutnya")}
             </span>
             <span className="text-emerald-300 font-mono">
               {xpInLevel} / {xpNeeded} XP ({percent}%)
@@ -72,15 +72,15 @@ export default function LevelCard({ data }) {
         {/* Bottom Level Perks / Stats */}
         <div className="pt-2 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 gap-3 text-center">
           <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-            <p className="text-[10px] uppercase font-bold text-slate-400">{t("rewards.streak_freezes") || "Saver Shield"}</p>
+            <p className="text-[10px] uppercase font-bold text-slate-400">{t("rewards.streak_freezes", "Saver Shield")}</p>
             <p className="text-sm sm:text-base font-black text-amber-300 mt-0.5">🛡️ {data.streak_freezes || 0} Tersedia</p>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-            <p className="text-[10px] uppercase font-bold text-slate-400">{t("rewards.badges_unlocked") || "Lencana Terbuka"}</p>
+            <p className="text-[10px] uppercase font-bold text-slate-400">{t("rewards.badges_unlocked", "Lencana Terbuka")}</p>
             <p className="text-sm sm:text-base font-black text-emerald-300 mt-0.5">🏆 {data.unlocked_badges || 0} / {data.total_badges || 0}</p>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/5 col-span-2 sm:col-span-1">
-            <p className="text-[10px] uppercase font-bold text-slate-400">{t("rewards.longest_streak") || "Streak Terpanjang"}</p>
+            <p className="text-[10px] uppercase font-bold text-slate-400">{t("rewards.longest_streak", "Streak Terpanjang")}</p>
             <p className="text-sm sm:text-base font-black text-orange-400 mt-0.5">🔥 {data.longest_streak || 0} Hari</p>
           </div>
         </div>

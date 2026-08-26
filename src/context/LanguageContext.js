@@ -77,19 +77,31 @@ export function LanguageProvider({ children }) {
   }, [applyLanguage]);
 
   /**
-   * t(key) — translate a dot-notated key e.g. "dashboard.title"
-   * Returns the key itself as fallback if not found.
+   * t(key, fallback) — translate a dot-notated key e.g. "dashboard.title"
+   * Returns fallback if provided, otherwise the key itself if not found.
    */
-  const t = useCallback((key) => {
+  const t = useCallback((key, fallback) => {
     const messages = MESSAGES[language] ?? MESSAGES[DEFAULT_LOCALE];
     const keys = key.split(".");
     let value = messages;
     for (const k of keys) {
-      if (value === undefined || value === null || typeof value !== "object") return key;
-      if (!(k in value)) return key;
+      if (value === undefined || value === null || typeof value !== "object") {
+        return fallback !== undefined ? fallback : key;
+      }
+      if (!(k in value)) {
+        // Try fallback in DEFAULT_LOCALE
+        const defaultMessages = MESSAGES[DEFAULT_LOCALE];
+        let defVal = defaultMessages;
+        for (const dk of keys) {
+          if (defVal === undefined || defVal === null || typeof defVal !== "object") break;
+          defVal = defVal[dk];
+        }
+        if (typeof defVal === "string") return defVal;
+        return fallback !== undefined ? fallback : key;
+      }
       value = value[k];
     }
-    return typeof value === "string" ? value : key;
+    return typeof value === "string" ? value : (fallback !== undefined ? fallback : key);
   }, [language]);
 
   return (
