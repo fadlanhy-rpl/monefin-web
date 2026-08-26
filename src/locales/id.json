@@ -255,6 +255,7 @@
     "accounts": "Rekening",
     "goals": "Target",
     "reports": "Laporan",
+    "rewards": "Pencapaian & Hadiah",
     "trashbin": "Tempat Sampah",
     "settings": "Pengaturan"
   },
@@ -518,5 +519,33 @@
     "insight_calculation_p1": "Dengan laju menabung rata-rata Rp 850.000/bln saat ini, Anda membutuhkan sekitar",
     "insight_calculation_p2": "bulan lagi untuk mencapai target Rp",
     "insight_calculation_p3": ". Tetap semangat! 💪"
+  },
+  "rewards": {
+    "page_title": "Pencapaian & Hadiah",
+    "page_subtitle": "DISIPLIN FINANSIAL & HADIAH",
+    "page_desc": "Kembangkan kebiasaan finansial yang sehat, raih level tertinggi, dan buka lencana bergengsi.",
+    "rank_level": "LEVEL KEMAHIRAN",
+    "xp_progress": "Progres Level Berikutnya",
+    "streak_freezes": "Saver Shield",
+    "badges_unlocked": "Lencana Terbuka",
+    "longest_streak": "Streak Terbaik",
+    "habit_streak": "Daily Habit Streak",
+    "streak_desc": "Catat transaksi setiap hari untuk menjaga api disiplinmu!",
+    "days": "Hari",
+    "saver_shield_title": "Saver Shield (Perlindungan Streak)",
+    "achievements_title": "Koleksi Lencana & Prestasi",
+    "achievements_desc": "Buka lencana khusus dengan mencapai milestone finansial penting.",
+    "unlocked": "Terbuka",
+    "locked": "Terkunci",
+    "unlocked_badge": "Telah Dibuka",
+    "progress": "Progres",
+    "quests_title": "Misi & Tantangan Finansial",
+    "quests_desc": "Selesaikan misi harian & mingguan untuk meraih bonus XP berlimpah.",
+    "no_quests": "Tidak ada misi aktif saat ini.",
+    "daily": "Harian",
+    "weekly": "Mingguan",
+    "claim_reward": "Klaim Hadiah",
+    "claimed": "Telah Diklaim",
+    "in_progress": "Sedang Berjalan"
   }
 }

@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy } from "lucide-react";
+import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy, Flame, Zap } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useGlobalSearch } from "../../hooks/useGlobalSearch";
 import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
+import { getGamificationSummary } from "../../services/gamification.service";
 
 import { useCurrency } from "../../hooks/useCurrency";
 
@@ -87,13 +88,26 @@ export default function Header({ setMobileOpen }) {
     }
   }, []);
 
+  // Gamification summary
+  const [gamification, setGamification] = useState(null);
+
+  const fetchGamification = useCallback(async () => {
+    try {
+      const data = await getGamificationSummary();
+      if (data) setGamification(data);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     fetchNotifications();
+    fetchGamification();
 
     const handleNotificationsUpdate = () => fetchNotifications();
     window.addEventListener('notificationsRead', handleNotificationsUpdate);
     return () => window.removeEventListener('notificationsRead', handleNotificationsUpdate);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, fetchGamification]);
 
   const headerRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -371,8 +385,27 @@ export default function Header({ setMobileOpen }) {
       </div>
 
       {/* RIGHT GROUP: notification + profile */}
-      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         
+        {/* Gamification Pill */}
+        {gamification && (
+          <Link
+            href="/rewards"
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200/80 rounded-xl transition-all shadow-sm group cursor-pointer"
+            title="Lihat Pencapaian & Hadiah"
+          >
+            <div className="flex items-center gap-1 text-xs font-black text-orange-500">
+              <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500 group-hover:scale-110 transition-transform" />
+              <span>{gamification.current_streak || 0}</span>
+            </div>
+            <span className="text-slate-300 text-xs">|</span>
+            <div className="flex items-center gap-1 text-xs font-black text-[#00685F]">
+              <Zap className="w-3.5 h-3.5 fill-[#00685F] group-hover:scale-110 transition-transform" />
+              <span>Lv. {gamification.level || 1}</span>
+            </div>
+          </Link>
+        )}
+
         {/* Notification */}
         <div className="relative">
           <button 

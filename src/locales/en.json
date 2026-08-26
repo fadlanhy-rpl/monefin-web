@@ -255,6 +255,7 @@
     "accounts": "Accounts",
     "goals": "Goals",
     "reports": "Reports",
+    "rewards": "Rewards & Quests",
     "trashbin": "Trashbin",
     "settings": "Settings"
   },
@@ -518,5 +519,33 @@
     "insight_calculation_p1": "With the current average saving rate of Rp 850,000/mo, you need approximately",
     "insight_calculation_p2": "more months to reach the target of Rp",
     "insight_calculation_p3": ". Keep it up! 💪"
+  },
+  "rewards": {
+    "page_title": "Achievements & Rewards",
+    "page_subtitle": "FINANCIAL DISCIPLINE & REWARDS",
+    "page_desc": "Build healthy financial habits, level up your rank, and unlock prestigious badges.",
+    "rank_level": "MASTERY LEVEL",
+    "xp_progress": "Next Level Progress",
+    "streak_freezes": "Saver Shield",
+    "badges_unlocked": "Badges Unlocked",
+    "longest_streak": "Best Streak",
+    "habit_streak": "Daily Habit Streak",
+    "streak_desc": "Log transactions daily to keep your discipline streak on fire!",
+    "days": "Days",
+    "saver_shield_title": "Saver Shield (Streak Protection)",
+    "achievements_title": "Badges & Achievements",
+    "achievements_desc": "Unlock exclusive badges by reaching key financial milestones.",
+    "unlocked": "Unlocked",
+    "locked": "Locked",
+    "unlocked_badge": "Unlocked",
+    "progress": "Progress",
+    "quests_title": "Financial Quests & Challenges",
+    "quests_desc": "Complete daily & weekly quests to earn abundant bonus XP.",
+    "no_quests": "No active quests at this time.",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "claim_reward": "Claim Reward",
+    "claimed": "Claimed",
+    "in_progress": "In Progress"
   }
 }

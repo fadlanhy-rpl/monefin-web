@@ -6,6 +6,7 @@ import StatCards from "../../../components/dashboard/StatCards";
 import ChartsRow from "../../../components/dashboard/ChartsRow";
 import RecentTransactions from "../../../components/dashboard/RecentTransactions";
 import SmartInsight from "../../../components/dashboard/SmartInsight";
+import DashboardGamificationBanner from "../../../components/dashboard/DashboardGamificationBanner";
 import { getDashboardSummary } from "../../../services/dashboard.service";
 import { Calendar, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
@@ -107,6 +108,8 @@ export default function DashboardPage() {
         <div className="flex items-center justify-center h-64 text-slate-400">Loading dashboard...</div>
       ) : data ? (
         <div className="space-y-6 sm:space-y-8">
+          <DashboardGamificationBanner />
+
           <StatCards 
             totalBalance={data.total_balance} 
             totalIncome={data.total_income_this_month} 
