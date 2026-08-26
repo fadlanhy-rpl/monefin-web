@@ -17,7 +17,34 @@ export default function LevelCard({ data }) {
   const { t, language } = useLanguage();
   const [showRanksModal, setShowRanksModal] = useState(false);
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#003831] via-[#005a52] to-[#004740] text-white p-6 sm:p-8 rounded-[2.25rem] shadow-xl border border-emerald-400/20 animate-pulse min-h-[300px] flex flex-col justify-between">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/15" />
+            <div className="space-y-2">
+              <div className="w-28 h-4 bg-white/15 rounded-md" />
+              <div className="w-44 h-7 bg-white/20 rounded-md" />
+            </div>
+          </div>
+          <div className="w-28 h-8 bg-white/15 rounded-2xl" />
+        </div>
+        <div className="space-y-2 bg-black/20 p-4 sm:p-5 rounded-2xl my-4">
+          <div className="flex justify-between">
+            <div className="w-36 h-4 bg-white/15 rounded-md" />
+            <div className="w-24 h-4 bg-white/15 rounded-md" />
+          </div>
+          <div className="w-full h-3.5 bg-white/15 rounded-full" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="h-16 bg-white/10 rounded-2xl" />
+          <div className="h-16 bg-white/10 rounded-2xl" />
+          <div className="h-16 bg-white/10 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
 
   const level = data.level || 1;
   const totalXp = data.total_xp || 0;

@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import LevelCard from "../../../components/rewards/LevelCard";
 import StreakCard from "../../../components/rewards/StreakCard";
 import AchievementsGallery from "../../../components/rewards/AchievementsGallery";
 import QuestsList from "../../../components/rewards/QuestsList";
 import { getGamificationSummary, getAchievements } from "../../../services/gamification.service";
-import { Sparkles, RefreshCw, ArrowLeft, Trophy, Flame } from "lucide-react";
+import { Sparkles, RefreshCw, Trophy, Flame } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function RewardsPage() {
@@ -54,20 +53,8 @@ export default function RewardsPage() {
         <div className="absolute top-48 right-10 w-80 h-80 bg-teal-400/10 rounded-full blur-3xl pointer-events-none -z-10" />
         <div className="absolute bottom-10 left-1/3 w-96 h-96 bg-amber-400/5 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        {/* TOP NAVIGATION & HEADER */}
-        <div className="space-y-4 pt-1">
-          
-          {/* Back to Dashboard Link */}
-          <div>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-xs font-black text-slate-600 hover:text-[#00685F] bg-white hover:bg-emerald-50 border border-slate-200/90 hover:border-emerald-200 px-3.5 py-2 rounded-xl transition-all shadow-xs group cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:text-[#00685F] group-hover:-translate-x-1 transition-transform" />
-              <span>{t("common.back", "Kembali ke Dashboard")}</span>
-            </Link>
-          </div>
-
+        {/* TOP HEADER */}
+        <div className="pt-1">
           {/* Title and Refresh Button */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
