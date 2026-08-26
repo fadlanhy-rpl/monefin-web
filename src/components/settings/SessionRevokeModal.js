@@ -1,6 +1,8 @@
 "use client";
 
-import { LogOut, X, AlertTriangle, Laptop, Globe, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { LogOut, X, AlertTriangle, Laptop, Globe } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 export default function SessionRevokeModal({
@@ -12,14 +14,38 @@ export default function SessionRevokeModal({
   isLoading = false,
 }) {
   const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
 
   const isSingle = !!session;
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl p-6 sm:p-7 border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-center relative overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 w-screen h-screen min-h-screen bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      {/* Click outside to close backdrop */}
+      <div 
+        className="fixed inset-0 -z-10" 
+        onClick={!isLoading ? onClose : undefined} 
+        aria-hidden="true"
+      />
+
+      <div className="bg-white rounded-[2.25rem] w-full max-w-md shadow-2xl p-6 sm:p-8 border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-center relative my-auto overflow-hidden">
         
         {/* Top Accent Line */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-red-600" />
@@ -29,7 +55,7 @@ export default function SessionRevokeModal({
           onClick={onClose}
           type="button"
           disabled={isLoading}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-xl cursor-pointer disabled:opacity-50"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-xl cursor-pointer disabled:opacity-50"
         >
           <X className="w-5 h-5" />
         </button>
@@ -40,14 +66,14 @@ export default function SessionRevokeModal({
         </div>
 
         {/* Title */}
-        <h3 className="text-xl font-black text-slate-900 mb-2">
+        <h3 className="text-xl sm:text-2xl font-black text-slate-900 mb-2">
           {isSingle
             ? (t("settings.revoke_modal_title") || "Keluarkan Sesi Ini?")
             : (t("settings.revoke_all_modal_title") || "Keluarkan Semua Sesi Lain?")}
         </h3>
 
         {/* Description */}
-        <p className="text-xs sm:text-sm text-slate-500 font-medium mb-4 leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-500 font-medium mb-5 leading-relaxed px-2">
           {isSingle
             ? (t("settings.revoke_modal_desc") || "Apakah Anda yakin ingin mengeluarkan sesi ini? Perangkat tersebut akan langsung kehilangan akses.")
             : (t("settings.revoke_all_modal_desc") || "Semua sesi aktif selain perangkat ini akan langsung diputus. Anda tetap dapat menggunakan sesi saat ini.")}
@@ -109,6 +135,7 @@ export default function SessionRevokeModal({
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
