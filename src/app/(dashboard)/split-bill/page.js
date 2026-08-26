@@ -245,7 +245,7 @@ export default function SplitBillPage() {
               onClick={() => setIsWizardOpen(true)}
               className="px-5 py-2.5 bg-[#00685F] hover:bg-[#00554E] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
             >
-              + Buat Tagihan Pertama
+              + {t("split_bill.create_first", "Buat Tagihan Pertama")}
             </button>
           </div>
         ) : (
@@ -273,9 +273,9 @@ export default function SplitBillPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                            {bill.split_mode === "equal" ? "Bagi Rata" :
-                             bill.split_mode === "itemized" ? "Per Menu" :
-                             bill.split_mode === "percentage" ? "Persentase" : "Nominal Pasti"}
+                            {bill.split_mode === "equal" ? t("split_bill.equal_split", "Bagi Rata") :
+                             bill.split_mode === "itemized" ? t("split_bill.itemized_split", "Per Menu") :
+                             bill.split_mode === "percentage" ? t("split_bill.percentage_split", "Persentase") : t("split_bill.exact_split", "Nominal Pasti")}
                           </span>
                           <span className="text-[11px] font-bold text-slate-400">
                             {bill.bill_date}
@@ -289,20 +289,24 @@ export default function SplitBillPage() {
                       <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-xl shrink-0 ${
                         isSettled ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
                       }`}>
-                        {isSettled ? "✓ Selesai" : "⏳ Menunggu"}
+                        {isSettled ? t("split_bill.status_settled_badge", "✓ Selesai") : t("split_bill.status_pending_badge", "⏳ Menunggu")}
                       </span>
                     </div>
 
                     {/* Financial Amounts */}
                     <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-100 grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Total Tagihan</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">
+                          {t("split_bill.total_bill", "Total Tagihan")}
+                        </span>
                         <p className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
                           Rp {bill.total_amount.toLocaleString()}
                         </p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Bagian Saya</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">
+                          {t("split_bill.my_share", "Bagian Saya")}
+                        </span>
                         <p className="text-sm sm:text-base font-black text-[#00685F] mt-0.5">
                           Rp {(myParticipant?.amount_owed || 0).toLocaleString()}
                         </p>
@@ -314,7 +318,7 @@ export default function SplitBillPage() {
                       <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
                         <span className="flex items-center gap-1">
                           <Users className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Pelunasan ({paidCount}/{totalCount} Orang)</span>
+                          <span>{t("split_bill.progress", "Progres Pelunasan")} ({paidCount}/{totalCount})</span>
                         </span>
                         <span className="font-mono">{percentPaid}%</span>
                       </div>
