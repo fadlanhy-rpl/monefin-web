@@ -5,6 +5,7 @@ import { ShieldCheck, Eye, EyeOff, Lock, Smartphone, Laptop, LogOut, AlertCircle
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { getSessions, revokeSession, revokeOtherSessions } from "../../services/auth.service";
+import SessionRevokeModal from "./SessionRevokeModal";
 import toast from "react-hot-toast";
 
 function formatRelativeTime(date) {
@@ -56,6 +57,10 @@ export default function SecuritySection({
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [revokingId, setRevokingId] = useState(null);
   const [revokingAll, setRevokingAll] = useState(false);
+
+  // Revoke confirmation modal state
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [sessionToRevoke, setSessionToRevoke] = useState(null);
 
   const fetchSessions = useCallback(async () => {
     setSessionsLoading(true);
@@ -109,6 +114,16 @@ export default function SecuritySection({
     } finally {
       setRevokingAll(false);
     }
+  };
+
+  const handleConfirmRevoke = async () => {
+    if (sessionToRevoke) {
+      await handleRevokeSession(sessionToRevoke.id);
+    } else {
+      await handleRevokeOtherSessions();
+    }
+    setRevokeModalOpen(false);
+    setSessionToRevoke(null);
   };
 
   const twoFactorEnabled = user?.two_factor_enabled ?? false;
@@ -249,7 +264,10 @@ export default function SecuritySection({
             {otherSessionsCount > 0 && (
               <button
                 type="button"
-                onClick={handleRevokeOtherSessions}
+                onClick={() => {
+                  setSessionToRevoke(null);
+                  setRevokeModalOpen(true);
+                }}
                 disabled={revokingAll}
                 className="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
               >
@@ -258,7 +276,7 @@ export default function SecuritySection({
                 ) : (
                   <LogOut className="w-3 h-3" />
                 )}
-                Logout semua sesi lain
+                {t("settings.logout_all_others") || "Logout semua sesi lain"}
               </button>
             )}
             <button
@@ -315,7 +333,10 @@ export default function SecuritySection({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => handleRevokeSession(session.id)}
+                    onClick={() => {
+                      setSessionToRevoke(session);
+                      setRevokeModalOpen(true);
+                    }}
                     disabled={revokingId === session.id}
                     className="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
@@ -332,6 +353,21 @@ export default function SecuritySection({
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <SessionRevokeModal
+        isOpen={revokeModalOpen}
+        onClose={() => {
+          if (!revokingId && !revokingAll) {
+            setRevokeModalOpen(false);
+            setSessionToRevoke(null);
+          }
+        }}
+        onConfirm={handleConfirmRevoke}
+        session={sessionToRevoke}
+        otherCount={otherSessionsCount}
+        isLoading={!!revokingId || revokingAll}
+      />
 
     </div>
   );
