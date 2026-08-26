@@ -36,6 +36,25 @@ export const setAuthToken = (token, expires = null) => {
 };
 
 // =============================================
+// Browser Detection (e.g. Brave anti-fingerprint bypass)
+// =============================================
+let isBraveCached = null;
+
+async function checkIsBrave() {
+  if (isBraveCached !== null) return isBraveCached;
+  if (typeof navigator !== "undefined" && navigator.brave && typeof navigator.brave.isBrave === "function") {
+    try {
+      isBraveCached = Boolean(await navigator.brave.isBrave());
+    } catch {
+      isBraveCached = false;
+    }
+  } else {
+    isBraveCached = false;
+  }
+  return isBraveCached;
+}
+
+// =============================================
 // Core Fetch Wrapper
 // =============================================
 
@@ -54,6 +73,14 @@ export async function fetchAPI(endpoint, options = {}) {
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  // Deteksi Brave browser (karena Brave secara default menyamarkan User-Agent menjadi Chrome)
+  if (typeof window !== "undefined") {
+    const isBrave = await checkIsBrave();
+    if (isBrave) {
+      headers["X-Client-Browser"] = "Brave";
+    }
   }
 
   // Jika body adalah plain object (bukan FormData), stringify

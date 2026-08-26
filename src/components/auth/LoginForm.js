@@ -17,7 +17,18 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const hasAlertTriggered = useRef(false);
+  const [googleUrl, setGoogleUrl] = useState(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator?.brave && typeof navigator.brave.isBrave === "function") {
+      navigator.brave.isBrave().then((isBrave) => {
+        if (isBrave) {
+          const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+          setGoogleUrl(`${base}/auth/google?client_browser=Brave`);
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || hasAlertTriggered.current) return;
@@ -240,7 +251,7 @@ export default function LoginForm() {
         </div>
 
         <a
-          href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`}
+          href={googleUrl}
           className="w-full border border-gray-100 py-3.5 rounded-2xl font-bold text-gray-600 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />

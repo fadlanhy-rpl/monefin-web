@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
@@ -18,6 +18,18 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [googleUrl, setGoogleUrl] = useState(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator?.brave && typeof navigator.brave.isBrave === "function") {
+      navigator.brave.isBrave().then((isBrave) => {
+        if (isBrave) {
+          const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+          setGoogleUrl(`${base}/auth/google?client_browser=Brave`);
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -165,7 +177,7 @@ export default function RegisterForm() {
 
         {/* Google Button */}
         <a
-          href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`}
+          href={googleUrl}
           className="w-full border border-gray-100 py-4 rounded-2xl font-bold text-gray-700 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all shadow-sm"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google Logo" />
