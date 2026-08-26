@@ -5,8 +5,8 @@ import { Globe, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 const LANG_OPTIONS = [
-  { value: "id", label: "Bahasa Indonesia", short: "ID", flag: "🇮🇩" },
   { value: "en", label: "English (US)",     short: "EN", flag: "🇺🇸" },
+  { value: "id", label: "Bahasa Indonesia", short: "ID", flag: "🇮🇩" },
 ];
 
 /**

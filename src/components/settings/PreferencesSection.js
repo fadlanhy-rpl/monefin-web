@@ -47,7 +47,7 @@ export default function PreferencesSection({
   }, []);
 
   const selectedCurrencyLabel = currencyOptions.find(o => o.value === currency)?.label || "IDR - Rupiah Indonesia (Rp)";
-  const selectedLanguageLabel = languageOptions.find(o => o.value === language)?.label || "Bahasa Indonesia";
+  const selectedLanguageLabel = languageOptions.find(o => o.value === language)?.label || "English (US)";
 
   return (
     <div className="bg-white p-5 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8 hover:shadow-md transition-all duration-300">
@@ -58,8 +58,8 @@ export default function PreferencesSection({
           <Sliders className="w-5 h-5 sm:w-6 sm:h-6 text-[#00685F]" />
         </div>
         <div>
-          <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{t("settings.preferences") || "Preferensi Sistem"}</h2>
-          <p className="text-xs text-slate-400 font-semibold mt-0.5">{globalLanguage === 'en' ? "Manage currency, language, and notification settings" : "Kelola pengaturan mata uang, bahasa, dan pemberitahuan"}</p>
+          <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{t("settings.preferences")}</h2>
+          <p className="text-xs text-slate-400 font-semibold mt-0.5">{t("settings.preferences_desc")}</p>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ export default function PreferencesSection({
         <div className="space-y-1.5 relative" ref={currencyRef}>
           <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 select-none">
             <DollarSign className="w-3.5 h-3.5 text-[#00685F]" />
-            <span>{globalLanguage === 'en' ? "Primary Currency" : "Mata Uang Utama"}</span>
+            <span>{t("settings.primary_currency")}</span>
           </label>
           <button
             type="button"
@@ -119,7 +119,7 @@ export default function PreferencesSection({
         <div className="space-y-1.5 relative" ref={languageRef}>
           <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 select-none">
             <Globe className="w-3.5 h-3.5 text-[#00685F]" />
-            <span>{globalLanguage === 'en' ? "App Language" : "Bahasa Aplikasi"}</span>
+            <span>{t("settings.app_language")}</span>
           </label>
           <button
             type="button"
@@ -170,15 +170,15 @@ export default function PreferencesSection({
       <div className="space-y-3 pt-2">
         <h3 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
           <Bell className="w-3.5 h-3.5 text-[#00685F]" />
-          <span>{globalLanguage === 'en' ? "Notification Settings" : "Pengaturan Notifikasi"}</span>
+          <span>{t("settings.notification_settings")}</span>
         </h3>
 
         <div className="space-y-2 select-none">
           {/* Toggle 1: Transaction Alerts */}
           <div className="flex justify-between items-center p-3.5 sm:p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
             <div>
-              <p className="text-xs sm:text-sm font-extrabold text-slate-800">{globalLanguage === 'en' ? "New Transaction Alert" : "Notifikasi Transaksi Baru"}</p>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">{globalLanguage === 'en' ? "Send notification whenever a new transaction is recorded" : "Kirim pemberitahuan setiap ada pencatatan transaksi"}</p>
+              <p className="text-xs sm:text-sm font-extrabold text-slate-800">{t("settings.new_tx_alert")}</p>
+              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">{t("settings.new_tx_alert_desc")}</p>
             </div>
             <button 
               type="button"
@@ -196,8 +196,8 @@ export default function PreferencesSection({
           {/* Toggle 2: Budget Limit Warnings */}
           <div className="flex justify-between items-center p-3.5 sm:p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
             <div>
-              <p className="text-xs sm:text-sm font-extrabold text-slate-800">{globalLanguage === 'en' ? "Budget Limit Warning" : "Peringatan Batas Anggaran (Budget Alert)"}</p>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">{globalLanguage === 'en' ? "Notify when a category expense reaches 80% limit" : "Beritahu saat pengeluaran kategori mencapai 80% limit"}</p>
+              <p className="text-xs sm:text-sm font-extrabold text-slate-800">{t("settings.budget_alert")}</p>
+              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">{t("settings.budget_alert_desc")}</p>
             </div>
             <button 
               type="button"
@@ -221,7 +221,7 @@ export default function PreferencesSection({
           onClick={onSave}
           className="w-full sm:w-auto bg-[#00685F] text-white px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold hover:bg-[#004D46] transition-all shadow-md shadow-[#00685F]/20 active:scale-95 cursor-pointer text-center select-none"
         >
-          {globalLanguage === 'en' ? "Save Preferences" : "Simpan Preferensi"}
+          {t("settings.save_preferences")}
         </button>
       </div>
 

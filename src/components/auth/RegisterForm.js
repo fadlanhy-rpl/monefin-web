@@ -183,9 +183,9 @@ export default function RegisterForm() {
       <div className="w-full flex flex-col sm:flex-row justify-center lg:justify-between items-center gap-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest pt-6 border-t border-gray-50 lg:border-t-0">
         <p>{t("auth.copyright")}</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.privacy")}</a>
-          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.terms")}</a>
-          <a href="#" className="hover:text-[#00685F] transition-colors">{t("auth.security")}</a>
+          <Link href="/privacy" className="hover:text-[#00685F] transition-colors">{t("auth.privacy")}</Link>
+          <Link href="/terms" className="hover:text-[#00685F] transition-colors">{t("auth.terms")}</Link>
+          <Link href="/security" className="hover:text-[#00685F] transition-colors">{t("auth.security")}</Link>
         </div>
       </div>
     </div>

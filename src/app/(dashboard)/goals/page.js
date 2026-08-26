@@ -93,7 +93,9 @@ function GoalsPageContent() {
       setGoals(allGoals.filter(g => !g.is_achieved));
       setAchievedGoals(allGoals.filter(g => g.is_achieved));
     } catch (error) {
-      console.error("Failed to fetch goals:", error);
+      if (error?.status !== 401) {
+        console.error("Failed to fetch goals:", error.message || error);
+      }
     }
   };
 
@@ -106,7 +108,9 @@ function GoalsPageContent() {
         setSelectedAccountId(String(accs[0].id));
       }
     } catch (error) {
-      console.error("Failed to fetch accounts:", error);
+      if (error?.status !== 401) {
+        console.error("Failed to fetch accounts:", error.message || error);
+      }
     }
   };
 

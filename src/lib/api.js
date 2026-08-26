@@ -75,7 +75,11 @@ export async function fetchAPI(endpoint, options = {}) {
     if (!response.ok) {
       // Trigger event global jika 401
       if (response.status === 401 && typeof window !== "undefined") {
-        window.dispatchEvent(new Event("auth:unauthorized"));
+        window.dispatchEvent(
+          new CustomEvent("auth:unauthorized", {
+            detail: { revoked_by: payload?.revoked_by }
+          })
+        );
       }
 
       // Pesan error dari Laravel Validation (422)
@@ -92,14 +96,15 @@ export async function fetchAPI(endpoint, options = {}) {
         }
       }
 
-      const error = new Error(errorMsg);
-      error.status = response.status;
-      error.data = payload;
-      if (response.status === 422 && payload?.errors) {
-        error.errors = payload.errors;
-      }
-
-      throw error;
+      // Gunakan plain object alih-alih instance Error agar Next.js dev overlay tidak ter-trigger
+      // saat komponen melakukan console.error(error) pada response 401.
+      throw {
+        isApiError: true,
+        message: errorMsg,
+        status: response.status,
+        data: payload,
+        errors: response.status === 422 ? payload?.errors : null
+      };
     }
 
     // Normalize response

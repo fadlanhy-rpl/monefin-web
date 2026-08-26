@@ -126,3 +126,66 @@ export async function deleteAccount() {
   setAuthToken(null);
   return result;
 }
+
+/**
+ * Verifikasi kode 2FA setelah login
+ * @returns {{ user: Object, token: string }}
+ */
+export async function verify2fa(email, otp) {
+  const { data } = await fetchAPI(`${ENDPOINT}/verify-2fa`, {
+    method: "POST",
+    body: { email, otp },
+  });
+  return data; // { user, token }
+}
+
+/**
+ * Toggle Two-Factor Authentication
+ * @param {boolean} enabled
+ */
+export async function toggle2fa(enabled) {
+  const { data } = await fetchAPI(`${ENDPOINT}/2fa/toggle`, {
+    method: "POST",
+    body: { enabled },
+  });
+  return data?.user;
+}
+
+/**
+ * Ambil daftar sesi aktif
+ */
+export async function getSessions() {
+  const { data } = await fetchAPI(`${ENDPOINT}/sessions`);
+  return data?.sessions ?? [];
+}
+
+/**
+ * Hapus sesi spesifik berdasarkan token ID
+ * @param {number} tokenId
+ */
+export async function revokeSession(tokenId) {
+  return await fetchAPI(`${ENDPOINT}/sessions/${tokenId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Hapus semua sesi lain (bukan sesi saat ini)
+ */
+export async function revokeOtherSessions() {
+  return await fetchAPI(`${ENDPOINT}/sessions`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Amankan akun dari login yang mencurigakan (putus sesi & kirim OTP ganti password)
+ * @param {string} token
+ */
+export async function secureAccount(token) {
+  return await fetchAPI(`${ENDPOINT}/secure-account`, {
+    method: "POST",
+    body: { token },
+  });
+}
+

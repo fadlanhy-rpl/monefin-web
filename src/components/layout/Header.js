@@ -79,7 +79,9 @@ export default function Header({ setMobileOpen }) {
         setNotifications(res.data);
       }
     } catch (error) {
-      console.error("Failed to fetch notifications", error);
+      if (error.status !== 401) {
+        console.error("Failed to fetch notifications:", error.message);
+      }
     } finally {
       setIsNotifLoading(false);
     }

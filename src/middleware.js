@@ -6,9 +6,13 @@ const publicPaths = [
   "/login",
   "/register",
   "/verify-email",
+  "/verify-2fa",
   "/forgot-password",
   "/reset-password",
   "/auth/callback",
+  "/privacy",
+  "/terms",
+  "/security",
 ];
 
 // Rute khusus autentikasi (yang jika sudah login akan diahlihkan ke /dashboard)

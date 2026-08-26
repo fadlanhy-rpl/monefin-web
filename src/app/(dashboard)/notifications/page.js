@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import { getNotifications, markAsRead, markAllAsRead } from "../../../services/notification.service";
-import { Bell, CheckCheck, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, Loader2, AlertTriangle, AlertCircle } from "lucide-react";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
@@ -35,7 +35,9 @@ export default function NotificationsPage() {
         }
       }
     } catch (error) {
-      console.error("Failed to fetch notifications", error);
+      if (error?.status !== 401) {
+        console.error("Failed to fetch notifications:", error.message || error);
+      }
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -91,6 +93,30 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  const getAlertStyles = (notif) => {
+    if (notif.message && notif.message.includes("Peringatan Kritis")) {
+      return {
+        bg: !notif.is_read ? "bg-red-50 hover:bg-red-50/80" : "hover:bg-slate-50",
+        dot: !notif.is_read ? "bg-red-500 shadow-sm shadow-red-500/50" : "bg-transparent",
+        text: !notif.is_read ? "font-bold text-red-700" : "font-medium text-slate-600",
+        icon: <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+      };
+    } else if (notif.message && notif.message.includes("Peringatan:")) {
+      return {
+        bg: !notif.is_read ? "bg-amber-50 hover:bg-amber-50/80" : "hover:bg-slate-50",
+        dot: !notif.is_read ? "bg-amber-500 shadow-sm shadow-amber-500/50" : "bg-transparent",
+        text: !notif.is_read ? "font-bold text-amber-700" : "font-medium text-slate-600",
+        icon: <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+      };
+    }
+    return {
+      bg: !notif.is_read ? "bg-brand-50/30 hover:bg-brand-50/60" : "hover:bg-slate-50",
+      dot: !notif.is_read ? "bg-brand-500 shadow-sm shadow-brand-500/50" : "bg-transparent",
+      text: !notif.is_read ? "font-bold text-slate-800" : "font-medium text-slate-600",
+      icon: null
+    };
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -133,31 +159,29 @@ export default function NotificationsPage() {
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {notifications.map((notif) => (
-                <div 
-                  key={notif.id}
-                  onClick={() => handleMarkAsRead(notif.id, notif.is_read)}
-                  className={`p-5 sm:px-6 flex gap-4 transition-colors cursor-pointer ${
-                    !notif.is_read ? "bg-brand-50/30 hover:bg-brand-50/60" : "hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="mt-1 shrink-0">
-                    <span className={`block w-2.5 h-2.5 rounded-full ${
-                      !notif.is_read ? "bg-brand-500 shadow-sm shadow-brand-500/50" : "bg-transparent"
-                    }`}></span>
+              {notifications.map((notif) => {
+                const styles = getAlertStyles(notif);
+                return (
+                  <div 
+                    key={notif.id}
+                    onClick={() => handleMarkAsRead(notif.id, notif.is_read)}
+                    className={`p-5 sm:px-6 flex gap-4 transition-colors cursor-pointer ${styles.bg}`}
+                  >
+                    <div className="mt-2 shrink-0">
+                      <span className={`block w-2.5 h-2.5 rounded-full ${styles.dot}`}></span>
+                    </div>
+                    {styles.icon && <div>{styles.icon}</div>}
+                    <div className="flex-1">
+                      <p className={`text-sm sm:text-base ${styles.text}`}>
+                        {notif.message}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1.5">
+                        <span>{formatDate(notif.created_at)}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className={`text-sm sm:text-base ${
-                      !notif.is_read ? "font-bold text-slate-800" : "font-medium text-slate-600"
-                    }`}>
-                      {notif.message}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1.5">
-                      <span>{formatDate(notif.created_at)}</span>
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

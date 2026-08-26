@@ -19,6 +19,8 @@ import {
   forgotPassword as apiForgotPassword,
   resetPassword as apiResetPassword,
   deleteAccount as apiDeleteAccount,
+  verify2fa as apiVerify2fa,
+  toggle2fa as apiToggle2fa,
 } from "../services/auth.service";
 import { getAuthToken, setAuthToken } from "../lib/api";
 import { useRouter } from "next/navigation";
@@ -38,6 +40,8 @@ const AuthContext = createContext({
   forgotPassword: async () => {},
   resetPassword: async () => {},
   deleteAccount: async () => {},
+  verify2fa: async () => {},
+  toggle2fa: async () => {},
   setUser: () => {},
   checkAuth: async () => {},
 });
@@ -110,7 +114,7 @@ export function AuthProvider({ children }) {
     checkAuth();
 
     // Handle 401 global (token expired/invalid)
-    const handleUnauthorized = () => {
+    const handleUnauthorized = (event) => {
       if (typeof window === "undefined") return;
       const currentPath = window.location.pathname;
 
@@ -118,15 +122,24 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(false);
       setAuthToken(null);
       Cookies.remove("auth_token", { path: "/" });
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("user_data");
+      localStorage.removeItem("user_data");
+
+      const revokedBy = event?.detail?.revoked_by;
+      if (revokedBy) {
+        sessionStorage.setItem("session_revoked_info", JSON.stringify(revokedBy));
+      } else {
+        sessionStorage.setItem("session_revoked_info", JSON.stringify({ expired: true }));
       }
 
-      const publicPaths = ["/login", "/register", "/verify-email", "/forgot-password", "/reset-password"];
+      const publicPaths = ["/login", "/register", "/verify-email", "/forgot-password", "/reset-password", "/verify-2fa"];
       const isPublic = publicPaths.some(p => currentPath.startsWith(p));
 
       if (!isPublic) {
-        router.replace("/login?message=session_expired");
+        let redirectUrl = "/login?message=session_expired";
+        if (revokedBy) {
+          redirectUrl += `&r_device=${encodeURIComponent(revokedBy.device)}&r_ip=${encodeURIComponent(revokedBy.ip)}&r_time=${encodeURIComponent(revokedBy.time)}`;
+        }
+        router.replace(redirectUrl);
       }
     };
 
@@ -143,6 +156,12 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const data = await apiLogin(email, password);
+
+      // Jika backend meminta 2FA, redirect ke halaman verifikasi
+      if (data?.require_2fa) {
+        setLoading(false);
+        return { success: false, require2fa: true, email: data.email };
+      }
 
       // Simpan token: 30 hari jika remember, session cookie jika tidak
       setAuthToken(data.token, remember ? 30 : null);
@@ -333,6 +352,46 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
+  // -------------------------------------------------------
+  // Verify 2FA
+  // -------------------------------------------------------
+  const verify2fa = async (email, otp) => {
+    try {
+      const data = await apiVerify2fa(email, otp);
+      if (data?.token) {
+        setAuthToken(data.token);
+        setUser(data.user);
+        setIsAuthenticated(true);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user_data", JSON.stringify(data.user));
+        }
+      }
+      return { success: true, user: data?.user };
+    } catch (error) {
+      const msg = error.data?.message || error.message || "Verifikasi 2FA gagal.";
+      return { success: false, error: msg };
+    }
+  };
+
+  // -------------------------------------------------------
+  // Toggle 2FA
+  // -------------------------------------------------------
+  const toggle2fa = async (enabled) => {
+    try {
+      const updatedUser = await apiToggle2fa(enabled);
+      if (updatedUser) {
+        setUser(updatedUser);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user_data", JSON.stringify(updatedUser));
+        }
+      }
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      const msg = error.data?.message || error.message || "Gagal mengubah pengaturan 2FA.";
+      return { success: false, error: msg };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -349,6 +408,8 @@ export function AuthProvider({ children }) {
         forgotPassword,
         resetPassword,
         deleteAccount,
+        verify2fa,
+        toggle2fa,
         setUser,
         checkAuth,
       }}

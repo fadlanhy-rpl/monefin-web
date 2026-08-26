@@ -1,7 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { ShieldCheck, Eye, EyeOff, Lock, Smartphone, Laptop, LogOut, AlertCircle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ShieldCheck, Eye, EyeOff, Lock, Smartphone, Laptop, LogOut, AlertCircle, Monitor, RefreshCw } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
+import { useAuth } from "../../hooks/useAuth";
+import { getSessions, revokeSession, revokeOtherSessions } from "../../services/auth.service";
+import toast from "react-hot-toast";
+
+function formatRelativeTime(date) {
+  if (!date) return "Tidak diketahui";
+  const now = new Date();
+  const d = new Date(date);
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return "Baru saja";
+  if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+  return `${Math.floor(diff / 86400)} hari lalu`;
+}
+
+function formatIP(ip) {
+  if (!ip || ip === "IP tidak tersimpan") return "IP tidak tercatat";
+  if (ip === "127.0.0.1" || ip === "::1") return `${ip} (Localhost)`;
+  return ip;
+}
+
+function DeviceIcon({ deviceName }) {
+  const name = (deviceName || "").toLowerCase();
+  if (name.includes("mobile") || name.includes("iphone") || name.includes("android")) {
+    return <Smartphone className="w-4 h-4 text-slate-400" />;
+  }
+  return <Monitor className="w-4 h-4 text-[#00685F]" />;
+}
 
 export default function SecuritySection({
   user,
@@ -12,12 +41,78 @@ export default function SecuritySection({
   confirmPassword,
   setConfirmPassword,
   onSavePassword,
-  onForgotPassword
 }) {
+  const { t } = useLanguage();
+  const { toggle2fa } = useAuth();
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+
+  // 2FA state — derived from user object
+  const [is2FALoading, setIs2FALoading] = useState(false);
+
+  // Sessions state
+  const [sessions, setSessions] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [revokingId, setRevokingId] = useState(null);
+  const [revokingAll, setRevokingAll] = useState(false);
+
+  const fetchSessions = useCallback(async () => {
+    setSessionsLoading(true);
+    try {
+      const data = await getSessions();
+      setSessions(data);
+    } catch {
+      // silently fail
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  const handle2FAToggle = async () => {
+    const newState = !user?.two_factor_enabled;
+    setIs2FALoading(true);
+    const result = await toggle2fa(newState);
+    setIs2FALoading(false);
+    if (result.success) {
+      toast.success(newState ? "Two-Factor Authentication diaktifkan." : "Two-Factor Authentication dinonaktifkan.");
+    } else {
+      toast.error(result.error || "Gagal mengubah pengaturan 2FA.");
+    }
+  };
+
+  const handleRevokeSession = async (tokenId) => {
+    setRevokingId(tokenId);
+    try {
+      await revokeSession(tokenId);
+      toast.success("Sesi berhasil dikeluarkan.");
+      setSessions((prev) => prev.filter((s) => s.id !== tokenId));
+    } catch (err) {
+      toast.error(err?.data?.message || "Gagal mengeluarkan sesi.");
+    } finally {
+      setRevokingId(null);
+    }
+  };
+
+  const handleRevokeOtherSessions = async () => {
+    setRevokingAll(true);
+    try {
+      await revokeOtherSessions();
+      toast.success("Semua sesi lain berhasil dikeluarkan.");
+      setSessions((prev) => prev.filter((s) => s.is_current));
+    } catch (err) {
+      toast.error(err?.data?.message || "Gagal mengeluarkan sesi lain.");
+    } finally {
+      setRevokingAll(false);
+    }
+  };
+
+  const twoFactorEnabled = user?.two_factor_enabled ?? false;
+  const otherSessionsCount = sessions.filter((s) => !s.is_current).length;
 
   return (
     <div className="bg-white p-5 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8 hover:shadow-md transition-all duration-300">
@@ -28,12 +123,12 @@ export default function SecuritySection({
           <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#00685F]" />
         </div>
         <div>
-          <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">Keamanan & Password Akun</h2>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Kelola kata sandi, otentikasi dua langkah (2FA), dan sesi aktif</p>
+          <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{t("settings.security_title")}</h2>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">{t("settings.security_desc")}</p>
         </div>
       </div>
 
-      {/* Tampilkan Peringatan untuk User Google */}
+      {/* Google user warning */}
       {!user?.has_password && (
         <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3 text-amber-800">
           <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
@@ -45,17 +140,15 @@ export default function SecuritySection({
       <div className="space-y-4">
         <h3 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
           <Lock className="w-3.5 h-3.5 text-[#00685F]" />
-          <span>{user?.has_password ? "Ubah Password" : "Buat Password"}</span>
+          <span>{user?.has_password ? t("settings.change_password") : "Buat Password"}</span>
         </h3>
 
         <div className={`grid grid-cols-1 ${user?.has_password ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 sm:gap-6`}>
-          {/* Hidden username input to trick browser autofill and prevent it from filling the search bar */}
           <input type="text" name="username" autoComplete="username" defaultValue={user?.email || ""} className="hidden" style={{ display: 'none' }} />
           
-          {/* Current Password (ONLY if user has password) */}
           {user?.has_password && (
             <div className="space-y-1.5">
-              <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Password Saat Ini</label>
+              <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">{t("settings.current_password")}</label>
               <div className="relative">
                 <input 
                   type={showCurrent ? "text" : "password"} 
@@ -64,76 +157,49 @@ export default function SecuritySection({
                   className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-semibold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none text-slate-800 pr-11 transition-all" 
                   placeholder="••••••••"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowCurrent(!showCurrent)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1"
-                >
+                <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1">
                   {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
           )}
 
-          {/* New Password */}
           <div className="space-y-1.5">
-            <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Password Baru</label>
+            <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">{t("settings.new_password")}</label>
             <div className="relative">
               <input 
                 type={showNew ? "text" : "password"} 
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-semibold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none text-slate-800 pr-11 transition-all" 
-                placeholder="Min. 8 karakter"
+                placeholder={t("settings.new_password_placeholder")}
               />
-              <button 
-                type="button" 
-                onClick={() => setShowNew(!showNew)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1"
-              >
+              <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1">
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          {/* Confirm Password */}
           <div className="space-y-1.5">
-            <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Konfirmasi Password</label>
+            <label className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">{t("settings.confirm_password")}</label>
             <div className="relative">
               <input 
                 type={showConfirm ? "text" : "password"} 
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200/70 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-semibold focus:border-[#00685F] focus:bg-white focus:ring-4 focus:ring-[#00685F]/10 outline-none text-slate-800 pr-11 transition-all" 
-                placeholder="Ulangi password baru"
+                placeholder={t("settings.confirm_password_placeholder")}
               />
-              <button 
-                type="button" 
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1"
-              >
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-1">
                 {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Action Row */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-3">
-          <button 
-            type="button"
-            onClick={onForgotPassword}
-            className="text-xs font-extrabold text-[#00685F] hover:underline cursor-pointer select-none"
-          >
-            Lupa Password Anda? &rarr;
-          </button>
-
-          <button 
-            type="button"
-            onClick={onSavePassword}
-            className="w-full sm:w-auto bg-[#00685F] text-white px-6 py-3 rounded-2xl font-extrabold hover:bg-[#004D46] transition-all shadow-md text-xs cursor-pointer active:scale-95 text-center select-none"
-          >
-            {user?.has_password ? "Update Password" : "Buat Password"}
+        <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-3">
+          <button type="button" onClick={onSavePassword} className="w-full sm:w-auto bg-[#00685F] text-white px-6 py-3 rounded-2xl font-extrabold hover:bg-[#004D46] transition-all shadow-md text-xs cursor-pointer active:scale-95 text-center select-none">
+            {user?.has_password ? t("settings.update_password") : "Buat Password"}
           </button>
         </div>
       </div>
@@ -145,60 +211,125 @@ export default function SecuritySection({
             <Smartphone className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-black text-slate-900">Autentikasi Dua Langkah (2FA)</h4>
-            <p className="text-[11px] text-slate-400 font-medium">Lindungi akun dengan verifikasi kode OTP setiap login</p>
+            <h4 className="text-xs sm:text-sm font-black text-slate-900">{t("settings.two_factor")}</h4>
+            <p className="text-[11px] text-slate-400 font-medium">{t("settings.two_factor_desc")}</p>
           </div>
         </div>
 
-        {/* Interactive Switch */}
-        <button 
+        {/* Real 2FA Toggle */}
+        <button
           type="button"
-          onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-          className={`w-12 h-6 rounded-full transition-colors duration-300 relative cursor-pointer shrink-0 p-0.5 ${
-            twoFactorEnabled ? 'bg-[#00685F]' : 'bg-slate-300'
+          onClick={handle2FAToggle}
+          disabled={is2FALoading}
+          className={`w-12 h-6 rounded-full transition-colors duration-300 relative cursor-pointer shrink-0 p-0.5 disabled:opacity-60 ${
+            twoFactorEnabled ? "bg-[#00685F]" : "bg-slate-300"
           }`}
+          aria-label={twoFactorEnabled ? "Nonaktifkan 2FA" : "Aktifkan 2FA"}
         >
           <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 transform ${
-            twoFactorEnabled ? 'translate-x-6' : 'translate-x-0'
-          }`}></div>
+            twoFactorEnabled ? "translate-x-6" : "translate-x-0"
+          }`}>
+            {is2FALoading && (
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="w-3 h-3 border-2 border-slate-300 border-t-[#00685F] rounded-full animate-spin" />
+              </span>
+            )}
+          </div>
         </button>
       </div>
 
       {/* Active Login Sessions */}
       <div className="space-y-3 pt-2">
-        <h4 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <Laptop className="w-3.5 h-3.5 text-[#00685F]" />
-          <span>Sesi Login Aktif</span>
-        </h4>
-
-        <div className="space-y-2">
-          <div className="flex justify-between items-center p-3.5 bg-white border border-slate-100 rounded-xl text-xs">
-            <div className="flex items-center gap-3">
-              <Laptop className="w-4 h-4 text-[#00685F]" />
-              <div>
-                <p className="font-bold text-slate-800">Chrome pada Windows 11 <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full ml-2">Perangkat Ini</span></p>
-                <p className="text-[10px] text-slate-400">Jakarta, Indonesia • Sesi aktif sekarang</p>
-              </div>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-600">Aktif</span>
-          </div>
-
-          <div className="flex justify-between items-center p-3.5 bg-white border border-slate-100 rounded-xl text-xs">
-            <div className="flex items-center gap-3">
-              <Smartphone className="w-4 h-4 text-slate-400" />
-              <div>
-                <p className="font-bold text-slate-800">MoneFin Mobile App (iPhone 15)</p>
-                <p className="text-[10px] text-slate-400">Jakarta, Indonesia • 2 jam yang lalu</p>
-              </div>
-            </div>
-            <button 
-              type="button" 
-              onClick={() => alert("Sesi berhasil dikeluarkan.")}
-              className="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer"
+        <div className="flex justify-between items-center">
+          <h4 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <Laptop className="w-3.5 h-3.5 text-[#00685F]" />
+            <span>{t("settings.active_sessions")}</span>
+          </h4>
+          <div className="flex items-center gap-2">
+            {otherSessionsCount > 0 && (
+              <button
+                type="button"
+                onClick={handleRevokeOtherSessions}
+                disabled={revokingAll}
+                className="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              >
+                {revokingAll ? (
+                  <span className="w-3 h-3 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
+                ) : (
+                  <LogOut className="w-3 h-3" />
+                )}
+                Logout semua sesi lain
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={fetchSessions}
+              disabled={sessionsLoading}
+              className="text-slate-400 hover:text-[#00685F] transition cursor-pointer p-1 rounded-lg hover:bg-slate-100"
+              title="Refresh sessions"
             >
-              <LogOut className="w-3 h-3" /> Keluar
+              <RefreshCw className={`w-3.5 h-3.5 ${sessionsLoading ? "animate-spin" : ""}`} />
             </button>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          {sessionsLoading ? (
+            <div className="flex justify-center py-6">
+              <span className="w-5 h-5 border-2 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
+            </div>
+          ) : sessions.length === 0 ? (
+            <p className="text-xs text-slate-400 text-center py-4">Tidak ada sesi aktif.</p>
+          ) : (
+            sessions.map((session) => (
+              <div
+                key={session.id}
+                className={`flex justify-between items-center p-3.5 border rounded-xl text-xs transition-all ${
+                  session.is_current ? "bg-emerald-50/60 border-emerald-200/60" : "bg-white border-slate-100"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <DeviceIcon deviceName={session.device_name} />
+                  <div>
+                    <p className="font-bold text-slate-800 flex flex-wrap items-center gap-1">
+                      {session.device_name}
+                      {session.is_current && (
+                        <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full">
+                          {t("settings.this_device")}
+                        </span>
+                      )}
+                      {session.is_legacy && (
+                        <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full">
+                          Sesi Lama
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      {formatIP(session.ip_address)} • {session.last_used_at ? formatRelativeTime(session.last_used_at) : formatRelativeTime(session.created_at)}
+                    </p>
+                  </div>
+                </div>
+
+                {session.is_current ? (
+                  <span className="text-[10px] font-bold text-emerald-600">{t("settings.active")}</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleRevokeSession(session.id)}
+                    disabled={revokingId === session.id}
+                    className="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    {revokingId === session.id ? (
+                      <span className="w-3 h-3 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
+                    ) : (
+                      <LogOut className="w-3 h-3" />
+                    )}
+                    {t("settings.logout")}
+                  </button>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
 

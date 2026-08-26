@@ -104,8 +104,10 @@ function CategoriesPageContent() {
       const res = await getCategories();
       setCategories(res.data || []);
     } catch (error) {
-      console.error("Failed to fetch categories:", error);
-      showToast("Gagal memuat data kategori.");
+      if (error?.status !== 401) {
+        console.error("Failed to fetch categories:", error.message || error);
+        showToast("Gagal memuat data kategori.");
+      }
     } finally {
       setIsLoading(false);
     }
