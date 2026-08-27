@@ -39,16 +39,8 @@ export function LanguageProvider({ children }) {
   const { user } = useAuth();
   const lastSyncedUserLang = useRef(null);
 
-  // Initialize with persisted locale or default
-  const [language, setLanguage] = useState(() => {
-    if (typeof window !== "undefined") {
-      const persisted = getCookieLocale() || localStorage.getItem("language");
-      if (persisted && SUPPORTED_LOCALES.includes(persisted)) {
-        return persisted;
-      }
-    }
-    return DEFAULT_LOCALE;
-  });
+  // Always initialize with DEFAULT_LOCALE to guarantee 100% server/client HTML match during initial hydration
+  const [language, setLanguage] = useState(DEFAULT_LOCALE);
 
   // Apply language locally (state, cookie, localStorage, html lang)
   const applyLanguage = useCallback((lang) => {
@@ -61,7 +53,7 @@ export function LanguageProvider({ children }) {
     updateHtmlLang(lang);
   }, []);
 
-  // Hydrate on mount
+  // Hydrate from localStorage/cookie after initial client mount (prevents SSR hydration mismatch)
   useEffect(() => {
     const persisted = getCookieLocale() || (typeof localStorage !== "undefined" && localStorage.getItem("language"));
     if (persisted && SUPPORTED_LOCALES.includes(persisted)) {
@@ -70,7 +62,7 @@ export function LanguageProvider({ children }) {
     }
   }, []);
 
-  // Keep HTML lang in sync
+  // Keep HTML lang attribute in sync
   useEffect(() => {
     updateHtmlLang(language);
   }, [language]);
@@ -100,7 +92,7 @@ export function LanguageProvider({ children }) {
         updateProfile(fd).catch(err => console.warn("Background language preference sync error:", err));
       }
     } else if (user.preferences?.language && SUPPORTED_LOCALES.includes(user.preferences.language)) {
-      // First-time visit / fresh device: adopt DB preference
+      // First-time visit on fresh device: adopt DB preference
       applyLanguage(user.preferences.language);
     }
   }, [user, language, applyLanguage]);
