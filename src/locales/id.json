@@ -648,6 +648,16 @@
     "exact_input_title": "Tentukan Nominal Pasti Tiap Orang",
     "percentage_input_title": "Tentukan Persentase Beban Tiap Orang",
     "select_account_placeholder": "Pilih dompet / rekening...",
-    "select_category_placeholder": "Pilih kategori pengeluaran..."
+    "select_category_placeholder": "Pilih kategori pengeluaran...",
+    "hero_card_title": "Sistem Patungan & Bagi Tagihan Cerdas",
+    "hero_card_desc": "Kelola tagihan patungan dengan perhitungan pajak proporsional, status pelunasan instan, dan notifikasi WhatsApp.",
+    "filter_all_modes": "Semua Mode",
+    "total_managed_volume": "Total Volume Tagihan",
+    "friends_count": "{count} Teman",
+    "view_details_btn": "Detail & Pelunasan",
+    "copy_recap": "Salin Rekap",
+    "quick_summary_badge": "MoneFin Smart Split",
+    "status_all_settled_tip": "Semua teman sudah melunasi bagiannya!",
+    "status_pending_tip": "Ada {count} tagihan menunggu pembayaran teman."
   }
 }

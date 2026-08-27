@@ -648,6 +648,16 @@
     "exact_input_title": "Set Exact Amount per Person",
     "percentage_input_title": "Set Percentage Share per Person",
     "select_account_placeholder": "Select wallet / account...",
-    "select_category_placeholder": "Select category..."
+    "select_category_placeholder": "Select category...",
+    "hero_card_title": "Smart Expense Sharing Suite",
+    "hero_card_desc": "Track shared costs with fair proportional tax splits, auto-settlement, and instant WhatsApp reminders.",
+    "filter_all_modes": "All Modes",
+    "total_managed_volume": "Total Managed Volume",
+    "friends_count": "{count} Friends",
+    "view_details_btn": "Details & Settle",
+    "copy_recap": "Copy Recap",
+    "quick_summary_badge": "MoneFin Smart Split",
+    "status_all_settled_tip": "All friends have settled their shares!",
+    "status_pending_tip": "You have {count} bill(s) waiting for payment."
   }
 }
