@@ -637,6 +637,17 @@
     "status_settled_badge": "✓ Selesai",
     "status_pending_badge": "⏳ Menunggu",
     "my_share_tag": "Saya (Talangi)",
-    "already_recorded_notice": "Bagian Anda ({amount}) sudah dicatat ke transaksi dompet."
+    "already_recorded_notice": "Bagian Anda ({amount}) sudah dicatat ke transaksi dompet.",
+    "exact_helper_allocated": "Teralokasi: {allocated} / {total}",
+    "exact_helper_remaining": "Sisa: {remaining}",
+    "btn_assign_rest_to_me": "Alokasikan sisa ke saya",
+    "btn_split_equal_pct": "Bagi Rata %",
+    "btn_split_equal_amount": "Bagi Rata",
+    "total_percentage": "Total Persentase: {pct}%",
+    "percentage_warning": "Total persentase harus 100%",
+    "exact_input_title": "Tentukan Nominal Pasti Tiap Orang",
+    "percentage_input_title": "Tentukan Persentase Beban Tiap Orang",
+    "select_account_placeholder": "Pilih dompet / rekening...",
+    "select_category_placeholder": "Pilih kategori pengeluaran..."
   }
 }

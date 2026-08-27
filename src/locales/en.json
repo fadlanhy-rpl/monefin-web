@@ -637,6 +637,17 @@
     "status_settled_badge": "✓ Settled",
     "status_pending_badge": "⏳ Pending",
     "my_share_tag": "Me (Payer)",
-    "already_recorded_notice": "Your share ({amount}) has already been recorded to your wallet transaction."
+    "already_recorded_notice": "Your share ({amount}) has already been recorded to your wallet transaction.",
+    "exact_helper_allocated": "Allocated: {allocated} / {total}",
+    "exact_helper_remaining": "Remaining: {remaining}",
+    "btn_assign_rest_to_me": "Assign rest to me",
+    "btn_split_equal_pct": "Split % Equally",
+    "btn_split_equal_amount": "Split Equally",
+    "total_percentage": "Total Percentage: {pct}%",
+    "percentage_warning": "Total must equal 100%",
+    "exact_input_title": "Set Exact Amount per Person",
+    "percentage_input_title": "Set Percentage Share per Person",
+    "select_account_placeholder": "Select wallet / account...",
+    "select_category_placeholder": "Select category..."
   }
 }

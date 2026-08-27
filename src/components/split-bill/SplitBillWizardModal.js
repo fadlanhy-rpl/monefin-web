@@ -13,13 +13,17 @@ import {
   Check, 
   ChevronRight, 
   ChevronLeft,
+  ChevronDown,
   Percent,
   DollarSign,
   Utensils,
   Layers,
   ArrowRight,
   Shield,
-  Clock
+  Clock,
+  Wallet,
+  Tag,
+  AlertCircle
 } from "lucide-react";
 import { createSplitBill, calculateSplitPreview } from "../../services/split-bill.service";
 import { getAccounts } from "../../services/account.service";
@@ -96,17 +100,36 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
     }
   }, [isOpen]);
 
+  // Total bill calculation computed
+  const computedTotal = useMemo(() => {
+    if (calcPreview) return calcPreview.total_amount;
+    const sub = parseFloat(subtotal) || 0;
+    const tPct = parseFloat(taxPercent) || 0;
+    const sPct = parseFloat(servicePercent) || 0;
+    const disc = parseFloat(discountAmount) || 0;
+    const tAmt = sub * (tPct / 100);
+    const sAmt = sub * (sPct / 100);
+    return Math.max(0, sub + tAmt + sAmt - disc);
+  }, [calcPreview, subtotal, taxPercent, servicePercent, discountAmount]);
+
   // Add Participant
   const addParticipant = () => {
     const newId = `p${participants.length + 1}`;
-    setParticipants([...participants, { 
-      temp_id: newId, 
-      name: "", 
-      phone_number: "", 
-      is_creator: false, 
-      amount_owed: 0,
-      percentage: 0 
-    }]);
+    const newCount = participants.length + 1;
+    const equalPct = Math.round(100 / newCount);
+
+    const updated = [
+      ...participants.map(p => ({ ...p, percentage: equalPct })),
+      { 
+        temp_id: newId, 
+        name: "", 
+        phone_number: "", 
+        is_creator: false, 
+        amount_owed: 0,
+        percentage: equalPct 
+      }
+    ];
+    setParticipants(updated);
   };
 
   // Remove Participant
@@ -114,13 +137,53 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
     if (participants.length <= 1) return;
     const removedId = participants[idx].temp_id;
     const updated = participants.filter((_, i) => i !== idx);
-    setParticipants(updated);
+    
+    // Rebalance percentage
+    const equalPct = Math.round(100 / updated.length);
+    setParticipants(updated.map(p => ({ ...p, percentage: equalPct })));
 
     // Remove from item assignments
     setItems(items.map(item => ({
       ...item,
       participant_ids: item.participant_ids.filter(id => id !== removedId)
     })));
+  };
+
+  // Quick Action: Split % Equally
+  const handleSplitEqualPercentage = () => {
+    const count = participants.length;
+    if (count === 0) return;
+    const basePct = Math.floor(100 / count);
+    const remainder = 100 - (basePct * count);
+
+    setParticipants(participants.map((p, idx) => ({
+      ...p,
+      percentage: idx === 0 ? basePct + remainder : basePct
+    })));
+    toast.success(language === "en" ? "Percentages split equally!" : "Persentase dibagi rata!");
+  };
+
+  // Quick Action: Split Exact Amount Baseline
+  const handleSplitEqualExact = () => {
+    const count = participants.length;
+    if (count === 0) return;
+    const baseShare = Math.floor(computedTotal / count);
+    const remainder = computedTotal - (baseShare * count);
+
+    setParticipants(participants.map((p, idx) => ({
+      ...p,
+      amount_owed: idx === 0 ? baseShare + remainder : baseShare
+    })));
+    toast.success(language === "en" ? "Amounts split equally!" : "Nominal dibagi rata!");
+  };
+
+  // Quick Action: Assign Remaining to Creator
+  const handleAssignRestToMe = () => {
+    const otherSum = participants.filter(p => !p.is_creator).reduce((sum, p) => sum + (parseFloat(p.amount_owed) || 0), 0);
+    const remainder = Math.max(0, computedTotal - otherSum);
+
+    setParticipants(participants.map(p => p.is_creator ? { ...p, amount_owed: remainder } : p));
+    toast.success(language === "en" ? "Remaining amount assigned to you!" : "Sisa tagihan dialokasikan ke Anda!");
   };
 
   // Add Menu Item
@@ -194,6 +257,20 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
     participants, items, language
   ]);
 
+  // Exact Mode Allocations
+  const exactAllocated = useMemo(() => {
+    return participants.reduce((sum, p) => sum + (parseFloat(p.amount_owed) || 0), 0);
+  }, [participants]);
+
+  const exactRemaining = useMemo(() => {
+    return computedTotal - exactAllocated;
+  }, [computedTotal, exactAllocated]);
+
+  // Percentage Mode Total
+  const totalPercentageSum = useMemo(() => {
+    return participants.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+  }, [participants]);
+
   const handleSubmit = async () => {
     if (!title.trim()) {
       toast.error(language === "en" ? "Please enter bill or event name." : "Mohon isi nama acara / tagihan.");
@@ -205,6 +282,20 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
     if (validParticipants.length === 0) {
       toast.error(language === "en" ? "At least 1 participant name is required." : "Minimal harus ada 1 nama partisipan.");
       setStep(2);
+      return;
+    }
+
+    if (splitMode === "exact" && Math.abs(exactRemaining) > 10) {
+      toast.error(language === "en" 
+        ? `Total exact amounts (Rp ${exactAllocated.toLocaleString()}) does not match Total Bill (Rp ${computedTotal.toLocaleString()}).` 
+        : `Total nominal pasti (Rp ${exactAllocated.toLocaleString()}) belum sesuai dengan Total Tagihan (Rp ${computedTotal.toLocaleString()}).`);
+      return;
+    }
+
+    if (splitMode === "percentage" && Math.abs(totalPercentageSum - 100) > 0.5) {
+      toast.error(language === "en" 
+        ? `Total percentage is ${totalPercentageSum}%. It must be exactly 100%.` 
+        : `Total persentase adalah ${totalPercentageSum}%. Total harus pas 100%.`);
       return;
     }
 
@@ -222,7 +313,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
         service_percent: parseFloat(servicePercent) || 0,
         service_amount: calcPreview ? calcPreview.service_amount : (parseFloat(serviceAmount) || 0),
         discount_amount: parseFloat(discountAmount) || 0,
-        total_amount: calcPreview ? calcPreview.total_amount : 0,
+        total_amount: calcPreview ? calcPreview.total_amount : computedTotal,
         split_mode: splitMode,
         rounding_mode: roundingMode,
         record_my_expense: recordMyExpense,
@@ -231,12 +322,14 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
           account_number: accountNumber,
           account_holder: accountHolder,
         },
-        participants: (calcPreview?.participants || participants).map(p => ({
+        participants: participants.map(p => ({
           name: p.name || (p.is_creator ? (language === "en" ? "Me" : "Saya") : (language === "en" ? "Friend" : "Teman")),
           phone_number: p.phone_number || "",
           is_creator: p.is_creator || false,
-          amount_owed: p.amount_owed || 0,
-          percentage: p.percentage || 0,
+          amount_owed: splitMode === "exact" ? (parseFloat(p.amount_owed) || 0) : 
+                       splitMode === "percentage" ? Math.round(computedTotal * ((parseFloat(p.percentage) || 0) / 100)) : 
+                       (calcPreview?.participants?.find(cp => cp.temp_id === p.temp_id)?.amount_owed || 0),
+          percentage: parseFloat(p.percentage) || 0,
           temp_id: p.temp_id,
         })),
         items: splitMode === "itemized" ? items.map(item => ({
@@ -416,40 +509,41 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                   </div>
                 </div>
 
-                {/* Rounding Mode */}
-                <div className="pt-1 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-slate-600">
+                {/* Rounding Mode Styled Select */}
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-200/60">
+                  <span className="text-xs font-bold text-slate-700">
                     {t("split_bill.field_rounding", "Opsi Pembulatan:")}
                   </span>
-                  <select
-                    value={roundingMode}
-                    onChange={e => setRoundingMode(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none cursor-pointer"
-                  >
-                    <option value="none">{t("split_bill.opt_no_rounding", "Tanpa Pembulatan")}</option>
-                    <option value="up_100">{t("split_bill.opt_round_up_100", "Bulatkan ke Atas (+100)")}</option>
-                    <option value="up_1000">{t("split_bill.opt_round_up_1000", "Bulatkan ke Atas (+1.000)")}</option>
-                    <option value="down_100">{t("split_bill.opt_round_down_100", "Bulatkan ke Bawah (-100)")}</option>
-                  </select>
+                  <div className="relative inline-block w-full sm:w-auto">
+                    <select
+                      value={roundingMode}
+                      onChange={e => setRoundingMode(e.target.value)}
+                      className="w-full sm:w-auto appearance-none bg-white border border-slate-200 hover:border-emerald-500 rounded-xl pl-3.5 pr-8 py-2 text-xs font-bold text-slate-800 outline-none transition-all cursor-pointer shadow-2xs"
+                    >
+                      <option value="none">{t("split_bill.opt_no_rounding", "Tanpa Pembulatan")}</option>
+                      <option value="up_100">{t("split_bill.opt_round_up_100", "Bulatkan ke Atas (+100)")}</option>
+                      <option value="up_1000">{t("split_bill.opt_round_up_1000", "Bulatkan ke Atas (+1.000)")}</option>
+                      <option value="down_100">{t("split_bill.opt_round_down_100", "Bulatkan ke Bawah (-100)")}</option>
+                    </select>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
                 </div>
               </div>
 
               {/* Total Summary Box */}
-              {calcPreview && (
-                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-2xl border border-emerald-200 flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-extrabold uppercase text-slate-500">
-                      {t("split_bill.final_total_bill", "Total Akhir Tagihan:")}
-                    </span>
-                    <h3 className="text-xl font-black text-[#00685F]">
-                      Rp {calcPreview.total_amount.toLocaleString()}
-                    </h3>
-                  </div>
-                  <span className="text-xs bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1.5 rounded-xl">
-                    {t("split_bill.count_participants", "{count} Partisipan").replace("{count}", participants.length)}
+              <div className="bg-gradient-to-r from-emerald-50 via-white to-teal-50 p-4 rounded-2xl border border-emerald-200 flex items-center justify-between shadow-2xs">
+                <div>
+                  <span className="text-[11px] font-extrabold uppercase text-slate-500">
+                    {t("split_bill.final_total_bill", "Total Akhir Tagihan:")}
                   </span>
+                  <h3 className="text-xl font-black text-[#00685F]">
+                    Rp {computedTotal.toLocaleString()}
+                  </h3>
                 </div>
-              )}
+                <span className="text-xs bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1.5 rounded-xl border border-emerald-200">
+                  {t("split_bill.count_participants", "{count} Partisipan").replace("{count}", participants.length)}
+                </span>
+              </div>
             </div>
           )}
 
@@ -531,7 +625,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
             </div>
           )}
 
-          {/* STEP 3: SPLIT MODE & CALCULATION */}
+          {/* STEP 3: SPLIT MODE & INTERACTIVE CALCULATION */}
           {step === 3 && (
             <div className="space-y-5">
               
@@ -570,7 +664,179 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                 </div>
               </div>
 
-              {/* ITEMIZED MENU INPUT (If mode itemized) */}
+              {/* 1. EXACT AMOUNT INPUT MODE */}
+              {splitMode === "exact" && (
+                <div className="space-y-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                        {t("split_bill.exact_input_title", "Tentukan Nominal Pasti Tiap Orang")}
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        {t("split_bill.exact_helper_allocated", "Teralokasi: {allocated} / {total}")
+                          .replace("{allocated}", `Rp ${exactAllocated.toLocaleString()}`)
+                          .replace("{total}", `Rp ${computedTotal.toLocaleString()}`)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSplitEqualExact}
+                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs"
+                      >
+                        {t("split_bill.btn_split_equal_amount", "Bagi Rata")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAssignRestToMe}
+                        className="px-2.5 py-1 bg-emerald-100 border border-emerald-200 rounded-lg text-[11px] font-bold text-emerald-800 hover:bg-emerald-200 cursor-pointer shadow-2xs"
+                      >
+                        {t("split_bill.btn_assign_rest_to_me", "Alokasikan sisa ke saya")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Allocation Status Alert */}
+                  <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center justify-between ${
+                    Math.abs(exactRemaining) < 1 
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                      : "bg-amber-100 text-amber-900 border border-amber-200"
+                  }`}>
+                    <div className="flex items-center gap-1.5">
+                      {Math.abs(exactRemaining) < 1 ? (
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-amber-600" />
+                      )}
+                      <span>
+                        {Math.abs(exactRemaining) < 1 
+                          ? (language === "en" ? "✓ 100% Fully Allocated" : "✓ Alokasi Pas 100%") 
+                          : t("split_bill.exact_helper_remaining", "Sisa: {remaining}").replace("{remaining}", `Rp ${exactRemaining.toLocaleString()}`)}
+                      </span>
+                    </div>
+                    <span className="font-mono">
+                      Rp {exactAllocated.toLocaleString()} / Rp {computedTotal.toLocaleString()}
+                    </span>
+                  </div>
+
+                  {/* Participant Inputs */}
+                  <div className="space-y-2 pt-1">
+                    {participants.map((p, idx) => (
+                      <div 
+                        key={p.temp_id || idx}
+                        className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-slate-800 truncate">
+                            {p.name || `${language === "en" ? "Friend" : "Teman"} ${idx + 1}`}
+                            {p.is_creator && <span className="text-[10px] text-[#00685F] ml-1">({t("split_bill.my_share_tag", "Saya")})</span>}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 w-40 sm:w-48">
+                          <span className="text-xs font-bold text-slate-400">Rp</span>
+                          <input
+                            type="number"
+                            value={p.amount_owed || ""}
+                            onChange={e => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setParticipants(participants.map((item, i) => i === idx ? { ...item, amount_owed: val } : item));
+                            }}
+                            placeholder="0"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-black text-right text-slate-900 focus:bg-white focus:border-[#00685F] outline-none"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. PERCENTAGE INPUT MODE */}
+              {splitMode === "percentage" && (
+                <div className="space-y-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                        {t("split_bill.percentage_input_title", "Tentukan Persentase Beban Tiap Orang")}
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        {t("split_bill.total_percentage", "Total Persentase: {pct}%").replace("{pct}", totalPercentageSum)}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSplitEqualPercentage}
+                      className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs self-start sm:self-auto"
+                    >
+                      {t("split_bill.btn_split_equal_pct", "Bagi Rata %")}
+                    </button>
+                  </div>
+
+                  {/* Percentage Status Alert */}
+                  <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center justify-between ${
+                    Math.abs(totalPercentageSum - 100) < 0.1 
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                      : "bg-amber-100 text-amber-900 border border-amber-200"
+                  }`}>
+                    <div className="flex items-center gap-1.5">
+                      {Math.abs(totalPercentageSum - 100) < 0.1 ? (
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-amber-600" />
+                      )}
+                      <span>
+                        {Math.abs(totalPercentageSum - 100) < 0.1 
+                          ? (language === "en" ? "✓ 100% Exactly" : "✓ 100% Pas") 
+                          : t("split_bill.percentage_warning", "Total persentase harus 100%")}
+                      </span>
+                    </div>
+                    <span className="font-mono">{totalPercentageSum}% / 100%</span>
+                  </div>
+
+                  {/* Participant Percentage Inputs */}
+                  <div className="space-y-2 pt-1">
+                    {participants.map((p, idx) => {
+                      const shareRp = Math.round(computedTotal * ((parseFloat(p.percentage) || 0) / 100));
+
+                      return (
+                        <div 
+                          key={p.temp_id || idx}
+                          className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-xs font-black text-slate-800 truncate">
+                              {p.name || `${language === "en" ? "Friend" : "Teman"} ${idx + 1}`}
+                              {p.is_creator && <span className="text-[10px] text-[#00685F] ml-1">({t("split_bill.my_share_tag", "Saya")})</span>}
+                            </p>
+                            <p className="text-[11px] font-extrabold text-[#00685F]">
+                              ≈ Rp {shareRp.toLocaleString()}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 w-24 sm:w-28">
+                            <input
+                              type="number"
+                              value={p.percentage || ""}
+                              onChange={e => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setParticipants(participants.map((item, i) => i === idx ? { ...item, percentage: val } : item));
+                              }}
+                              placeholder="0"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-black text-right text-slate-900 focus:bg-white focus:border-[#00685F] outline-none"
+                            />
+                            <span className="text-xs font-bold text-slate-500">%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. ITEMIZED MENU INPUT MODE */}
               {splitMode === "itemized" && (
                 <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-200">
                   <div className="flex items-center justify-between">
@@ -589,7 +855,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
 
                   <div className="space-y-2.5">
                     {items.map((item) => (
-                      <div key={item.id} className="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
+                      <div key={item.id} className="bg-white p-3 rounded-xl border border-slate-200 space-y-2 shadow-2xs">
                         <div className="flex items-center gap-2">
                           <input
                             type="text"
@@ -654,8 +920,8 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                 </div>
               )}
 
-              {/* CALCULATION PREVIEW CARDS */}
-              {calcPreview && (
+              {/* 4. CALCULATION PREVIEW CARDS (For Equal / Itemized) */}
+              {(splitMode === "equal" || splitMode === "itemized") && calcPreview && (
                 <div className="space-y-2">
                   <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
                     {t("split_bill.auto_split_result", "Hasil Pembagian Otomatis:")}
@@ -690,7 +956,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
             </div>
           )}
 
-          {/* STEP 4: PAYMENT INFO & CONFIRMATION */}
+          {/* STEP 4: PAYMENT INFO & CONFIRMATION WITH MODERN DROPDOWNS */}
           {step === 4 && (
             <div className="space-y-4">
               
@@ -710,33 +976,33 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                     value={bankName}
                     onChange={e => setBankName(e.target.value)}
                     placeholder={t("split_bill.placeholder_bank", "Bank / E-Wallet (BCA/GoPay)")}
-                    className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                    className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none shadow-2xs"
                   />
                   <input
                     type="text"
                     value={accountNumber}
                     onChange={e => setAccountNumber(e.target.value)}
                     placeholder={t("split_bill.placeholder_acc_no", "Nomor Rekening / HP")}
-                    className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                    className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none shadow-2xs"
                   />
                   <input
                     type="text"
                     value={accountHolder}
                     onChange={e => setAccountHolder(e.target.value)}
                     placeholder={t("split_bill.placeholder_holder", "Atas Nama (a.n)")}
-                    className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                    className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none shadow-2xs"
                   />
                 </div>
               </div>
 
-              {/* Auto Record Expense Checkbox */}
-              <div className="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 space-y-3">
+              {/* Auto Record Expense Checkbox with Modern Stylized Selects */}
+              <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 sm:p-5 rounded-2xl border border-emerald-200/90 space-y-3.5 shadow-2xs">
                 <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={recordMyExpense}
                     onChange={e => setRecordMyExpense(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#00685F] accent-[#00685F]"
+                    className="w-4 h-4 rounded text-[#00685F] accent-[#00685F] cursor-pointer"
                   />
                   <span className="text-xs font-black text-slate-800">
                     {t("split_bill.auto_record_checkbox", "Otomatis catat bagian saya ke Dompet MoneFin")}
@@ -744,59 +1010,67 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                 </label>
 
                 {recordMyExpense && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-500 block mb-1">
-                        {t("split_bill.choose_wallet", "Pilih Dompet / Rekening:")}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {/* Modern Account Selector */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5">
+                        <Wallet className="w-3.5 h-3.5 text-[#00685F]" />
+                        <span>{t("split_bill.choose_wallet", "Pilih Dompet / Rekening:")}</span>
                       </label>
-                      <select
-                        value={selectedAccountId}
-                        onChange={e => setSelectedAccountId(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none cursor-pointer"
-                      >
-                        {accounts.map(acc => (
-                          <option key={acc.id} value={acc.id}>
-                            {acc.name} (Rp {acc.balance.toLocaleString()})
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={selectedAccountId}
+                          onChange={e => setSelectedAccountId(e.target.value)}
+                          className="w-full appearance-none bg-white border border-slate-200/90 hover:border-[#00685F] focus:border-[#00685F] rounded-xl pl-3.5 pr-9 py-2.5 text-xs font-black text-slate-800 outline-none transition-all cursor-pointer shadow-xs"
+                        >
+                          {accounts.map(acc => (
+                            <option key={acc.id} value={acc.id} className="py-1">
+                              {acc.name} — Rp {Math.round(acc.balance).toLocaleString()}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-500 block mb-1">
-                        {t("split_bill.choose_category", "Kategori Pengeluaran:")}
+                    {/* Modern Category Selector */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-[#00685F]" />
+                        <span>{t("split_bill.choose_category", "Kategori Pengeluaran:")}</span>
                       </label>
-                      <select
-                        value={selectedCategoryId}
-                        onChange={e => setSelectedCategoryId(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none cursor-pointer"
-                      >
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={selectedCategoryId}
+                          onChange={e => setSelectedCategoryId(e.target.value)}
+                          className="w-full appearance-none bg-white border border-slate-200/90 hover:border-[#00685F] focus:border-[#00685F] rounded-xl pl-3.5 pr-9 py-2.5 text-xs font-black text-slate-800 outline-none transition-all cursor-pointer shadow-xs"
+                        >
+                          {categories.map(cat => (
+                            <option key={cat.id} value={cat.id} className="py-1">
+                              {cat.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Final Summary Card */}
-              {calcPreview && (
-                <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl space-y-2">
-                  <div className="flex justify-between items-center text-xs text-slate-400">
-                    <span>{t("split_bill.event_label", "Acara:")} <strong className="text-white">{title || (language === "en" ? "Untitled" : "Tanpa Judul")}</strong></span>
-                    <span>{billDate}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-slate-800">
-                    <span className="text-xs font-bold">{t("split_bill.final_total_bill", "Total Pembagian:")}</span>
-                    <span className="text-lg font-black text-emerald-400">
-                      Rp {calcPreview.total_amount.toLocaleString()}
-                    </span>
-                  </div>
+              <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl space-y-2 shadow-lg">
+                <div className="flex justify-between items-center text-xs text-slate-400">
+                  <span>{t("split_bill.event_label", "Acara:")} <strong className="text-white">{title || (language === "en" ? "Untitled" : "Tanpa Judul")}</strong></span>
+                  <span>{billDate}</span>
                 </div>
-              )}
+                <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+                  <span className="text-xs font-bold">{t("split_bill.final_total_bill", "Total Pembagian:")}</span>
+                  <span className="text-lg font-black text-emerald-400">
+                    Rp {computedTotal.toLocaleString()}
+                  </span>
+                </div>
+              </div>
 
             </div>
           )}
@@ -809,7 +1083,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
             <button
               type="button"
               onClick={() => setStep(step - 1)}
-              className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1 hover:bg-slate-100 transition-all cursor-pointer"
+              className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1 hover:bg-slate-100 transition-all cursor-pointer shadow-2xs"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>{t("split_bill.btn_previous", "Sebelumnya")}</span>
