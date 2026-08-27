@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import id from "../locales/id.json";
 import en from "../locales/en.json";
 import { useAuth } from "../hooks/useAuth";
+import { updateProfile } from "../services/auth.service";
 
 const MESSAGES = { id, en };
 const SUPPORTED_LOCALES = ["en", "id"];
@@ -36,18 +37,20 @@ function updateHtmlLang(lang) {
 
 export function LanguageProvider({ children }) {
   const { user } = useAuth();
+  const lastSyncedUserLang = useRef(null);
 
-  const [language, setLanguage] = useState(DEFAULT_LOCALE);
-
-  useEffect(() => {
-    const persisted = getCookieLocale() || (typeof localStorage !== "undefined" && localStorage.getItem("language"));
-    if (persisted && SUPPORTED_LOCALES.includes(persisted)) {
-      setLanguage(persisted);
-      updateHtmlLang(persisted);
+  // Initialize with persisted locale or default
+  const [language, setLanguage] = useState(() => {
+    if (typeof window !== "undefined") {
+      const persisted = getCookieLocale() || localStorage.getItem("language");
+      if (persisted && SUPPORTED_LOCALES.includes(persisted)) {
+        return persisted;
+      }
     }
-  }, []);
+    return DEFAULT_LOCALE;
+  });
 
-  // Internal apply — updates state, cookie, localStorage, and html lang attribute
+  // Apply language locally (state, cookie, localStorage, html lang)
   const applyLanguage = useCallback((lang) => {
     if (!SUPPORTED_LOCALES.includes(lang)) return;
     setLanguage(lang);
@@ -57,28 +60,71 @@ export function LanguageProvider({ children }) {
     }
     updateHtmlLang(lang);
   }, []);
-  // Sync with DB user preferences (highest priority, runs after login)
+
+  // Hydrate on mount
   useEffect(() => {
-    if (user?.preferences?.language && SUPPORTED_LOCALES.includes(user.preferences.language)) {
-      applyLanguage(user.preferences.language);
+    const persisted = getCookieLocale() || (typeof localStorage !== "undefined" && localStorage.getItem("language"));
+    if (persisted && SUPPORTED_LOCALES.includes(persisted)) {
+      setLanguage(persisted);
+      updateHtmlLang(persisted);
     }
-  }, [user, applyLanguage]);
-  // Ensure html lang is correct on mount
+  }, []);
+
+  // Keep HTML lang in sync
   useEffect(() => {
     updateHtmlLang(language);
   }, [language]);
 
+  // Synchronize DB user preferences without overriding active session choice
+  useEffect(() => {
+    if (!user) {
+      lastSyncedUserLang.current = null;
+      return;
+    }
+
+    const currentLocal = getCookieLocale() || (typeof localStorage !== "undefined" && localStorage.getItem("language"));
+
+    if (currentLocal && SUPPORTED_LOCALES.includes(currentLocal)) {
+      // User has an explicit active choice on this device
+      if (language !== currentLocal) {
+        applyLanguage(currentLocal);
+      }
+
+      // If DB preference is outdated compared to active device choice, update DB in background
+      if (user.preferences?.language !== currentLocal && lastSyncedUserLang.current !== currentLocal) {
+        lastSyncedUserLang.current = currentLocal;
+        const newPrefs = { ...(user.preferences || {}), language: currentLocal };
+        const fd = new FormData();
+        fd.append("name", user.name || "");
+        fd.append("preferences", JSON.stringify(newPrefs));
+        updateProfile(fd).catch(err => console.warn("Background language preference sync error:", err));
+      }
+    } else if (user.preferences?.language && SUPPORTED_LOCALES.includes(user.preferences.language)) {
+      // First-time visit / fresh device: adopt DB preference
+      applyLanguage(user.preferences.language);
+    }
+  }, [user, language, applyLanguage]);
+
   /**
-   * changeLanguage — instant switch (for Navbar, Landing, Sidebar).
-   * In Settings, language is changed globally only after "Save Preferences".
+   * changeLanguage — instant switch (for Navbar, Landing, Sidebar, Header, Settings)
    */
   const changeLanguage = useCallback((lang) => {
+    if (!SUPPORTED_LOCALES.includes(lang)) return;
     applyLanguage(lang);
-  }, [applyLanguage]);
+
+    // If logged in, persist to backend user preferences
+    if (user) {
+      lastSyncedUserLang.current = lang;
+      const newPrefs = { ...(user.preferences || {}), language: lang };
+      const fd = new FormData();
+      fd.append("name", user.name || "");
+      fd.append("preferences", JSON.stringify(newPrefs));
+      updateProfile(fd).catch(err => console.warn("Language preference update error:", err));
+    }
+  }, [applyLanguage, user]);
 
   /**
    * t(key, fallback) — translate a dot-notated key e.g. "dashboard.title"
-   * Returns fallback if provided, otherwise the key itself if not found.
    */
   const t = useCallback((key, fallback) => {
     const messages = MESSAGES[language] ?? MESSAGES[DEFAULT_LOCALE];
@@ -89,7 +135,7 @@ export function LanguageProvider({ children }) {
         return fallback !== undefined ? fallback : key;
       }
       if (!(k in value)) {
-        // Try fallback in DEFAULT_LOCALE
+        // Fallback to DEFAULT_LOCALE
         const defaultMessages = MESSAGES[DEFAULT_LOCALE];
         let defVal = defaultMessages;
         for (const dk of keys) {
@@ -116,4 +162,3 @@ export function useLanguage() {
   if (!ctx) throw new Error("useLanguage must be used within a LanguageProvider");
   return ctx;
 }
-

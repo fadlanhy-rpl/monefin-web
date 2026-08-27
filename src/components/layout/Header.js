@@ -10,6 +10,7 @@ import { getNotifications, markAsRead, markAllAsRead } from "../../services/noti
 import { getGamificationSummary } from "../../services/gamification.service";
 
 import { useCurrency } from "../../hooks/useCurrency";
+import { LanguageSwitcherDropdown } from "../ui/LanguageSwitcher";
 
 function getRelativeTime(dateString) {
   if (!dateString) return "";
@@ -405,6 +406,9 @@ export default function Header({ setMobileOpen }) {
             </div>
           </Link>
         )}
+
+        {/* Language Switcher */}
+        <LanguageSwitcherDropdown />
 
         {/* Notification */}
         <div className="relative">
