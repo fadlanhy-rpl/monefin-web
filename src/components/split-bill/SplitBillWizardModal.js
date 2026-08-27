@@ -13,7 +13,6 @@ import {
   Check, 
   ChevronRight, 
   ChevronLeft,
-  ChevronDown,
   Percent,
   DollarSign,
   Utensils,
@@ -23,12 +22,15 @@ import {
   Clock,
   Wallet,
   Tag,
-  AlertCircle
+  AlertCircle,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { createSplitBill, calculateSplitPreview } from "../../services/split-bill.service";
 import { getAccounts } from "../../services/account.service";
 import { getCategories } from "../../services/category.service";
 import { useLanguage } from "../../context/LanguageContext";
+import DatePicker from "../ui/DatePicker";
+import CustomSelect from "../ui/CustomSelect";
 import toast from "react-hot-toast";
 
 export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
@@ -89,13 +91,13 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
       getAccounts().then((res) => {
         const accs = res.data || res || [];
         setAccounts(accs);
-        if (accs.length > 0) setSelectedAccountId(accs[0].id);
+        if (accs.length > 0) setSelectedAccountId(String(accs[0].id));
       }).catch(console.error);
 
       getCategories().then((res) => {
         const cats = res.data || res || [];
         setCategories(cats);
-        if (cats.length > 0) setSelectedCategoryId(cats[0].id);
+        if (cats.length > 0) setSelectedCategoryId(String(cats[0].id));
       }).catch(console.error);
     }
   }, [isOpen]);
@@ -271,6 +273,27 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
     return participants.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
   }, [participants]);
 
+  // Dropdown Options
+  const roundingOptions = [
+    { value: "none", label: t("split_bill.opt_no_rounding", "Tanpa Pembulatan") },
+    { value: "up_100", label: t("split_bill.opt_round_up_100", "Bulatkan ke Atas (+100)") },
+    { value: "up_1000", label: t("split_bill.opt_round_up_1000", "Bulatkan ke Atas (+1.000)") },
+    { value: "down_100", label: t("split_bill.opt_round_down_100", "Bulatkan ke Bawah (-100)") },
+  ];
+
+  const accountOptions = accounts.map(acc => ({
+    value: String(acc.id),
+    label: acc.name,
+    sublabel: `Rp ${Math.round(acc.balance).toLocaleString()}`,
+    icon: Wallet
+  }));
+
+  const categoryOptions = categories.map(cat => ({
+    value: String(cat.id),
+    label: cat.name,
+    icon: Tag
+  }));
+
   const handleSubmit = async () => {
     if (!title.trim()) {
       toast.error(language === "en" ? "Please enter bill or event name." : "Mohon isi nama acara / tagihan.");
@@ -430,20 +453,20 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder={t("split_bill.placeholder_title", "Misal: Makan Malam Seafood, Liburan Puncak, Kado Ultah")}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:bg-white focus:border-[#00685F] outline-none transition-all"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:bg-white focus:border-[#00685F] outline-none transition-all shadow-2xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Modern Custom Date Picker */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
                     {t("split_bill.field_date", "Tanggal Tagihan")}
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={billDate}
-                    onChange={e => setBillDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:bg-white focus:border-[#00685F] outline-none transition-all"
+                    onChange={setBillDate}
+                    placeholder={t("split_bill.field_date", "Tanggal Tagihan")}
                   />
                 </div>
 
@@ -456,7 +479,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                     value={subtotal}
                     onChange={e => setSubtotal(e.target.value)}
                     placeholder="0"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:bg-white focus:border-[#00685F] outline-none transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:bg-white focus:border-[#00685F] outline-none transition-all shadow-2xs"
                   />
                 </div>
               </div>
@@ -478,7 +501,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                       value={taxPercent}
                       onChange={e => setTaxPercent(e.target.value)}
                       placeholder="10"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:border-[#00685F] outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:border-[#00685F] outline-none shadow-2xs"
                     />
                   </div>
 
@@ -491,7 +514,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                       value={servicePercent}
                       onChange={e => setServicePercent(e.target.value)}
                       placeholder="5"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:border-[#00685F] outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:border-[#00685F] outline-none shadow-2xs"
                     />
                   </div>
 
@@ -504,28 +527,22 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                       value={discountAmount}
                       onChange={e => setDiscountAmount(e.target.value)}
                       placeholder="0"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:border-[#00685F] outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:border-[#00685F] outline-none shadow-2xs"
                     />
                   </div>
                 </div>
 
-                {/* Rounding Mode Styled Select */}
+                {/* Rounding Mode Custom Dropdown */}
                 <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-200/60">
                   <span className="text-xs font-bold text-slate-700">
                     {t("split_bill.field_rounding", "Opsi Pembulatan:")}
                   </span>
-                  <div className="relative inline-block w-full sm:w-auto">
-                    <select
+                  <div className="w-full sm:w-60">
+                    <CustomSelect
                       value={roundingMode}
-                      onChange={e => setRoundingMode(e.target.value)}
-                      className="w-full sm:w-auto appearance-none bg-white border border-slate-200 hover:border-emerald-500 rounded-xl pl-3.5 pr-8 py-2 text-xs font-bold text-slate-800 outline-none transition-all cursor-pointer shadow-2xs"
-                    >
-                      <option value="none">{t("split_bill.opt_no_rounding", "Tanpa Pembulatan")}</option>
-                      <option value="up_100">{t("split_bill.opt_round_up_100", "Bulatkan ke Atas (+100)")}</option>
-                      <option value="up_1000">{t("split_bill.opt_round_up_1000", "Bulatkan ke Atas (+1.000)")}</option>
-                      <option value="down_100">{t("split_bill.opt_round_down_100", "Bulatkan ke Bawah (-100)")}</option>
-                    </select>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      onChange={setRoundingMode}
+                      options={roundingOptions}
+                    />
                   </div>
                 </div>
               </div>
@@ -956,7 +973,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
             </div>
           )}
 
-          {/* STEP 4: PAYMENT INFO & CONFIRMATION WITH MODERN DROPDOWNS */}
+          {/* STEP 4: PAYMENT INFO & CONFIRMATION WITH MODERN CUSTOM SELECTS */}
           {step === 4 && (
             <div className="space-y-4">
               
@@ -995,7 +1012,7 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
                 </div>
               </div>
 
-              {/* Auto Record Expense Checkbox with Modern Stylized Selects */}
+              {/* Auto Record Expense Checkbox with Custom Selects */}
               <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 sm:p-5 rounded-2xl border border-emerald-200/90 space-y-3.5 shadow-2xs">
                 <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
@@ -1011,48 +1028,33 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
 
                 {recordMyExpense && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    {/* Modern Account Selector */}
+                    {/* Modern Custom Account Selector */}
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5">
                         <Wallet className="w-3.5 h-3.5 text-[#00685F]" />
                         <span>{t("split_bill.choose_wallet", "Pilih Dompet / Rekening:")}</span>
                       </label>
-                      <div className="relative">
-                        <select
-                          value={selectedAccountId}
-                          onChange={e => setSelectedAccountId(e.target.value)}
-                          className="w-full appearance-none bg-white border border-slate-200/90 hover:border-[#00685F] focus:border-[#00685F] rounded-xl pl-3.5 pr-9 py-2.5 text-xs font-black text-slate-800 outline-none transition-all cursor-pointer shadow-xs"
-                        >
-                          {accounts.map(acc => (
-                            <option key={acc.id} value={acc.id} className="py-1">
-                              {acc.name} — Rp {Math.round(acc.balance).toLocaleString()}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      </div>
+                      <CustomSelect
+                        value={selectedAccountId}
+                        onChange={setSelectedAccountId}
+                        options={accountOptions}
+                        placeholder={t("split_bill.select_account_placeholder", "Pilih dompet / rekening...")}
+                      />
                     </div>
 
-                    {/* Modern Category Selector */}
+                    {/* Modern Custom Category Selector */}
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5">
                         <Tag className="w-3.5 h-3.5 text-[#00685F]" />
                         <span>{t("split_bill.choose_category", "Kategori Pengeluaran:")}</span>
                       </label>
-                      <div className="relative">
-                        <select
-                          value={selectedCategoryId}
-                          onChange={e => setSelectedCategoryId(e.target.value)}
-                          className="w-full appearance-none bg-white border border-slate-200/90 hover:border-[#00685F] focus:border-[#00685F] rounded-xl pl-3.5 pr-9 py-2.5 text-xs font-black text-slate-800 outline-none transition-all cursor-pointer shadow-xs"
-                        >
-                          {categories.map(cat => (
-                            <option key={cat.id} value={cat.id} className="py-1">
-                              {cat.name}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      </div>
+                      <CustomSelect
+                        value={selectedCategoryId}
+                        onChange={setSelectedCategoryId}
+                        options={categoryOptions}
+                        searchable
+                        placeholder={t("split_bill.select_category_placeholder", "Pilih kategori pengeluaran...")}
+                      />
                     </div>
                   </div>
                 )}

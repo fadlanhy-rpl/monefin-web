@@ -24,6 +24,7 @@ import {
 } from "../../services/split-bill.service";
 import { getAccounts } from "../../services/account.service";
 import { useLanguage } from "../../context/LanguageContext";
+import CustomSelect from "../ui/CustomSelect";
 import toast from "react-hot-toast";
 
 export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdated }) {
@@ -220,23 +221,25 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
                 </button>
 
                 {!bill.my_transaction_id && (
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedAccountId}
-                      onChange={e => setSelectedAccountId(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none"
-                    >
-                      {accounts.map(acc => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    <div className="w-full sm:w-60">
+                      <CustomSelect
+                        value={selectedAccountId}
+                        onChange={setSelectedAccountId}
+                        options={accounts.map(acc => ({
+                          value: String(acc.id),
+                          label: acc.name,
+                          sublabel: `Rp ${Math.round(acc.balance).toLocaleString()}`,
+                          icon: Wallet
+                        }))}
+                        placeholder={t("split_bill.select_account_placeholder", "Pilih dompet...")}
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={handleRecordExpense}
                       disabled={isRecordingExpense}
-                      className="px-3.5 py-2.5 bg-[#00685F] hover:bg-[#00554E] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      className="px-4 py-2.5 bg-[#00685F] hover:bg-[#00554E] text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0 shadow-2xs"
                     >
                       <Wallet className="w-4 h-4" />
                       <span>{t("split_bill.record_to_wallet_btn", "Catat ke Dompet")}</span>
