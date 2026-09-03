@@ -107,13 +107,21 @@ export default function DashboardPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
-          <span className="w-8 h-8 border-3 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
-          <span className="text-xs font-semibold text-slate-400">
-            {language === "en" ? "Loading dashboard..." : "Memuat dashboard..."}
-          </span>
+        <div className="space-y-6 sm:space-y-8 animate-pulse" aria-busy="true" aria-label={language === "en" ? "Loading dashboard..." : "Memuat dashboard..."}>
+          <div className="h-28 sm:h-24 bg-white rounded-2xl border border-slate-100" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div className="h-44 sm:h-48 bg-white rounded-2xl border border-slate-100" />
+            <div className="h-44 sm:h-48 bg-white rounded-2xl border border-slate-100" />
+            <div className="h-44 sm:h-48 bg-white rounded-2xl border border-slate-100" />
+          </div>
+          <div className="min-h-[310px] bg-white rounded-[1.75rem] border border-slate-100" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div className="lg:col-span-7 h-72 bg-white rounded-2xl border border-slate-100" />
+            <div className="lg:col-span-5 h-72 bg-white rounded-2xl border border-slate-100" />
+          </div>
         </div>
       ) : data ? (
+
         <div className="space-y-6 sm:space-y-8">
           <DashboardGamificationBanner />
 

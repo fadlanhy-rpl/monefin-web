@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Trash2, X } from "lucide-react";
 
 export default function ConfirmModal({
@@ -11,11 +13,21 @@ export default function ConfirmModal({
   isDanger = true,
   isLoading = false
 }) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+      {/* Click outside backdrop to close */}
+      <div className="fixed inset-0 -z-10" onClick={onClose} aria-hidden="true" />
+
       <div className="bg-white rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden border border-slate-100 p-6 sm:p-7 text-center animate-in zoom-in-95 duration-200 relative my-auto">
+
         {/* Close Button */}
         <button
           type="button"
@@ -67,6 +79,8 @@ export default function ConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
+

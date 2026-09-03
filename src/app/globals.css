@@ -201,15 +201,15 @@ input:focus {
 
 .reveal {
   opacity: 0;
-  transform: translateY(18px);
 }
 .reveal.in-view {
-  animation: fadeUp .6s cubic-bezier(.2,.8,.2,1) both;
+  animation: fadeIn .4s ease-out both;
 }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
+
 
 .card-hover {
   transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease;
@@ -263,8 +263,14 @@ input:focus {
 .sidebar-link:hover svg { transform: scale(1.15) translateY(-1px); }
 .sidebar-link.active svg { transform: scale(1.08); }
 
-.bar-grow { width: 0 !important; animation: growWidth 1s cubic-bezier(.2,.8,.2,1) .3s forwards; }
-@keyframes growWidth { to { width: var(--target-width); } }
+.bar-grow { 
+  width: var(--target-width, 100%); 
+  transform-origin: left; 
+  transform: scaleX(0); 
+  animation: growScale 1s cubic-bezier(.2,.8,.2,1) .3s forwards; 
+}
+@keyframes growScale { to { transform: scaleX(1); } }
+
 
 .ripple-container { position: relative; overflow: hidden; }
 .ripple {
@@ -346,13 +352,14 @@ input:focus {
 
 /* Sparklines */
 .sparkline-path {
-  stroke-dasharray: 200;
-  stroke-dashoffset: 200;
-  animation: sparklineDraw 1.8s cubic-bezier(.2, .8, .2, 1) 0.2s forwards;
+  transform-origin: left;
+  animation: sparklineFade 0.8s ease-out forwards;
 }
-@keyframes sparklineDraw {
-  to { stroke-dashoffset: 0; }
+@keyframes sparklineFade {
+  from { opacity: 0; transform: scaleX(0.95); }
+  to { opacity: 1; transform: scaleX(1); }
 }
+
 
 /* Flip Card Effect for Smart Insight */
 .flip-card-inner {
@@ -443,8 +450,9 @@ input:focus {
 }
 
 .catalis-card {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .catalis-card:hover {
   transform: translateY(-6px) scale(1.01);
   box-shadow: 0 20px 35px -10px rgba(0, 104, 95, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.04);
@@ -562,4 +570,15 @@ input:focus {
     border-radius: 1.5rem !important;
   }
 }
+
+/* Disable native cancel/clear button in webkit search inputs */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
 

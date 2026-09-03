@@ -100,7 +100,7 @@ export default function SmartInsightCard({ page, className = "", onActionClick }
           <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-1 rounded-full border ${
             isAi
               ? "bg-white/25 border-white/30 text-white"
-              : "bg-white/15 border-white/20 text-white/80"
+              : "bg-white/20 border-white/30 text-white"
           }`}>
             {isAi ? <Sparkles className="w-2.5 h-2.5" /> : <Settings2 className="w-2.5 h-2.5" />}
             {insight.source_label ?? (isAi ? "AI Insight" : "MoneFin Engine")}
@@ -110,9 +110,10 @@ export default function SmartInsightCard({ page, className = "", onActionClick }
         <h4 className="font-extrabold text-xl sm:text-2xl tracking-tight leading-tight">
           {insight.title}
         </h4>
-        <p className="text-white/75 mt-3 text-xs sm:text-sm leading-relaxed font-medium">
+        <p className="text-white/95 mt-3 text-xs sm:text-sm leading-relaxed font-medium">
           {insight.body}
         </p>
+
       </div>
 
       {insight.action_label && (insight.action_url || onActionClick) && (

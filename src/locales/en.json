@@ -665,8 +665,9 @@
     "select_category_placeholder": "Select category...",
     "hero_card_title": "Smart Expense Sharing Suite",
     "hero_card_desc": "Track shared costs with fair proportional tax splits, auto-settlement, and instant WhatsApp reminders.",
-    "create_new": "+ New Split Bill",
+    "create_new": "New Split Bill",
     "total_active_bills": "Active Bills",
+
     "total_owed_to_me": "Pending Collection",
     "total_settled_bills": "Settled Bills",
     "search_placeholder": "Search bill or friend's name...",

@@ -142,17 +142,30 @@ export default function LoginForm() {
     const result = await login(email, password, rememberMe);
 
     if (result.success) {
-      toast.success(language === "en" ? "Sign in successful! Welcome back." : "Login berhasil! Selamat datang kembali.");
+      toast.success(
+        language === "en" ? "Sign in successful! Welcome back." : "Login berhasil! Selamat datang kembali.",
+        { id: "auth-login-toast" }
+      );
       router.push("/dashboard");
     } else if (result.require2fa) {
-      toast(language === "en" ? "Two-factor authentication required. Please check your email." : "Verifikasi dua faktor diperlukan. Silakan cek email Anda.");
+      toast(
+        language === "en" ? "Two-factor authentication required. Please check your email." : "Verifikasi dua faktor diperlukan. Silakan cek email Anda.",
+        { id: "auth-login-toast" }
+      );
       router.push(`/verify-2fa?email=${encodeURIComponent(result.email)}`);
     } else if (result.requireVerification) {
-      toast(language === "en" ? "Email is not verified yet. Please check your email inbox." : "Email belum diverifikasi. Silakan cek inbox email Anda.");
+      toast(
+        language === "en" ? "Email is not verified yet. Please check your email inbox." : "Email belum diverifikasi. Silakan cek inbox email Anda.",
+        { id: "auth-login-toast" }
+      );
       router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
     } else {
-      toast.error(result.error || (language === "en" ? "Sign in failed. Check your email and password." : "Login gagal. Periksa email dan password Anda."));
+      toast.error(
+        result.error || (language === "en" ? "Sign in failed. Check your email and password." : "Login gagal. Periksa email dan password Anda."),
+        { id: "auth-login-toast" }
+      );
     }
+
 
     setIsSubmitting(false);
   };

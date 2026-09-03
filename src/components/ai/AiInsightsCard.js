@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { aiInsights } from "../../services/ai.service";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useRouter } from "next/navigation";
+
 import {
   Sparkles,
   RefreshCw,
@@ -20,7 +22,6 @@ import {
   ShieldCheck,
   Activity,
   CheckCircle2,
-  Info,
   X,
   ChevronRight
 } from "lucide-react";
@@ -108,10 +109,10 @@ function ScoreGauge({ score, onShowDetail }) {
   return (
     <div
       onClick={onShowDetail}
-      className="relative flex items-center justify-center w-28 h-28 shrink-0 cursor-pointer group select-none"
+      className="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 shrink-0 cursor-pointer group select-none"
       title="Klik untuk melihat rincian diagnosa skor"
     >
-      <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
         {/* Track */}
         <circle cx="50" cy="50" r={radius} fill="none" stroke="#f1f5f9" strokeWidth="8" />
         {/* Dynamic Progress Arc */}
@@ -126,14 +127,14 @@ function ScoreGauge({ score, onShowDetail }) {
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           style={{
-            transition: "stroke-dashoffset 1.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
             filter: `drop-shadow(0 0 6px ${colors.glow})`
           }}
+
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center transition-transform duration-200 group-hover:scale-105">
-        <span className={`text-3xl font-black tracking-tight ${colors.label}`}>{score}</span>
-        <span className="text-[9px] uppercase font-bold text-slate-400 -mt-1 tracking-wider">/ 100</span>
+        <span className={`text-2xl sm:text-3xl font-black tracking-tight ${colors.label}`}>{score}</span>
+        <span className="text-[8px] sm:text-[9px] uppercase font-bold text-slate-400 -mt-0.5 sm:-mt-1 tracking-wider">/ 100</span>
       </div>
     </div>
   );
@@ -148,9 +149,14 @@ export default function AiInsightsCard() {
   const [error, setError] = useState(false);
   const [displayScore, setDisplayScore] = useState(0);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const aiEnabled = user?.preferences?.ai_enabled ?? false;
-  const aiProvider = user?.preferences?.ai_config?.provider || "";
+
 
   const fetchInsights = async () => {
     setLoading(true);
@@ -210,41 +216,47 @@ export default function AiInsightsCard() {
     }
 
     return (
-      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold border shadow-xs ${colorClass}`}>
-        <span className={`w-2 h-2 rounded-full ${dotClass}`} />
-        <span>{text}</span>
+      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold border shadow-xs ${colorClass} shrink-0`}>
+        <span className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full ${dotClass}`} />
+        <span className="whitespace-nowrap">{text}</span>
       </div>
     );
   };
 
   if (loading) {
     return (
-      <div className="relative overflow-hidden bg-white rounded-[1.75rem] shadow-card border border-slate-100 p-6 animate-pulse">
-        <div className="flex items-center justify-between mb-5">
+      <div className="relative overflow-hidden bg-white rounded-[1.5rem] sm:rounded-[1.75rem] shadow-card border border-slate-100 p-4 sm:p-6 min-h-[310px] animate-pulse">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-slate-100" />
+            <div className="w-10 h-10 rounded-2xl bg-slate-100 shrink-0" />
             <div className="space-y-1.5">
-              <div className="h-4 w-44 bg-slate-100 rounded-md" />
-              <div className="h-3 w-64 bg-slate-100 rounded-md" />
+              <div className="h-4 w-36 sm:w-44 bg-slate-100 rounded-md" />
+              <div className="h-3 w-48 sm:w-64 bg-slate-100 rounded-md" />
             </div>
           </div>
           <div className="h-8 w-28 bg-slate-100 rounded-xl" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          <div className="lg:col-span-5 bg-slate-50/70 border border-slate-100 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-24 h-24 rounded-full bg-slate-200/70 shrink-0" />
-            <div className="space-y-2 flex-1">
-              <div className="h-4 w-28 bg-slate-200/70 rounded" />
-              <div className="h-3 w-full bg-slate-200/70 rounded" />
-              <div className="h-3 w-3/4 bg-slate-200/70 rounded" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+          <div className="lg:col-span-5 bg-slate-50/70 border border-slate-100 rounded-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[190px]">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-200/70 shrink-0" />
+              <div className="space-y-2 flex-1 min-w-0">
+                <div className="h-4 w-28 bg-slate-200/70 rounded" />
+                <div className="h-3 w-full bg-slate-200/70 rounded" />
+                <div className="h-3 w-3/4 bg-slate-200/70 rounded" />
+              </div>
             </div>
+            <div className="h-8 w-full bg-slate-200/50 rounded-xl mt-3" />
           </div>
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-slate-50/70 border border-slate-100 rounded-2xl p-4 space-y-3">
-                <div className="w-8 h-8 rounded-xl bg-slate-200/70" />
-                <div className="h-3.5 w-20 bg-slate-200/70 rounded" />
-                <div className="h-2.5 w-full bg-slate-200/70 rounded" />
+              <div key={i} className="h-40 sm:h-44 bg-slate-50/70 border border-slate-100 rounded-2xl p-4 flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-200/70" />
+                  <div className="h-3.5 w-20 bg-slate-200/70 rounded" />
+                  <div className="h-2.5 w-full bg-slate-200/70 rounded" />
+                </div>
+                <div className="h-3 w-16 bg-slate-200/60 rounded mt-2" />
               </div>
             ))}
           </div>
@@ -253,28 +265,29 @@ export default function AiInsightsCard() {
     );
   }
 
+
   if (error || !data) {
     return (
-      <div className="bg-white rounded-[1.75rem] shadow-card border border-slate-100 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[1.75rem] shadow-card border border-slate-100 p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
             <Sparkles className="w-5 h-5 text-amber-600" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h4 className="text-sm font-extrabold text-slate-900">
               {language === "id" ? "AI Financial Advisor Belum Aktif" : "AI Financial Advisor Not Active"}
             </h4>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
               {language === "id"
                 ? "Jika ingin menggunakan fitur AI Financial Advisor, silakan nyalakan dan masukkan API key Anda di Pengaturan."
                 : "If you want to use the AI Financial Advisor, please enable it and add your API key in Settings."}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 w-full sm:w-auto justify-end">
           <button
             onClick={() => router.push("/settings?tab=ai")}
-            className="press-scale flex items-center gap-2 px-4 py-2.5 bg-[#00685F] hover:bg-[#004D46] text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0"
+            className="press-scale flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#00685F] hover:bg-[#004D46] text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{language === "id" ? "Nyalakan di Setting" : "Enable in Settings"}</span>
@@ -282,7 +295,7 @@ export default function AiInsightsCard() {
           <button
             onClick={fetchInsights}
             title={language === "id" ? "Muat ulang diagnosa" : "Retry loading"}
-            className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0"
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -303,87 +316,90 @@ export default function AiInsightsCard() {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-gradient-to-br from-white via-white to-slate-50/60 rounded-[1.75rem] shadow-card border border-slate-100/90 p-5 sm:p-6 transition-all duration-300 hover:shadow-lg group">
+      <div className="relative overflow-hidden bg-gradient-to-br from-white via-white to-slate-50/60 rounded-[1.5rem] sm:rounded-[1.75rem] shadow-card border border-slate-100/90 p-4 sm:p-6 min-h-[310px] transition-all duration-300 hover:shadow-lg group">
         {/* Ambient Subtle Background Accents */}
+
         <div className="absolute top-0 right-0 -mr-24 -mt-24 w-72 h-72 bg-gradient-to-br from-teal-400/10 via-emerald-400/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 -mb-24 w-56 h-56 bg-gradient-to-tr from-cyan-400/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         {/* Top Header Row */}
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#00685F] to-[#00A896] flex items-center justify-center text-white shadow-md shadow-emerald-700/20 shrink-0 group-hover:scale-105 transition-transform duration-300">
-              <Sparkles className="w-5 h-5 fill-white" />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-4 sm:pb-5 border-b border-slate-100">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#00685F] to-[#00A896] flex items-center justify-center text-white shadow-md shadow-emerald-700/20 shrink-0 group-hover:scale-105 transition-transform duration-300">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 fill-white" />
             </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h2 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 tracking-tight truncate">
                   {language === "id" ? "AI Financial Health & Insights" : "AI Financial Health & Insights"}
                 </h2>
-                <span className="inline-flex items-center gap-1 bg-slate-100/90 border border-slate-200/60 text-slate-600 text-[10px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider">
-                  <Activity className="w-3 h-3 text-[#00685F]" />
+                <span className="inline-flex items-center gap-1 bg-slate-100/90 border border-slate-200/60 text-slate-600 text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider shrink-0">
+                  <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#00685F]" />
                   <span>MoneFin Engine</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-snug truncate sm:whitespace-normal">
                 {language === "id" ? "Diagnosa cerdas & rekomendasi aksi personal berdasarkan arus kas Anda" : "Intelligent diagnosis & actionable recommendations based on your cash flow"}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 self-start sm:self-auto shrink-0 w-full sm:w-auto justify-between sm:justify-end">
             {getStatusBadge(score, label)}
 
-            {aiEnabled ? (
-              <button
-                onClick={() => triggerAiChat()}
-                className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00685F] hover:bg-[#004D46] text-white text-xs font-bold rounded-xl shadow-sm shadow-[#00685F]/20 transition-all hover:scale-[1.02] active:scale-95"
-              >
-                <MessageSquareText className="w-3.5 h-3.5" />
-                <span>{language === "id" ? "Tanya AI" : "Ask AI"}</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => router.push("/settings?tab=ai")}
-                className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200/80 transition-all hover:scale-[1.02] active:scale-95"
-                title={language === "id" ? "Aktifkan AI Chatbot di Settings" : "Enable AI Chatbot in Settings"}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#00685F]" />
-                <span>{language === "id" ? "Aktifkan AI" : "Enable AI"}</span>
-              </button>
-            )}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {aiEnabled ? (
+                <button
+                  onClick={() => triggerAiChat()}
+                  className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00685F] hover:bg-[#004D46] text-white text-[11px] sm:text-xs font-bold rounded-xl shadow-sm shadow-[#00685F]/20 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+                >
+                  <MessageSquareText className="w-3.5 h-3.5" />
+                  <span>{language === "id" ? "Tanya AI" : "Ask AI"}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push("/settings?tab=ai")}
+                  className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] sm:text-xs font-bold rounded-xl border border-slate-200/80 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+                  title={language === "id" ? "Aktifkan AI Chatbot di Settings" : "Enable AI Chatbot in Settings"}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#00685F]" />
+                  <span>{language === "id" ? "Aktifkan AI" : "Enable AI"}</span>
+                </button>
+              )}
 
-            <button
-              onClick={fetchInsights}
-              title={language === "id" ? "Perbarui analisis AI" : "Refresh AI insights"}
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#00685F]" : ""}`} />
-            </button>
+              <button
+                onClick={fetchInsights}
+                title={language === "id" ? "Perbarui analisis AI" : "Refresh AI insights"}
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#00685F]" : ""}`} />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Main Content: Left Diagnostic Section + Right Recommendation Cards */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 pt-5 items-stretch">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 pt-4 sm:pt-5 items-stretch">
           
           {/* LEFT: Score Gauge & Diagnostic Summary */}
-          <div className="lg:col-span-5 flex flex-col justify-between bg-gradient-to-br from-slate-50/90 via-slate-50/50 to-emerald-50/30 rounded-2xl p-4 sm:p-5 border border-slate-200/60 shadow-xs">
-            <div className="flex items-center gap-4 sm:gap-5">
+          <div className="lg:col-span-5 flex flex-col justify-between bg-gradient-to-br from-slate-50/90 via-slate-50/50 to-emerald-50/30 rounded-2xl p-3.5 sm:p-5 border border-slate-200/60 shadow-xs">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-5">
               <ScoreGauge score={displayScore} onShowDetail={() => setShowDetailModal(true)} />
-              <div className="space-y-1.5 min-w-0 flex-1">
+              <div className="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-800">
-                    <TrendingUp className="w-4 h-4 text-[#00685F]" />
-                    <span>{language === "id" ? "Diagnosa Kesehatan" : "Health Diagnosis"}</span>
+                  <div className="flex items-center gap-1 sm:gap-1.5 text-xs font-extrabold text-slate-800">
+                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#00685F] shrink-0" />
+                    <span className="truncate">{language === "id" ? "Diagnosa Kesehatan" : "Health Diagnosis"}</span>
                   </div>
                   <button
                     onClick={() => setShowDetailModal(true)}
-                    className="text-[10px] font-bold text-[#00685F] hover:text-[#004D46] hover:underline flex items-center gap-0.5"
+                    className="text-[10px] font-bold text-[#00685F] hover:text-[#004D46] hover:underline flex items-center gap-0.5 shrink-0"
                   >
                     <span>Detail</span>
                     <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+                <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed line-clamp-3">
                   {summary}
                 </p>
               </div>
@@ -391,28 +407,28 @@ export default function AiInsightsCard() {
 
             {/* Positive Note Badge */}
             {positive && (
-              <div className="mt-4 pt-3 border-t border-slate-200/70 flex items-start gap-2 text-[11px] font-bold text-[#00685F] bg-white/70 rounded-xl px-3 py-2 border border-emerald-100/60">
-                <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
+              <div className="mt-3.5 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-200/70 flex items-start gap-2 text-[10px] sm:text-[11px] font-bold text-[#00685F] bg-white/70 rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 border border-emerald-100/60">
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-emerald-600 mt-0.5" />
                 <span className="line-clamp-2">{positive}</span>
               </div>
             )}
           </div>
 
           {/* RIGHT: 3 Actionable Recommendations (Zero Emojis, Pure Modern Vector Tiles) */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-3">
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-2.5 sm:space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#00685F]" />
-                <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-400">
                   {language === "id" ? "Rekomendasi Cerdas AI" : "AI Actionable Recommendations"}
                 </span>
               </div>
-              <span className="text-[11px] font-semibold text-slate-400">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400">
                 {language === "id" ? "3 Langkah Praktis" : "3 Quick Actions"}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 flex-1">
               {tips.map((tip, i) => {
                 const theme = getTipTheme(tip);
                 const actionUrl = tip.action_url || theme.defaultAction;
@@ -421,20 +437,20 @@ export default function AiInsightsCard() {
                 return (
                   <div
                     key={i}
-                    className={`group relative flex flex-col justify-between bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md ${theme.hoverBorder} hover:-translate-y-0.5 transition-all duration-200`}
+                    className={`group relative flex flex-col justify-between bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs hover:shadow-md ${theme.hoverBorder} hover:-translate-y-0.5 transition-all duration-200`}
                   >
                     <div>
                       {/* Icon Tile & Action Arrow */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className={`w-9 h-9 rounded-xl ${theme.bg} flex items-center justify-center shadow-md ${theme.glow} group-hover:scale-105 transition-transform duration-200`}>
+                      <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl ${theme.bg} flex items-center justify-center shadow-md ${theme.glow} group-hover:scale-105 transition-transform duration-200`}>
                           {theme.icon}
                         </div>
                         <Link
                           href={actionUrl}
-                          className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-teal-50 text-slate-400 group-hover:text-[#00685F] flex items-center justify-center transition-colors"
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-slate-50 group-hover:bg-teal-50 text-slate-400 group-hover:text-[#00685F] flex items-center justify-center transition-colors"
                           title={actionLabel}
                         >
-                          <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                         </Link>
                       </div>
 
@@ -450,7 +466,7 @@ export default function AiInsightsCard() {
                     </div>
 
                     {/* Bottom Interactive Direct Action Link */}
-                    <div className="mt-3.5 pt-2.5 border-t border-slate-100">
+                    <div className="mt-3 pt-2 border-t border-slate-100">
                       <Link
                         href={actionUrl}
                         className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#00685F] hover:text-[#004D46] hover:underline"
@@ -469,38 +485,45 @@ export default function AiInsightsCard() {
       </div>
 
       {/* Interactive Detail Modal: Diagnosa & Breakdown Skor */}
-      {showDetailModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      {showDetailModal && mounted && createPortal(
+        <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+          {/* Clickable Backdrop to close */}
+          <div 
+            className="fixed inset-0 -z-10" 
+            onClick={() => setShowDetailModal(false)}
+            aria-hidden="true"
+          />
+
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
             
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#00685F] to-[#00A896] px-6 py-5 flex items-center justify-between text-white">
+            <div className="bg-gradient-to-r from-[#00685F] to-[#00A896] px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/20 flex items-center justify-center">
                   <Activity className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-base">
+                  <h3 className="font-extrabold text-sm sm:text-base">
                     {language === "id" ? "Rincian Diagnosa Finansial" : "Financial Health Breakdown"}
                   </h3>
-                  <p className="text-xs text-white/80">
+                  <p className="text-[11px] sm:text-xs text-white/80">
                     {language === "id" ? "Analisis AI Skor Kesehatan: " : "AI Health Score: "} {score}/100
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+                className="p-1.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               
               {/* Summary Block */}
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-slate-700">
                     {language === "id" ? "Status Kesehatan" : "Health Status"}
@@ -514,7 +537,7 @@ export default function AiInsightsCard() {
 
               {/* Scoring Factors Checklist */}
               <div className="space-y-2.5">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-600">
                   {language === "id" ? "Faktor Penilaian AI" : "Scoring Factors"}
                 </h4>
 
@@ -567,7 +590,7 @@ export default function AiInsightsCard() {
                     router.push("/settings?tab=ai");
                   }
                 }}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#00685F] hover:bg-[#004D46] text-white font-bold text-xs rounded-2xl shadow-md shadow-[#00685F]/20 transition-all hover:scale-[1.01]"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#00685F] hover:bg-[#004D46] text-white font-bold text-xs rounded-2xl shadow-md shadow-[#00685F]/20 transition-all hover:scale-[1.01] cursor-pointer"
               >
                 <MessageSquareText className="w-4 h-4" />
                 <span>
@@ -579,8 +602,10 @@ export default function AiInsightsCard() {
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
     </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Bot, Power, ChevronDown, Eye, EyeOff, Plug, Check,
   AlertTriangle, ShieldCheck, RefreshCw, Loader2, X,
@@ -35,22 +36,26 @@ function RevealKeyModal({ onClose, onRevealed, language = "id" }) {
   const [error, setError]           = useState("");
   const [remaining, setRemaining]   = useState(5);
   const [showPass, setShowPass]     = useState(false);
+  const [mounted, setMounted]       = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!password) return;
     setLoading(true);
     setError("");
+
     try {
       const res = await revealAiKey(password);
-      const data = res?.data ?? res;
-      if (data?.api_key) {
-        onRevealed(data.api_key);
+      if (res.success && res.api_key) {
+        onRevealed(res.api_key);
         onClose();
       } else {
-        const rem = data?.attempts_remaining ?? remaining - 1;
-        setRemaining(rem);
-        setError(res?.message || (language === "id" ? "Password tidak valid." : "Invalid password."));
+        setError(res.message || (language === "id" ? "Password salah." : "Incorrect password."));
+        if (res.remaining_attempts !== undefined) setRemaining(res.remaining_attempts);
       }
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || (language === "id" ? "Gagal memverifikasi password." : "Failed to verify password.");
@@ -60,9 +65,14 @@ function RevealKeyModal({ onClose, onRevealed, language = "id" }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+      {/* Click outside backdrop to close */}
+      <div className="fixed inset-0 -z-10" onClick={onClose} aria-hidden="true" />
+
+      <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200 my-auto">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center">
@@ -132,7 +142,8 @@ function RevealKeyModal({ onClose, onRevealed, language = "id" }) {
             : "The API key will be displayed for 30 seconds, then automatically hidden."}
         </p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

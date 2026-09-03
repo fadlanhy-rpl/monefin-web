@@ -232,7 +232,7 @@ function AccountsPageContent() {
         )}
 
         {/* Grid Cards Section */}
-        <div className={`transition-all duration-700 delay-300 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+        <div className={`transition-opacity duration-700 delay-300 ease-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00685F]"></div>
@@ -248,8 +248,9 @@ function AccountsPageContent() {
         </div>
 
         {/* Bottom Statistics and Saving Tip */}
-        <div className={`transition-all duration-700 delay-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+        <div className={`transition-opacity duration-700 delay-500 ease-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
           <AccountsStats 
+
             bankPercent={bankPercent}
             ewalletPercent={ewalletPercent}
             cashPercent={cashPercent}

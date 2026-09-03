@@ -143,9 +143,17 @@ export default function SortableAccountCard({
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
           {/* Drag Handle Top Bar */}
-          <div {...attributes} {...listeners} className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-            <GripHorizontal className="w-5 h-5 text-white/50" />
+          <div 
+            {...attributes} 
+            {...listeners} 
+            role="button"
+            tabIndex={0}
+            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
+            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          >
+            <GripHorizontal className="w-5 h-5 text-white/70" />
           </div>
+
 
           <div className="relative z-10 flex justify-between items-start mt-2">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -230,9 +238,17 @@ export default function SortableAccountCard({
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
           {/* Drag Handle Top Bar */}
-          <div {...attributes} {...listeners} className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-            <GripHorizontal className="w-5 h-5 text-white/30" />
+          <div 
+            {...attributes} 
+            {...listeners} 
+            role="button"
+            tabIndex={0}
+            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
+            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          >
+            <GripHorizontal className="w-5 h-5 text-white/50" />
           </div>
+
 
           <div className="relative z-10 flex justify-between items-start mt-2">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -320,8 +336,15 @@ export default function SortableAccountCard({
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
           {/* Drag Handle Top Bar */}
-          <div {...attributes} {...listeners} className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-            <GripHorizontal className="w-5 h-5 text-slate-300" />
+          <div 
+            {...attributes} 
+            {...listeners} 
+            role="button"
+            tabIndex={0}
+            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
+            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          >
+            <GripHorizontal className="w-5 h-5 text-slate-400" />
           </div>
 
           <div className="flex justify-between items-start relative z-10 mt-2">
@@ -331,7 +354,7 @@ export default function SortableAccountCard({
               </div>
               <div className="min-w-0">
                 <h4 className="font-extrabold text-sm sm:text-xl text-slate-900 tracking-tight leading-tight truncate">{acc.name}</h4>
-                <span className="bg-[#00685F]/10 text-[#00685F] text-[8px] sm:text-[10px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-tighter mt-1 inline-block select-none shrink-0">
+                <span className="bg-[#00685F]/15 text-[#00685F] text-[10px] sm:text-xs font-black px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider mt-1 inline-block select-none shrink-0">
                   {acc.label || (language === 'en' ? "E-Wallet" : "Dompet Digital")}
                 </span>
               </div>
@@ -352,14 +375,14 @@ export default function SortableAccountCard({
           <div className="flex justify-between items-end relative z-10 mt-1">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{language === 'en' ? "Available Balance" : "Saldo Tersedia"}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider leading-none">{language === 'en' ? "Available Balance" : "Saldo Tersedia"}</p>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleAccountPrivacy(acc.id);
                   }}
-                  className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-[#00685F] transition cursor-pointer relative z-30"
+                  className="p-1 hover:bg-slate-100 rounded-md text-slate-500 hover:text-[#00685F] transition cursor-pointer relative z-30"
                   title={isHidden ? (language === 'en' ? "Show Balance" : "Tampilkan Saldo") : (language === 'en' ? "Hide Balance" : "Sembunyikan Saldo")}
                   aria-label="Toggle Balance Visibility"
                 >
@@ -374,8 +397,8 @@ export default function SortableAccountCard({
               {(acc.wallets || ["GP", "OV"]).map((w, wIdx) => (
                 <div 
                   key={wIdx} 
-                  className={`w-7 h-7 sm:w-8 sm:h-8 border-2 border-white rounded-full flex items-center justify-center text-[7px] sm:text-[8px] font-black uppercase tracking-tighter shadow-sm transition-transform duration-300 group-hover:translate-x-0.5 ${
-                    wIdx === 0 ? "bg-slate-100 text-slate-400" : "bg-[#00685F] text-white"
+                  className={`w-7 h-7 sm:w-8 sm:h-8 border-2 border-white rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black uppercase tracking-tighter shadow-sm transition-transform duration-300 group-hover:translate-x-0.5 ${
+                    wIdx === 0 ? "bg-slate-200 text-slate-700" : "bg-[#00685F] text-white"
                   }`}
                 >
                   {w}
@@ -383,6 +406,7 @@ export default function SortableAccountCard({
               ))}
             </div>
           </div>
+
 
           {/* Subtle soft backdrop highlight */}
           <div className="absolute right-0 bottom-0 w-32 h-32 bg-[#00685F]/5 rounded-tl-[5rem] transition-transform duration-500 group-hover:scale-105 pointer-events-none"></div>
@@ -398,18 +422,25 @@ export default function SortableAccountCard({
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
           {/* Drag Handle Top Bar */}
-          <div {...attributes} {...listeners} className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-            <GripHorizontal className="w-5 h-5 text-slate-300" />
+          <div 
+            {...attributes} 
+            {...listeners} 
+            role="button"
+            tabIndex={0}
+            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
+            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          >
+            <GripHorizontal className="w-5 h-5 text-slate-400" />
           </div>
 
           <div className="flex justify-between items-start relative z-10 mt-2">
             <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
-              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 shadow-inner shrink-0 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-1">
-                <Banknote className="w-5.5 h-5.5 sm:w-7 sm:h-7 text-slate-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 shadow-inner shrink-0 transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-1">
+                <Banknote className="w-5.5 h-5.5 sm:w-7 sm:h-7 text-slate-500" />
               </div>
               <div className="min-w-0">
                 <h4 className="font-extrabold text-sm sm:text-xl text-slate-900 tracking-tight leading-tight truncate">{acc.name}</h4>
-                <span className="bg-gray-100 text-gray-500 text-[8px] sm:text-[10px] font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-tighter mt-1 inline-block select-none shrink-0">
+                <span className="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-black px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider mt-1 inline-block select-none shrink-0">
                   {acc.label || (language === 'en' ? "Cash" : "Tunai")}
                 </span>
               </div>
@@ -429,14 +460,14 @@ export default function SortableAccountCard({
           
           <div className="mt-1">
             <div className="flex items-center gap-1.5">
-              <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{language === 'en' ? "Cash in Hand" : "Saldo Tunai"}</p>
+              <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider leading-none">{language === 'en' ? "Cash in Hand" : "Saldo Tunai"}</p>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleAccountPrivacy(acc.id);
                 }}
-                className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-700 transition cursor-pointer relative z-30"
+                className="p-1 hover:bg-slate-100 rounded-md text-slate-500 hover:text-slate-700 transition cursor-pointer relative z-30"
                 title={isHidden ? (language === 'en' ? "Show Balance" : "Tampilkan Saldo") : (language === 'en' ? "Hide Balance" : "Sembunyikan Saldo")}
                 aria-label="Toggle Balance Visibility"
               >
@@ -448,10 +479,11 @@ export default function SortableAccountCard({
             </h3>
           </div>
           
-          <div className="flex justify-between items-center text-[7px] sm:text-[10px] font-bold text-gray-300 border-t border-slate-50 pt-2.5 sm:pt-4 mt-2 select-none relative z-10">
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {language === 'en' ? "Last Updated" : "Terakhir Update"}</span>
-            <span className="text-slate-400 truncate">{acc.lastUpdated || (language === 'en' ? "Today, 08:45" : "Hari ini, 08:45")}</span>
+          <div className="flex justify-between items-center text-[10px] sm:text-xs font-semibold text-slate-500 border-t border-slate-100 pt-2.5 sm:pt-4 mt-2 select-none relative z-10">
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {language === 'en' ? "Last Updated" : "Terakhir Update"}</span>
+            <span className="text-slate-600 truncate">{acc.lastUpdated || (language === 'en' ? "Today, 08:45" : "Hari ini, 08:45")}</span>
           </div>
+
 
           {/* Soft background pattern */}
           <div className="absolute right-0 bottom-0 w-32 h-32 bg-slate-50 rounded-tl-[5rem] transition-transform duration-500 group-hover:scale-105 pointer-events-none"></div>

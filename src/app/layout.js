@@ -18,7 +18,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="http://localhost:8000" />
+        <link rel="dns-prefetch" href="http://localhost:8000" />
+      </head>
       <body className={`${plusJakartaSans.variable} font-sans bg-[#f4f7f6] text-slate-800 min-h-screen antialiased`}>
+
         <AuthProvider>
           <LanguageProvider>
             <BalancePrivacyProvider>

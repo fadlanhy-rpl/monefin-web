@@ -29,8 +29,8 @@ export default function AccountsStats({
             </div>
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
               <div 
-                className="bg-gradient-to-r from-[#00685F] to-[#008A7E] h-full rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${bankPercent}%` }}
+                className="bg-gradient-to-r from-[#00685F] to-[#008A7E] h-full w-full rounded-full transition-transform duration-1000 ease-out origin-left" 
+                style={{ transform: `scaleX(${Math.min(Math.max(bankPercent || 0, 0), 100) / 100})` }}
               ></div>
             </div>
           </div>
@@ -43,8 +43,8 @@ export default function AccountsStats({
             </div>
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${ewalletPercent}%` }}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full w-full rounded-full transition-transform duration-1000 ease-out origin-left" 
+                style={{ transform: `scaleX(${Math.min(Math.max(ewalletPercent || 0, 0), 100) / 100})` }}
               ></div>
             </div>
           </div>
@@ -57,11 +57,12 @@ export default function AccountsStats({
             </div>
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
               <div 
-                className="bg-gradient-to-r from-amber-400 to-amber-500 h-full rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${cashPercent}%` }}
+                className="bg-gradient-to-r from-amber-400 to-amber-500 h-full w-full rounded-full transition-transform duration-1000 ease-out origin-left" 
+                style={{ transform: `scaleX(${Math.min(Math.max(cashPercent || 0, 0), 100) / 100})` }}
               ></div>
             </div>
           </div>
+
         </div>
       </div>
 
