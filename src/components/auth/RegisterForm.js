@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
@@ -11,18 +11,30 @@ import { useLanguage } from "../../context/LanguageContext";
 export default function RegisterForm() {
   const router = useRouter();
   const { register } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [googleUrl, setGoogleUrl] = useState(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator?.brave && typeof navigator.brave.isBrave === "function") {
+      navigator.brave.isBrave().then((isBrave) => {
+        if (isBrave) {
+          const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+          setGoogleUrl(`${base}/auth/google?client_browser=Brave`);
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!agreeTerms) {
-      toast.error("Anda harus menyetujui Syarat dan Ketentuan!");
+      toast.error(language === "en" ? "You must agree to the Terms and Conditions!" : "Anda harus menyetujui Syarat dan Ketentuan!");
       return;
     }
 
@@ -30,10 +42,10 @@ export default function RegisterForm() {
     const result = await register(fullName, email, password);
 
     if (result.success) {
-      toast.success("Registrasi berhasil! Silakan cek email Anda untuk kode OTP.");
+      toast.success(language === "en" ? "Registration successful! Please check your email for the OTP code." : "Registrasi berhasil! Silakan cek email Anda untuk kode OTP.");
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } else {
-      toast.error(result.error || "Registrasi gagal. Silakan coba lagi.");
+      toast.error(result.error || (language === "en" ? "Registration failed. Please try again." : "Registrasi gagal. Silakan coba lagi."));
     }
 
     setIsSubmitting(false);
@@ -165,7 +177,7 @@ export default function RegisterForm() {
 
         {/* Google Button */}
         <a
-          href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google`}
+          href={googleUrl}
           className="w-full border border-gray-100 py-4 rounded-2xl font-bold text-gray-700 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all shadow-sm"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google Logo" />

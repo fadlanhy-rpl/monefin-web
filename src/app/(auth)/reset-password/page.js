@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../hooks/useAuth";
+import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle2 } from "lucide-react";
 
@@ -11,6 +12,7 @@ function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { resetPassword } = useAuth();
+  const { t, language } = useLanguage();
 
   const email = searchParams.get("email") || "";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -68,11 +70,11 @@ function ResetPasswordContent() {
 
     if (step === 1) {
       if (timeLeft <= 0) {
-        toast.error("Kode OTP telah kadaluarsa. Silakan kirim ulang.");
+        toast.error(language === "en" ? "OTP code has expired. Please resend." : "Kode OTP telah kadaluarsa. Silakan kirim ulang.");
         return;
       }
       if (otpString.length !== 6) {
-        toast.error("Masukkan 6 digit kode OTP.");
+        toast.error(language === "en" ? "Please enter the 6-digit OTP code." : "Masukkan 6 digit kode OTP.");
         return;
       }
       setStep(2);
@@ -80,11 +82,11 @@ function ResetPasswordContent() {
     }
 
     if (password.length < 8) {
-      toast.error("Password minimal 8 karakter.");
+      toast.error(language === "en" ? "Password must be at least 8 characters." : "Password minimal 8 karakter.");
       return;
     }
     if (password !== passwordConfirmation) {
-      toast.error("Konfirmasi password tidak cocok.");
+      toast.error(language === "en" ? "Password confirmation does not match." : "Konfirmasi password tidak cocok.");
       return;
     }
 
@@ -97,10 +99,10 @@ function ResetPasswordContent() {
     });
 
     if (result.success) {
-      toast.success("Password berhasil diperbarui! Silakan login kembali.");
+      toast.success(language === "en" ? "Password successfully updated! Please sign in again." : "Password berhasil diperbarui! Silakan login kembali.");
       router.push("/login");
     } else {
-      toast.error(result.error || "Gagal mereset password. Kode OTP mungkin sudah kadaluarsa.");
+      toast.error(result.error || (language === "en" ? "Failed to reset password. OTP code might be expired." : "Gagal mereset password. Kode OTP mungkin sudah kadaluarsa."));
       setOtp(["", "", "", "", "", ""]);
       setStep(1);
       inputRefs.current[0]?.focus();

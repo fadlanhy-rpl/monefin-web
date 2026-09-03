@@ -5,21 +5,22 @@ import { ShieldCheck, Eye, EyeOff, Lock, Smartphone, Laptop, LogOut, AlertCircle
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { getSessions, revokeSession, revokeOtherSessions } from "../../services/auth.service";
+import SessionRevokeModal from "./SessionRevokeModal";
 import toast from "react-hot-toast";
 
-function formatRelativeTime(date) {
-  if (!date) return "Tidak diketahui";
+function formatRelativeTime(date, lang = "en") {
+  if (!date) return lang === "id" ? "Tidak diketahui" : "Unknown";
   const now = new Date();
   const d = new Date(date);
   const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return "Baru saja";
-  if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
-  return `${Math.floor(diff / 86400)} hari lalu`;
+  if (diff < 60) return lang === "id" ? "Baru saja" : "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)} ${lang === "id" ? "menit lalu" : "mins ago"}`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ${lang === "id" ? "jam lalu" : "hours ago"}`;
+  return `${Math.floor(diff / 86400)} ${lang === "id" ? "hari lalu" : "days ago"}`;
 }
 
-function formatIP(ip) {
-  if (!ip || ip === "IP tidak tersimpan") return "IP tidak tercatat";
+function formatIP(ip, lang = "en") {
+  if (!ip || ip === "IP tidak tersimpan") return lang === "id" ? "IP tidak tercatat" : "IP not recorded";
   if (ip === "127.0.0.1" || ip === "::1") return `${ip} (Localhost)`;
   return ip;
 }
@@ -42,7 +43,7 @@ export default function SecuritySection({
   setConfirmPassword,
   onSavePassword,
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toggle2fa } = useAuth();
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -56,6 +57,10 @@ export default function SecuritySection({
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [revokingId, setRevokingId] = useState(null);
   const [revokingAll, setRevokingAll] = useState(false);
+
+  // Revoke confirmation modal state
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [sessionToRevoke, setSessionToRevoke] = useState(null);
 
   const fetchSessions = useCallback(async () => {
     setSessionsLoading(true);
@@ -79,9 +84,13 @@ export default function SecuritySection({
     const result = await toggle2fa(newState);
     setIs2FALoading(false);
     if (result.success) {
-      toast.success(newState ? "Two-Factor Authentication diaktifkan." : "Two-Factor Authentication dinonaktifkan.");
+      if (newState) {
+        toast.success(language === "en" ? "Two-Factor Authentication enabled." : "Two-Factor Authentication diaktifkan.");
+      } else {
+        toast.success(language === "en" ? "Two-Factor Authentication disabled." : "Two-Factor Authentication dinonaktifkan.");
+      }
     } else {
-      toast.error(result.error || "Gagal mengubah pengaturan 2FA.");
+      toast.error(result.error || (language === "en" ? "Failed to change 2FA settings." : "Gagal mengubah pengaturan 2FA."));
     }
   };
 
@@ -89,10 +98,10 @@ export default function SecuritySection({
     setRevokingId(tokenId);
     try {
       await revokeSession(tokenId);
-      toast.success("Sesi berhasil dikeluarkan.");
+      toast.success(language === "en" ? "Session successfully signed out." : "Sesi berhasil dikeluarkan.");
       setSessions((prev) => prev.filter((s) => s.id !== tokenId));
     } catch (err) {
-      toast.error(err?.data?.message || "Gagal mengeluarkan sesi.");
+      toast.error(err?.data?.message || (language === "en" ? "Failed to sign out session." : "Gagal mengeluarkan sesi."));
     } finally {
       setRevokingId(null);
     }
@@ -102,13 +111,23 @@ export default function SecuritySection({
     setRevokingAll(true);
     try {
       await revokeOtherSessions();
-      toast.success("Semua sesi lain berhasil dikeluarkan.");
+      toast.success(language === "en" ? "All other sessions signed out successfully." : "Semua sesi lain berhasil dikeluarkan.");
       setSessions((prev) => prev.filter((s) => s.is_current));
     } catch (err) {
-      toast.error(err?.data?.message || "Gagal mengeluarkan sesi lain.");
+      toast.error(err?.data?.message || (language === "en" ? "Failed to sign out other sessions." : "Gagal mengeluarkan sesi lain."));
     } finally {
       setRevokingAll(false);
     }
+  };
+
+  const handleConfirmRevoke = async () => {
+    if (sessionToRevoke) {
+      await handleRevokeSession(sessionToRevoke.id);
+    } else {
+      await handleRevokeOtherSessions();
+    }
+    setRevokeModalOpen(false);
+    setSessionToRevoke(null);
   };
 
   const twoFactorEnabled = user?.two_factor_enabled ?? false;
@@ -240,35 +259,38 @@ export default function SecuritySection({
 
       {/* Active Login Sessions */}
       <div className="space-y-3 pt-2">
-        <div className="flex justify-between items-center">
-          <h4 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <Laptop className="w-3.5 h-3.5 text-[#00685F]" />
-            <span>{t("settings.active_sessions")}</span>
+        <div className="flex justify-between items-center gap-1.5 sm:gap-2 flex-nowrap">
+          <h4 className="text-[10px] sm:text-xs md:text-sm font-black text-slate-800 uppercase tracking-tight sm:tracking-wider flex items-center gap-1 sm:gap-1.5 shrink-0">
+            <Laptop className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#00685F] shrink-0" />
+            <span className="truncate">{t("settings.active_sessions")}</span>
           </h4>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {otherSessionsCount > 0 && (
               <button
                 type="button"
-                onClick={handleRevokeOtherSessions}
+                onClick={() => {
+                  setSessionToRevoke(null);
+                  setRevokeModalOpen(true);
+                }}
                 disabled={revokingAll}
-                className="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                className="text-[9px] sm:text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
                 {revokingAll ? (
                   <span className="w-3 h-3 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
                 ) : (
-                  <LogOut className="w-3 h-3" />
+                  <LogOut className="w-3 h-3 shrink-0" />
                 )}
-                Logout semua sesi lain
+                <span>{t("settings.logout_all_others") || "Logout semua sesi lain"}</span>
               </button>
             )}
             <button
               type="button"
               onClick={fetchSessions}
               disabled={sessionsLoading}
-              className="text-slate-400 hover:text-[#00685F] transition cursor-pointer p-1 rounded-lg hover:bg-slate-100"
+              className="text-slate-400 hover:text-[#00685F] transition cursor-pointer p-0.5 sm:p-1 rounded-lg hover:bg-slate-100 shrink-0"
               title="Refresh sessions"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${sessionsLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${sessionsLoading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>
@@ -279,7 +301,7 @@ export default function SecuritySection({
               <span className="w-5 h-5 border-2 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
             </div>
           ) : sessions.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-4">Tidak ada sesi aktif.</p>
+            <p className="text-xs text-slate-400 text-center py-4">{t("settings.no_active_sessions") || "Tidak ada sesi aktif."}</p>
           ) : (
             sessions.map((session) => (
               <div
@@ -300,12 +322,12 @@ export default function SecuritySection({
                       )}
                       {session.is_legacy && (
                         <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full">
-                          Sesi Lama
+                          {t("settings.legacy_session") || "Sesi Lama"}
                         </span>
                       )}
                     </p>
                     <p className="text-[10px] text-slate-400">
-                      {formatIP(session.ip_address)} • {session.last_used_at ? formatRelativeTime(session.last_used_at) : formatRelativeTime(session.created_at)}
+                      {formatIP(session.ip_address, language)} • {session.last_used_at ? formatRelativeTime(session.last_used_at, language) : formatRelativeTime(session.created_at, language)}
                     </p>
                   </div>
                 </div>
@@ -315,7 +337,10 @@ export default function SecuritySection({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => handleRevokeSession(session.id)}
+                    onClick={() => {
+                      setSessionToRevoke(session);
+                      setRevokeModalOpen(true);
+                    }}
                     disabled={revokingId === session.id}
                     className="text-[11px] font-bold text-red-500 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
@@ -332,6 +357,21 @@ export default function SecuritySection({
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <SessionRevokeModal
+        isOpen={revokeModalOpen}
+        onClose={() => {
+          if (!revokingId && !revokingAll) {
+            setRevokeModalOpen(false);
+            setSessionToRevoke(null);
+          }
+        }}
+        onConfirm={handleConfirmRevoke}
+        session={sessionToRevoke}
+        otherCount={otherSessionsCount}
+        isLoading={!!revokingId || revokingAll}
+      />
 
     </div>
   );

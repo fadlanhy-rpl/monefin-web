@@ -1,55 +1,69 @@
-import { TrendingUp, Sparkles } from "lucide-react";
+import { TrendingUp, Sparkles, Zap, ArrowUpRight } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
+import SmartInsightCard from "../shared/SmartInsightCard";
 
 export default function GoalsStats({
   savingRate,
-  savingRateIncrease
+  savingRateIncrease = 12,
+  openAddModal
 }) {
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* LAJU MENABUNG */}
-      <div className="bg-white p-4 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4 sm:gap-6 hover:shadow-md transition-shadow">
-        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shrink-0">
-          <TrendingUp className="w-6.5 h-6.5 sm:w-8 sm:h-8" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-slate-900 leading-tight">{t("goals.saving_rate") || "Laju Menabung"}</p>
-          <p className="text-[10px] font-bold text-gray-400 mt-0.5 select-none">{t("goals.saving_rate_desc") || "Rata-rata 30 hari terakhir"}</p>
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <h4 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(savingRate)}</h4>
-            <span className="text-emerald-500 font-black text-xs shrink-0">↑ {savingRateIncrease}%</span>
-          </div>
-          {/* Static design representation as requested */}
-          <div className="w-full max-w-[120px] bg-slate-50 h-1.5 rounded-full mt-2.5 overflow-hidden">
-            <div className="bg-orange-400 h-full w-[40%]"></div>
-          </div>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-stretch">
+      {/* LAJU MENABUNG (SAVING RATE CARD) */}
+      <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100/90 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+        
+        {/* Ambient background decoration */}
+        <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-orange-100/40 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 rounded-full blur-2xl pointer-events-none" />
 
-      {/* TIPS CERDAS */}
-      <div className="lg:col-span-2 bg-[#00685F] p-4 sm:p-8 rounded-[2rem] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-        <div className="space-y-2 relative z-10">
-          <h4 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-emerald-300 animate-pulse" />
-            {t("goals.smart_tip_title") || "Tips Cerdas MoneFin"}
+        {/* TOP ROW: Icon + Growth Badge */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20 group-hover:scale-105 group-hover:rotate-6 transition-transform duration-300">
+            <TrendingUp className="w-6 h-6" />
+          </div>
+          <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold px-2.5 sm:px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 shadow-2xs">
+            <ArrowUpRight className="w-3 h-3 text-emerald-600" />
+            <span>+{savingRateIncrease}% MoM</span>
+          </span>
+        </div>
+
+        {/* MIDDLE SECTION: Value & Context */}
+        <div className="relative z-10 my-4 sm:my-5 space-y-1">
+          <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400">
+            {t("goals.saving_rate") || "Laju Menabung"}
+          </p>
+          <h4 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+            {formatCurrency(savingRate)}
           </h4>
-          <p className="text-xs sm:text-sm text-white/70 max-w-md font-medium leading-relaxed">
-            {t("goals.smart_tip_desc") || "Aktifkan fitur Auto-Debet ke kantong 'Dana Darurat' setiap tanggal gajian untuk mempercepat target Anda hingga 3 bulan lebih awal."}
+          <p className="text-xs text-slate-500 font-medium pt-0.5">
+            {t("goals.saving_rate_desc") || "Rata-rata dalam 30 hari terakhir"}
           </p>
         </div>
-        <button 
-          type="button"
-          className="relative z-10 w-full sm:w-auto bg-white text-[#00685F] px-8 py-3.5 rounded-2xl font-black text-xs sm:text-sm hover:shadow-xl hover:bg-slate-50 transition active:scale-95 cursor-pointer shrink-0"
-        >
-          {t("goals.activate_now") || "Aktifkan Sekarang"}
-        </button>
-        {/* Decor circle */}
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500"></div>
+
+        {/* BOTTOM SECTION: Progress Metric Bar */}
+        <div className="relative z-10 pt-3 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-bold">
+            <span className="text-slate-500">
+              {language === "en" ? "Saving Consistency" : "Konsistensi Menabung"}
+            </span>
+            <span className="text-[#00685F] font-black">
+              {language === "en" ? "Healthy Pace" : "Sangat Baik"}
+            </span>
+          </div>
+
+          <div className="w-full bg-slate-100 h-2 sm:h-2.5 rounded-full overflow-hidden p-0.5">
+            <div className="bg-gradient-to-r from-orange-400 via-amber-400 to-emerald-500 h-full w-[78%] rounded-full shadow-xs" />
+          </div>
+        </div>
+
       </div>
+
+      {/* TIPS CERDAS — Dynamic (AI or Engine) */}
+      <SmartInsightCard page="goals" className="lg:col-span-2" onActionClick={openAddModal} />
     </div>
   );
 }

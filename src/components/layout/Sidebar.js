@@ -143,6 +143,42 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       ),
     },
     {
+      name: t("sidebar.rewards") || "Rewards & Quests",
+      href: "/rewards",
+      icon: (
+        <svg
+          className="w-[18px] h-[18px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.45 1-1 1H7v2h10v-2h-2c-.55 0-1-.45-1-1v-2.34" />
+          <path d="M18 4H6v7a6 6 0 0 0 12 0V4Z" />
+        </svg>
+      ),
+    },
+    {
+      name: t("sidebar.split_bill") || "Split Bill",
+      href: "/split-bill",
+      icon: (
+        <svg
+          className="w-[18px] h-[18px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" />
+          <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+          <path d="M12 6v12" />
+        </svg>
+      ),
+    },
+    {
       name: t("sidebar.trashbin") || "Trashbin",
       href: "/trashbin",
       icon: (
@@ -219,7 +255,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           );
         })}
       </nav>
-      <div className="px-3 pb-6 border-t border-slate-100 pt-4">
+      <div className="px-3 pb-6 border-t border-slate-100 pt-4 space-y-2">
         <Link
           href="/settings"
           onClick={() => setMobileOpen && setMobileOpen(false)}

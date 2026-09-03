@@ -39,6 +39,13 @@ function getPresetRange(presetId) {
   }
 }
 
+function getMonthEndDate(yearMonth) {
+  if (!yearMonth) return undefined;
+  const [year, month] = yearMonth.split("-").map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  return `${yearMonth}-${String(lastDay).padStart(2, "0")}`;
+}
+
 function ReportsPageContent() {
   const router = useRouter();
   const { language } = useLanguage();
@@ -76,7 +83,7 @@ function ReportsPageContent() {
         getReportCompare({ start_month: range.start_month, end_month: range.end_month }),
         getReportCategoryBreakdown({
           start_date: range.start_month ? range.start_month + "-01" : undefined,
-          end_date:   range.end_month   ? range.end_month + "-31"   : undefined,
+          end_date:   getMonthEndDate(range.end_month),
           type: "expense",
         }),
       ]);
@@ -90,7 +97,7 @@ function ReportsPageContent() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
 
   // ── On mount ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -122,7 +129,7 @@ function ReportsPageContent() {
     showToast(language === 'en' ? "Preparing professional financial report Excel file..." : "Menyiapkan file Excel laporan keuangan profesional...");
     exportReportCSV({
       start_date: filterRange.start_month ? filterRange.start_month + "-01" : undefined,
-      end_date:   filterRange.end_month   ? filterRange.end_month   + "-31" : undefined,
+      end_date:   getMonthEndDate(filterRange.end_month),
       currency:   currencyCode,
       exchange_rate: exchangeRate
     });

@@ -3,14 +3,16 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ShieldAlert, ShieldCheck, AlertTriangle, ArrowRight, Lock, KeyRound, Loader2, ArrowLeft } from "lucide-react";
+import { ShieldAlert, ShieldCheck, AlertTriangle, ArrowRight, Lock, KeyRound, Loader2, ArrowLeft, CheckCircle2, Lightbulb } from "lucide-react";
 import { secureAccount } from "../../../services/auth.service";
+import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 
 function SecureAccountContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const { t, language } = useLanguage();
 
   const [status, setStatus] = useState("loading"); // 'loading' | 'success' | 'error'
   const [errorMessage, setErrorMessage] = useState("");
@@ -19,7 +21,7 @@ function SecureAccountContent() {
   useEffect(() => {
     if (!token) {
       setStatus("error");
-      setErrorMessage("Tautan pengamanan tidak memiliki token valid.");
+      setErrorMessage(language === "en" ? "Security link missing valid token." : "Tautan pengamanan tidak memiliki token valid.");
       return;
     }
 
@@ -31,12 +33,12 @@ function SecureAccountContent() {
         if (isMounted) {
           setResultData(response.data);
           setStatus("success");
-          toast.success("Sesi penyusup berhasil dicabut!");
+          toast.success(language === "en" ? "Suspicious session revoked successfully!" : "Sesi penyusup berhasil dicabut!");
         }
       } catch (err) {
         if (isMounted) {
           setStatus("error");
-          setErrorMessage(err.message || "Tautan pengamanan tidak valid atau telah kedaluwarsa.");
+          setErrorMessage(err.message || (language === "en" ? "Security link is invalid or expired." : "Tautan pengamanan tidak valid atau telah kedaluwarsa."));
         }
       }
     }
@@ -46,7 +48,7 @@ function SecureAccountContent() {
     return () => {
       isMounted = false;
     };
-  }, [token]);
+  }, [token, language]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center p-4 sm:p-6">
@@ -90,7 +92,8 @@ function SecureAccountContent() {
 
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
-                ✓ Sesi Berhasil Diputus
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Sesi Berhasil Diputus</span>
               </div>
               <h2 className="text-2xl font-extrabold text-slate-900">Akun Berhasil Diamankan!</h2>
               <p className="text-sm text-slate-600 leading-relaxed">
@@ -147,9 +150,10 @@ function SecureAccountContent() {
               </p>
             </div>
 
-            <div className="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/60 text-left">
+            <div className="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/60 text-left flex items-start gap-2.5">
+              <Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-800 leading-relaxed">
-                💡 <strong>Tips Keamanan:</strong> Jika Anda tetap ingin mengamankan akun dan mengubah kata sandi, Anda dapat meminta kode reset password baru melalui menu Lupa Password.
+                <strong>Tips Keamanan:</strong> Jika Anda tetap ingin mengamankan akun dan mengubah kata sandi, Anda dapat meminta kode reset password baru melalui menu Lupa Password.
               </p>
             </div>
 

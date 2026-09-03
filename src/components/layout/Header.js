@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy } from "lucide-react";
+import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy, Flame, Zap, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useGlobalSearch } from "../../hooks/useGlobalSearch";
 import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
-
+import { getGamificationSummary } from "../../services/gamification.service";
 import { useCurrency } from "../../hooks/useCurrency";
+import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
 
 function getRelativeTime(dateString) {
   if (!dateString) return "";
@@ -30,6 +31,7 @@ export default function Header({ setMobileOpen }) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { formatCurrency } = useCurrency();
+  const { isBalanceHidden, toggleBalancePrivacy } = useBalancePrivacy();
 
   const userPhoto = user?.photo
     ? `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}/storage/${user.photo}`
@@ -87,13 +89,26 @@ export default function Header({ setMobileOpen }) {
     }
   }, []);
 
+  // Gamification summary
+  const [gamification, setGamification] = useState(null);
+
+  const fetchGamification = useCallback(async () => {
+    try {
+      const data = await getGamificationSummary();
+      if (data) setGamification(data);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     fetchNotifications();
+    fetchGamification();
 
     const handleNotificationsUpdate = () => fetchNotifications();
     window.addEventListener('notificationsRead', handleNotificationsUpdate);
     return () => window.removeEventListener('notificationsRead', handleNotificationsUpdate);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, fetchGamification]);
 
   const headerRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -178,9 +193,14 @@ export default function Header({ setMobileOpen }) {
           <input 
             ref={searchInputRef}
             id="header-search"
-            type="text" 
+            name="monefin_site_search"
+            type="search" 
             placeholder="Search analytics, transactions..." 
             autoComplete="off"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
+            data-form-type="other"
             value={searchQuery}
             aria-expanded={searchOpen}
             aria-controls="search-dropdown"
@@ -341,9 +361,11 @@ export default function Header({ setMobileOpen }) {
                             ? `/goals/achieved?search=${encodeURIComponent(g.title)}`
                             : `/goals?search=${encodeURIComponent(g.title)}`,
                           label: g.title,
-                          meta: g.is_achieved ? "Tercapai 🎉" : formatCurrency(g.current_amount),
+                          meta: g.is_achieved ? (language === "en" ? "Achieved" : "Tercapai") : formatCurrency(g.current_amount),
                           metaColor: g.is_achieved ? "text-emerald-600 font-extrabold" : "text-brand-700",
-                          sub: g.is_achieved ? `Terkumpul: ${formatCurrency(g.target_amount)}` : `Target: ${formatCurrency(g.target_amount)}`,
+                          sub: g.is_achieved 
+                            ? (language === "en" ? `Collected: ${formatCurrency(g.target_amount)}` : `Terkumpul: ${formatCurrency(g.target_amount)}`)
+                            : (language === "en" ? `Target: ${formatCurrency(g.target_amount)}` : `Target: ${formatCurrency(g.target_amount)}`),
                           icon: g.is_achieved ? <Trophy className="w-4 h-4 text-amber-500" /> : <Target className="w-4 h-4 text-amber-500" />,
                         })}
                       />
@@ -371,8 +393,38 @@ export default function Header({ setMobileOpen }) {
       </div>
 
       {/* RIGHT GROUP: notification + profile */}
-      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         
+        {/* Gamification Pill */}
+        {gamification && (
+          <Link
+            href="/rewards"
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200/80 rounded-xl transition-all shadow-sm group cursor-pointer"
+            title="Lihat Pencapaian & Hadiah"
+          >
+            <div className="flex items-center gap-1 text-xs font-black text-orange-500">
+              <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500 group-hover:scale-110 transition-transform" />
+              <span>{gamification.current_streak || 0}</span>
+            </div>
+            <span className="text-slate-300 text-xs">|</span>
+            <div className="flex items-center gap-1 text-xs font-black text-[#00685F]">
+              <Zap className="w-3.5 h-3.5 fill-[#00685F] group-hover:scale-110 transition-transform" />
+              <span>Lv. {gamification.level || 1}</span>
+            </div>
+          </Link>
+        )}
+
+        {/* Balance Privacy Toggle */}
+        <button
+          type="button"
+          onClick={toggleBalancePrivacy}
+          className="p-2.5 text-slate-600 hover:text-[#00685F] hover:bg-white rounded-xl transition-colors border border-transparent hover:border-slate-100 shadow-sm shadow-slate-100/50 cursor-pointer"
+          aria-label={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
+          title={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
+        >
+          {isBalanceHidden ? <EyeOff className="w-4 h-4 text-slate-500" /> : <Eye className="w-4 h-4 text-slate-600" />}
+        </button>
+
         {/* Notification */}
         <div className="relative">
           <button 

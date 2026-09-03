@@ -18,7 +18,7 @@ import { useCurrency } from "../../../hooks/useCurrency";
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function RecurringPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,11 +137,13 @@ export default function RecurringPage() {
   };
 
   const periodLabels = {
-    'daily': 'Harian',
-    'weekly': 'Mingguan',
-    'monthly': 'Bulanan',
-    'yearly': 'Tahunan'
+    daily: language === "en" ? "Daily" : "Harian",
+    weekly: language === "en" ? "Weekly" : "Mingguan",
+    monthly: language === "en" ? "Monthly" : "Bulanan",
+    yearly: language === "en" ? "Yearly" : "Tahunan",
   };
+
+  const isEn = language === "en";
 
   return (
     <DashboardLayout>
@@ -151,20 +153,22 @@ export default function RecurringPage() {
         <div className={`transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4`}>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Transaksi Rutin</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                {isEn ? "Recurring Transactions" : "Transaksi Rutin"}
+              </h1>
               <RefreshCcw className="w-6 h-6 text-brand-600 hidden sm:block" />
             </div>
             <p className="text-sm text-slate-500 font-medium mt-1">
-              Catat pemasukan dan pengeluaran secara otomatis sesuai jadwal.
+              {isEn ? "Record income and expenses automatically on a set schedule." : "Catat pemasukan dan pengeluaran secara otomatis sesuai jadwal."}
             </p>
           </div>
           
           <button
             onClick={openAddModal}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-brand-600 text-white font-bold rounded-2xl hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-500/30 transition-all active:scale-95 shrink-0"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-brand-600 text-white font-bold rounded-2xl hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-500/30 transition-all active:scale-95 shrink-0 cursor-pointer"
           >
             <Plus className="w-5 h-5" />
-            <span>Tambah Baru</span>
+            <span>{isEn ? "Add New" : "Tambah Baru"}</span>
           </button>
         </div>
 
@@ -173,7 +177,7 @@ export default function RecurringPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400 space-y-4">
               <RefreshCcw className="w-8 h-8 animate-spin text-brand-500" />
-              <p className="text-sm font-medium">Memuat data...</p>
+              <p className="text-sm font-medium">{isEn ? "Loading data..." : "Memuat data..."}</p>
             </div>
           ) : settings.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 flex flex-col items-center justify-center text-center space-y-4">
@@ -181,16 +185,20 @@ export default function RecurringPage() {
                 <RefreshCcw className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-800">Belum Ada Transaksi Rutin</h3>
+                <h3 className="text-lg font-bold text-slate-800">
+                  {isEn ? "No Recurring Transactions Yet" : "Belum Ada Transaksi Rutin"}
+                </h3>
                 <p className="text-slate-500 mt-1 max-w-sm text-sm">
-                  Tambahkan jadwal transaksi rutin agar sistem dapat mencatatnya secara otomatis untuk Anda.
+                  {isEn
+                    ? "Add a recurring transaction schedule so the system can record it automatically for you."
+                    : "Tambahkan jadwal transaksi rutin agar sistem dapat mencatatnya secara otomatis untuk Anda."}
                 </p>
               </div>
               <button
                 onClick={openAddModal}
-                className="mt-4 px-6 py-2.5 bg-slate-100 text-brand-700 font-bold rounded-xl hover:bg-slate-200 transition-colors text-sm"
+                className="mt-4 px-6 py-2.5 bg-slate-100 text-brand-700 font-bold rounded-xl hover:bg-slate-200 transition-colors text-sm cursor-pointer"
               >
-                Buat Jadwal Pertama
+                {isEn ? "Create First Schedule" : "Buat Jadwal Pertama"}
               </button>
             </div>
           ) : (
@@ -205,13 +213,13 @@ export default function RecurringPage() {
                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                       <button 
                         onClick={() => openEditModal(item)}
-                        className="w-8 h-8 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center hover:bg-brand-50 hover:text-brand-600 transition"
+                        className="w-8 h-8 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center hover:bg-brand-50 hover:text-brand-600 transition cursor-pointer"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => openDeleteModal(item.id)}
-                        className="w-8 h-8 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition"
+                        className="w-8 h-8 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -226,21 +234,25 @@ export default function RecurringPage() {
                           {item.title}
                         </h3>
                         <p className="text-xs font-medium text-slate-500 truncate mt-0.5">
-                          {category?.name || "Tanpa Kategori"} • {account?.name || "Tanpa Akun"}
+                          {category?.name || (isEn ? "No Category" : "Tanpa Kategori")} • {account?.name || (isEn ? "No Account" : "Tanpa Akun")}
                         </p>
                       </div>
                     </div>
 
                     <div className="pt-4 border-t border-slate-50 flex items-end justify-between">
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">Jadwal</p>
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">
+                          {isEn ? "Schedule" : "Jadwal"}
+                        </p>
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg w-max">
                           <Calendar className="w-3.5 h-3.5" />
                           {periodLabels[item.period_type] || item.period_type}
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">Nominal</p>
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">
+                          {isEn ? "Amount" : "Nominal"}
+                        </p>
                         <p className={`font-black text-base ${isIncome ? 'text-emerald-600' : 'text-slate-800'}`}>
                           {isIncome ? '+' : ''}{formatCurrency(item.amount)}
                         </p>
@@ -272,9 +284,12 @@ export default function RecurringPage() {
           setDeletingId(null);
         }}
         onConfirm={confirmDelete}
-        title="Hapus Transaksi Rutin?"
-        message="Transaksi ini tidak akan dicatat secara otomatis lagi. Apakah Anda yakin?"
-        confirmText="Ya, Hapus"
+        title={isEn ? "Delete Recurring Transaction?" : "Hapus Transaksi Rutin?"}
+        message={isEn
+          ? "This transaction will no longer be recorded automatically. Are you sure?"
+          : "Transaksi ini tidak akan dicatat secara otomatis lagi. Apakah Anda yakin?"}
+        confirmText={isEn ? "Yes, Delete" : "Ya, Hapus"}
+        cancelText={isEn ? "Cancel" : "Batal"}
         isLoading={isDeleting}
       />
     </DashboardLayout>

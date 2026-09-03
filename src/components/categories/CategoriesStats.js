@@ -27,8 +27,8 @@ export default function CategoriesStats({
     if (activeTab === "expense") {
       if (highestCategory.realization >= 90) {
         return language === "en"
-          ? `⚠️ Category "${highestCategory.name}" has critically reached ${highestCategory.realization}% of your limit budget. It is recommended to limit expenses for this category!`
-          : `⚠️ Kategori "${highestCategory.name}" telah kritis mencapai ${highestCategory.realization}% dari anggaran batas Anda. Disarankan untuk membatasi pengeluaran kategori ini!`;
+          ? `Category "${highestCategory.name}" has critically reached ${highestCategory.realization}% of your limit budget. It is recommended to limit expenses for this category.`
+          : `Kategori "${highestCategory.name}" telah kritis mencapai ${highestCategory.realization}% dari anggaran batas Anda. Disarankan untuk membatasi pengeluaran kategori ini.`;
       }
       if (highestCategory.realization >= 75) {
         return language === "en"
@@ -41,8 +41,8 @@ export default function CategoriesStats({
     } else {
       // Income tab
       return language === "en"
-        ? `🎉 Category "${highestCategory.name}" contributed the most this month with a target income realization of ${highestCategory.realization}%. Great job!`
-        : `🎉 Kategori "${highestCategory.name}" memberikan kontribusi terbesar bulan ini dengan realisasi target pemasukan sebesar ${highestCategory.realization}%. Kerja bagus!`;
+        ? `Category "${highestCategory.name}" contributed the most this month with a target income realization of ${highestCategory.realization}%. Outstanding performance.`
+        : `Kategori "${highestCategory.name}" memberikan kontribusi terbesar bulan ini dengan realisasi target pemasukan sebesar ${highestCategory.realization}%. Performa luar biasa.`;
     }
   };
 

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
+import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 import { Mail, RefreshCw, ArrowRight, CheckCircle2, ArrowLeft } from "lucide-react";
 
@@ -11,6 +12,7 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { verifyEmail, resendOtp } = useAuth();
+  const { t, language } = useLanguage();
 
   const email = searchParams.get("email") || "";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -38,7 +40,7 @@ function VerifyEmailContent() {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Auto-focus ke kotak berikutnya
+    // Auto focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -66,7 +68,7 @@ function VerifyEmailContent() {
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     const newOtp = [...otp];
     pasted.split("").forEach((char, i) => {
-      if (i < 6) newOtp[i] = char;
+      newOtp[i] = char;
     });
     setOtp(newOtp);
     inputRefs.current[Math.min(pasted.length, 5)]?.focus();
@@ -82,10 +84,10 @@ function VerifyEmailContent() {
     const result = await verifyEmail(email, otpString);
 
     if (result.success) {
-      toast.success("Email berhasil diverifikasi! Selamat datang.");
+      toast.success(language === "en" ? "Email verified successfully! Welcome." : "Email berhasil diverifikasi! Selamat datang.");
       router.push("/dashboard");
     } else {
-      toast.error(result.error || "Kode OTP tidak valid atau sudah kadaluarsa.");
+      toast.error(result.error || (language === "en" ? "Invalid or expired OTP code." : "Kode OTP tidak valid atau sudah kadaluarsa."));
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     }
@@ -96,7 +98,7 @@ function VerifyEmailContent() {
     e.preventDefault();
     const otpString = otp.join("");
     if (otpString.length !== 6) {
-      toast.error("Masukkan 6 digit kode OTP.");
+      toast.error(language === "en" ? "Please enter the 6-digit OTP code." : "Masukkan 6 digit kode OTP.");
       return;
     }
     handleVerify(otpString);
@@ -108,13 +110,13 @@ function VerifyEmailContent() {
     const result = await resendOtp(email, "verification");
 
     if (result.success) {
-      toast.success("Kode OTP baru telah dikirim ke email Anda.");
+      toast.success(language === "en" ? "New OTP code sent to your email." : "Kode OTP baru telah dikirim ke email Anda.");
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
       setCountdown(60);
       setCanResend(false);
     } else {
-      toast.error(result.error || "Gagal mengirim ulang OTP.");
+      toast.error(result.error || (language === "en" ? "Failed to resend OTP." : "Gagal mengirim ulang OTP."));
     }
     setIsResending(false);
   };

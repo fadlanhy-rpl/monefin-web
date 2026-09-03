@@ -12,6 +12,7 @@ import { getBudgets, createBudget, updateBudget, deleteBudget } from "../../../s
 import { getCategories } from "../../../services/category.service";
 import { notifySuccess, notifyError } from "../../../lib/notify";
 import { useLanguage } from "../../../context/LanguageContext";
+import AiBudgetRecommendationsModal from "../../../components/ai/AiBudgetRecommendationsModal";
 
 // Helper to get category icon component
 function getCategoryIcon(iconType) {
@@ -116,6 +117,18 @@ export default function BudgetsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [editingBudget, setEditingBudget] = useState(null);
+
+  // AI Recommendations modal state
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
+  // Apply AI recommendation: pre-fill budget form and open add modal
+  const handleApplyAiRec = ({ category_id, limit_amount }) => {
+    setModalMode("add");
+    setEditingBudget(null);
+    setFormCategoryId(String(category_id));
+    setFormLimit(String(limit_amount));
+    setIsModalOpen(true);
+  };
 
   // Form states
   const [formCategoryId, setFormCategoryId] = useState("");
@@ -227,6 +240,7 @@ export default function BudgetsPage() {
           viewMode={viewMode}
           setViewMode={setViewMode}
           openAddModal={openAddModal}
+          onAiRecommend={() => setIsAiModalOpen(true)}
         />
 
         {/* BUDGET CARDS GRID / LIST CONTAINER */}
@@ -260,6 +274,7 @@ export default function BudgetsPage() {
           totalSpent={totalSpent}
           circumference={circumference}
           strokeDashoffset={strokeDashoffset}
+          openAddModal={openAddModal}
         />
       </div>
 
@@ -274,6 +289,16 @@ export default function BudgetsPage() {
         formLimit={formLimit}
         setFormLimit={setFormLimit}
         categories={categories}
+      />
+
+      {/* AI BUDGET RECOMMENDATIONS MODAL */}
+      <AiBudgetRecommendationsModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        onApply={(rec) => {
+          handleApplyAiRec(rec);
+          setIsAiModalOpen(false);
+        }}
       />
 
       {/* DELETE CONFIRMATION MODAL */}

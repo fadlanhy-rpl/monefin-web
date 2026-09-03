@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import { getNotifications, markAsRead, markAllAsRead } from "../../../services/notification.service";
-import { Bell, CheckCheck, Loader2, AlertTriangle, AlertCircle } from "lucide-react";
+import { useLanguage } from "../../../context/LanguageContext";
+import { Bell, CheckCheck, Loader2, AlertTriangle, AlertCircle, Clock } from "lucide-react";
 
 export default function NotificationsPage() {
+  const { t, language } = useLanguage();
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -88,20 +90,20 @@ export default function NotificationsPage() {
       year: 'numeric', month: 'long', day: 'numeric',
       hour: '2-digit', minute: '2-digit'
     };
-    return new Date(dateString).toLocaleDateString('id-ID', options);
+    return new Date(dateString).toLocaleDateString(language === "en" ? 'en-US' : 'id-ID', options);
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const getAlertStyles = (notif) => {
-    if (notif.message && notif.message.includes("Peringatan Kritis")) {
+    if (notif.message && (notif.message.includes("Peringatan Kritis") || notif.message.includes("Critical Alert"))) {
       return {
         bg: !notif.is_read ? "bg-red-50 hover:bg-red-50/80" : "hover:bg-slate-50",
         dot: !notif.is_read ? "bg-red-500 shadow-sm shadow-red-500/50" : "bg-transparent",
         text: !notif.is_read ? "font-bold text-red-700" : "font-medium text-slate-600",
         icon: <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
       };
-    } else if (notif.message && notif.message.includes("Peringatan:")) {
+    } else if (notif.message && (notif.message.includes("Peringatan:") || notif.message.includes("Warning:"))) {
       return {
         bg: !notif.is_read ? "bg-amber-50 hover:bg-amber-50/80" : "hover:bg-slate-50",
         dot: !notif.is_read ? "bg-amber-500 shadow-sm shadow-amber-500/50" : "bg-transparent",
@@ -110,8 +112,8 @@ export default function NotificationsPage() {
       };
     }
     return {
-      bg: !notif.is_read ? "bg-brand-50/30 hover:bg-brand-50/60" : "hover:bg-slate-50",
-      dot: !notif.is_read ? "bg-brand-500 shadow-sm shadow-brand-500/50" : "bg-transparent",
+      bg: !notif.is_read ? "bg-[#00685F]/5 hover:bg-[#00685F]/10" : "hover:bg-slate-50",
+      dot: !notif.is_read ? "bg-[#00685F] shadow-sm shadow-[#00685F]/50" : "bg-transparent",
       text: !notif.is_read ? "font-bold text-slate-800" : "font-medium text-slate-600",
       icon: null
     };
@@ -122,40 +124,46 @@ export default function NotificationsPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         
         {/* Header Section */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white p-6 sm:p-7 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 shrink-0">
+            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-[#00685F] shrink-0 border border-emerald-100">
               <Bell className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">Semua Notifikasi</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Anda memiliki {unreadCount} notifikasi yang belum dibaca.
+              <h1 className="text-xl font-black text-slate-800">{t("notifications.title") || "Semua Notifikasi"}</h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-medium">
+                {language === "en" 
+                  ? `You have ${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}.`
+                  : `Anda memiliki ${unreadCount} notifikasi yang belum dibaca.`}
               </p>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-50 border border-slate-100 text-slate-400 rounded-full text-[10px] font-semibold mt-2">
+                <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                <span>{t("notifications.auto_delete_notice") || "Notifikasi otomatis dihapus setelah 30 hari."}</span>
+              </div>
             </div>
           </div>
           {unreadCount > 0 && (
             <button 
               onClick={handleMarkAllRead}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-700 font-semibold rounded-xl hover:bg-brand-100 transition-colors text-sm"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#00685F]/10 text-[#00685F] font-bold rounded-xl hover:bg-[#00685F]/15 transition-all text-xs sm:text-sm cursor-pointer active:scale-95"
             >
               <CheckCheck className="w-4 h-4" />
-              Tandai Semua Dibaca
+              {t("notifications.mark_all_read") || "Tandai Semua Dibaca"}
             </button>
           )}
         </div>
 
         {/* Notifications List */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
           {isLoading ? (
             <div className="p-12 flex flex-col items-center justify-center text-slate-400 space-y-3">
-              <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-              <p className="text-sm">Memuat notifikasi...</p>
+              <Loader2 className="w-8 h-8 animate-spin text-[#00685F]" />
+              <p className="text-xs font-semibold">{t("notifications.loading") || "Memuat notifikasi..."}</p>
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-12 flex flex-col items-center justify-center text-slate-400 space-y-3">
               <Bell className="w-12 h-12 text-slate-200" />
-              <p className="text-sm font-medium">Belum ada notifikasi saat ini.</p>
+              <p className="text-xs sm:text-sm font-medium">{t("notifications.no_notifications") || "Belum ada notifikasi saat ini."}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -172,10 +180,10 @@ export default function NotificationsPage() {
                     </div>
                     {styles.icon && <div>{styles.icon}</div>}
                     <div className="flex-1">
-                      <p className={`text-sm sm:text-base ${styles.text}`}>
+                      <p className={`text-xs sm:text-sm ${styles.text}`}>
                         {notif.message}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1.5">
+                      <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
                         <span>{formatDate(notif.created_at)}</span>
                       </p>
                     </div>
@@ -191,15 +199,15 @@ export default function NotificationsPage() {
               <button 
                 onClick={handleLoadMore}
                 disabled={isLoadingMore}
-                className="w-full py-3 flex items-center justify-center gap-2 text-sm font-bold text-slate-600 hover:text-brand-600 hover:bg-slate-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-[#00685F] hover:bg-slate-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isLoadingMore ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Memuat...
+                    {t("notifications.loading") || "Memuat..."}
                   </>
                 ) : (
-                  "Tampilkan Lebih Banyak"
+                  t("notifications.load_more") || "Tampilkan Lebih Banyak"
                 )}
               </button>
             </div>

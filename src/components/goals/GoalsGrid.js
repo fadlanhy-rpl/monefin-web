@@ -165,12 +165,12 @@ export default function GoalsGrid({
   const calculateInsightText = (g) => {
     const remaining = g.target - g.current;
     if (remaining <= 0) {
-      return t("goals.congratulations") || "Selamat! Target tabungan Anda sudah tercapai sepenuhnya. Waktunya menikmati hasil usaha Anda! 🎉";
+      return t("goals.congratulations") || (language === "en" ? "Congratulations! Your savings goal has been fully reached. Time to enjoy the fruit of your hard work!" : "Selamat! Target tabungan Anda sudah tercapai sepenuhnya. Waktunya menikmati hasil usaha Anda!");
     }
     const months = Math.ceil(remaining / 850000);
-    const p1 = t("goals.insight_calculation_p1") || `Dengan laju menabung rata-rata ${formatCurrency(850000)}/bln saat ini, Anda membutuhkan sekitar`;
-    const p2 = t("goals.insight_calculation_p2") || "bulan lagi untuk mencapai target";
-    const p3 = t("goals.insight_calculation_p3") || ". Tetap semangat! 💪";
+    const p1 = t("goals.insight_calculation_p1") || (language === "en" ? `With the current average saving rate of ${formatCurrency(850000)}/mo, you need approximately` : `Dengan rata-rata menabung ${formatCurrency(850000)}/bln saat ini, Anda butuh sekitar`);
+    const p2 = t("goals.insight_calculation_p2") || (language === "en" ? "more months to reach the target of" : "bulan lagi untuk mencapai target");
+    const p3 = t("goals.insight_calculation_p3") || (language === "en" ? ". Keep up the great consistency." : ". Pertahankan konsistensi menabung Anda.");
     return `${p1} ${months} ${p2} ${formatCurrency(g.target)}${p3}`;
   };
 

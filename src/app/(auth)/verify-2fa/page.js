@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../hooks/useAuth";
+import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 import { ShieldCheck, ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
 
@@ -11,6 +12,7 @@ function Verify2FAContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { verify2fa, resendOtp } = useAuth();
+  const { t, language } = useLanguage();
 
   const email = searchParams.get("email") || "";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -71,16 +73,16 @@ function Verify2FAContent() {
   const handleVerify = async (otpString) => {
     if (isSubmitting) return;
     if (timeLeft <= 0) {
-      toast.error("Kode OTP telah kadaluarsa. Silakan kirim ulang.");
+      toast.error(language === "en" ? "OTP code has expired. Please resend." : "Kode OTP telah kadaluarsa. Silakan kirim ulang.");
       return;
     }
     setIsSubmitting(true);
     const result = await verify2fa(email, otpString);
     if (result.success) {
-      toast.success("Verifikasi berhasil! Selamat datang.");
+      toast.success(language === "en" ? "Verification successful! Welcome." : "Verifikasi berhasil! Selamat datang.");
       router.push("/dashboard");
     } else {
-      toast.error(result.error || "Kode OTP tidak valid atau sudah kadaluarsa.");
+      toast.error(result.error || (language === "en" ? "Invalid or expired OTP code." : "Kode OTP tidak valid atau sudah kadaluarsa."));
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     }
@@ -91,7 +93,7 @@ function Verify2FAContent() {
     e.preventDefault();
     const otpString = otp.join("");
     if (otpString.length !== 6) {
-      toast.error("Masukkan 6 digit kode OTP.");
+      toast.error(language === "en" ? "Please enter the 6-digit OTP code." : "Masukkan 6 digit kode OTP.");
       return;
     }
     handleVerify(otpString);
@@ -102,13 +104,13 @@ function Verify2FAContent() {
     setIsResending(true);
     const result = await resendOtp(email, "2fa");
     if (result.success) {
-      toast.success("Kode 2FA baru telah dikirim ke email Anda.");
+      toast.success(language === "en" ? "New 2FA code sent to your email." : "Kode 2FA baru telah dikirim ke email Anda.");
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
       setTimeLeft(300);
       setCanResend(false);
     } else {
-      toast.error(result.error || "Gagal mengirim ulang OTP.");
+      toast.error(result.error || (language === "en" ? "Failed to resend OTP." : "Gagal mengirim ulang OTP."));
     }
     setIsResending(false);
   };

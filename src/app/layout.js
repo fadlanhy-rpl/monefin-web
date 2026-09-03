@@ -2,6 +2,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { LanguageProvider } from "../context/LanguageContext";
+import { BalancePrivacyProvider } from "../context/BalancePrivacyContext";
 import { Toaster } from "react-hot-toast";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -20,8 +21,9 @@ export default function RootLayout({ children }) {
       <body className={`${plusJakartaSans.variable} font-sans bg-[#f4f7f6] text-slate-800 min-h-screen antialiased`}>
         <AuthProvider>
           <LanguageProvider>
-            {children}
-            <Toaster
+            <BalancePrivacyProvider>
+              {children}
+              <Toaster
               position="top-right"
             toastOptions={{
               duration: 4000,
@@ -47,6 +49,7 @@ export default function RootLayout({ children }) {
               },
             }}
           />
+            </BalancePrivacyProvider>
           </LanguageProvider>
         </AuthProvider>
       </body>

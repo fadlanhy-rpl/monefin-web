@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Lightbulb, TrendingUp } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 export const Features = () => {
@@ -286,8 +287,9 @@ export const Features = () => {
                   </div>
                 ) : aiInsightPrompt === "analisis" ? (
                   <div className="space-y-2.5 leading-relaxed text-slate-300 text-[11px] sm:text-xs">
-                    <p className="font-semibold text-emerald-300">
-                      💡 {t("features.t3_a1_title")}
+                    <p className="font-semibold text-emerald-300 flex items-center gap-1.5">
+                      <Lightbulb className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                      <span>{t("features.t3_a1_title")}</span>
                     </p>
                     <p>
                       {t("features.t3_a1_desc")}
@@ -295,8 +297,9 @@ export const Features = () => {
                   </div>
                 ) : (
                   <div className="space-y-2.5 leading-relaxed text-slate-300 text-[11px] sm:text-xs">
-                    <p className="font-semibold text-emerald-300">
-                      📈 {t("features.t3_a2_title")}
+                    <p className="font-semibold text-emerald-300 flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                      <span>{t("features.t3_a2_title")}</span>
                     </p>
                     <p>
                       {t("features.t3_a2_desc")}

@@ -375,7 +375,7 @@ function CategoriesPageContent() {
           <CategoriesStats 
             totalCategories={categories.length}
             activeCategoriesCount={activeCategoriesCount}
-            onViewReportClick={() => showToast("Membuka laporan analisis mingguan...")}
+            onViewReportClick={() => router.push("/reports")}
             activeTab={activeTab}
             highestCategory={highestCategory}
           />

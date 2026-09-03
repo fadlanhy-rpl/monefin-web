@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Lightbulb } from "lucide-react";
+import SmartInsightCard from "../shared/SmartInsightCard";
 import { useLanguage } from "../../context/LanguageContext";
 
 export default function AccountsStats({
   bankPercent,
   ewalletPercent,
-  cashPercent
+  cashPercent,
+  openAddModal
 }) {
   const { language } = useLanguage();
 
@@ -64,23 +65,8 @@ export default function AccountsStats({
         </div>
       </div>
 
-      {/* SMART SAVING TIP BOX */}
-      <div className="bg-[#00685F] p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] text-white flex flex-col justify-between shadow-xl shadow-[#00685F]/20 relative overflow-hidden group hover:shadow-2xl transition-all duration-300">
-        <div className="relative z-10">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-105">
-            <Lightbulb className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-          </div>
-          <h4 className="font-extrabold text-xl sm:text-2xl tracking-tight leading-tight">{language === 'en' ? "Smart Saving Tip of the Week" : "Tips Hemat Pekan Ini"}</h4>
-          <p className="text-white/75 mt-4 text-xs sm:text-sm leading-relaxed font-medium">
-            {language === 'en' ? "Move your idle balance to investment instruments for better returns." : "Pindahkan saldo menganggur Anda ke instrumen investasi syariah untuk imbal hasil lebih optimal."}
-          </p>
-        </div>
-        <button className="relative z-10 w-full bg-white text-[#00685F] py-3.5 rounded-2xl font-bold text-xs sm:text-sm hover:bg-slate-50 hover:shadow-lg transition-all mt-8 active:scale-95 cursor-pointer">
-          {language === 'en' ? "Learn Investments" : "Pelajari Investasi"}
-        </button>
-        {/* Decorative elements */}
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
-      </div>
+      {/* SMART SAVING TIP BOX — Dynamic (AI or Engine) */}
+      <SmartInsightCard page="accounts" onActionClick={openAddModal} />
     </div>
   );
 }
