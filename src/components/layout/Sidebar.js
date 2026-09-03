@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
-import { LanguageSwitcherPill } from "../ui/LanguageSwitcher";
 
 export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const pathname = usePathname();
@@ -257,9 +256,6 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         })}
       </nav>
       <div className="px-3 pb-6 border-t border-slate-100 pt-4 space-y-2">
-        <div className="md:hidden pb-1">
-          <LanguageSwitcherPill />
-        </div>
         <Link
           href="/settings"
           onClick={() => setMobileOpen && setMobileOpen(false)}

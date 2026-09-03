@@ -109,7 +109,7 @@ function AchievedGoalsPageContent() {
                     {t("goals.achieved_title") || "Achieved Goals"}
                   </h1>
                   <p className="text-xs sm:text-sm text-slate-400 font-semibold">
-                    {t("goals.achieved_subtitle") || "Daftar seluruh impian dan target keuangan yang berhasil Anda raih! 🎉"}
+                    {t("goals.achieved_subtitle") || (language === "en" ? "A complete list of dreams and financial milestones you've accomplished successfully." : "Daftar seluruh impian dan target keuangan yang berhasil Anda raih dengan konsisten.")}
                   </p>
                 </div>
               </div>

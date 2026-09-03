@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, Trophy, Sparkles, Shield, Flame, Check, Crown, Info } from "lucide-react";
+import { Zap, Trophy, Sparkles, Shield, Flame, Check, Crown, Info, X } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 const RANK_TIERS = [
@@ -135,7 +135,7 @@ export default function LevelCard({ data }) {
           <div className="flex justify-between items-center text-[10px] text-slate-300/90 font-medium pt-0.5 gap-1">
             <span className="shrink-0">Lv.{level}</span>
             <span className="truncate text-center px-1">
-              {Math.max(0, xpNeeded - xpInLevel)} XP ke Lv.{level + 1}
+              {Math.max(0, xpNeeded - xpInLevel)} XP {language === "en" ? "to" : "ke"} Lv.{level + 1}
             </span>
             <span className="shrink-0">Lv.{level + 1}</span>
           </div>
@@ -153,7 +153,7 @@ export default function LevelCard({ data }) {
                 {t("rewards.streak_freezes", "Saver Shield")}
               </p>
               <p className="text-xs sm:text-sm font-black text-teal-300 mt-0.5 truncate">
-                {data.streak_freezes || 0} Tersedia
+                {data.streak_freezes || 0} {language === "en" ? "Available" : "Tersedia"}
               </p>
             </div>
           </div>
@@ -208,9 +208,9 @@ export default function LevelCard({ data }) {
               <button
                 type="button"
                 onClick={() => setShowRanksModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 font-bold cursor-pointer shrink-0"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 font-bold cursor-pointer shrink-0 transition-colors"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

@@ -246,10 +246,10 @@ function GoalsPageContent() {
       
       if (depositActionType === "deposit") {
         const res = await depositGoal(activeDepositGoal.id, payload);
-        triggerToast(res.message || (language === 'en' ? `Successfully deposited ${formatCurrency(amt)} to ${activeDepositGoal.name}! 💰` : `Berhasil menyetor ${formatCurrency(amt)} ke ${activeDepositGoal.name}! 💰`));
+        triggerToast(res.message || (language === 'en' ? `Successfully deposited ${formatCurrency(amt)} to ${activeDepositGoal.name}.` : `Berhasil menyetor ${formatCurrency(amt)} ke ${activeDepositGoal.name}.`));
       } else {
         const res = await withdrawGoal(activeDepositGoal.id, payload);
-        triggerToast(res.message || (language === 'en' ? `Successfully withdrew ${formatCurrency(amt)} from ${activeDepositGoal.name}! 🏧` : `Berhasil menarik ${formatCurrency(amt)} dari ${activeDepositGoal.name}! 🏧`));
+        triggerToast(res.message || (language === 'en' ? `Successfully withdrew ${formatCurrency(amt)} from ${activeDepositGoal.name}.` : `Berhasil menarik ${formatCurrency(amt)} dari ${activeDepositGoal.name}.`));
       }
       
       fetchGoalsData();
@@ -326,6 +326,7 @@ function GoalsPageContent() {
           <GoalsStats 
             savingRate={850000}
             savingRateIncrease={12}
+            openAddModal={openAddModal}
           />
         </div>
 

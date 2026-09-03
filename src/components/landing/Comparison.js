@@ -1,5 +1,6 @@
 "use client";
 
+import { X, Check } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 export const Comparison = () => {
@@ -25,7 +26,7 @@ export const Comparison = () => {
           <div className="catalis-card bg-white/90 border border-slate-200 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 space-y-4 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
-                ✕
+                <X className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="font-extrabold text-slate-900 text-sm sm:text-lg">{t("comparison.old_title")}</h3>
@@ -57,7 +58,7 @@ export const Comparison = () => {
 
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                ✓
+                <Check className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="font-extrabold text-slate-900 text-sm sm:text-lg">{t("comparison.new_title")}</h3>

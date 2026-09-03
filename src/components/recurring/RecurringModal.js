@@ -47,17 +47,19 @@ export default function RecurringModal({
   const selectedCategory = categories.find((c) => String(c.id) === String(formState.category_id));
   const selectedAccount = accounts.find((a) => String(a.id) === String(formState.account_id));
 
+  const isEn = language === "en";
+
   const periodOptions = [
-    { value: 'daily', label: 'Harian' },
-    { value: 'weekly', label: 'Mingguan' },
-    { value: 'monthly', label: 'Bulanan' },
-    { value: 'yearly', label: 'Tahunan' },
+    { value: 'daily', label: isEn ? 'Daily' : 'Harian' },
+    { value: 'weekly', label: isEn ? 'Weekly' : 'Mingguan' },
+    { value: 'monthly', label: isEn ? 'Monthly' : 'Bulanan' },
+    { value: 'yearly', label: isEn ? 'Yearly' : 'Tahunan' },
   ];
   const selectedPeriod = periodOptions.find(p => p.value === formState.period_type);
 
   const typeOptions = [
-    { value: 'expense', label: 'Pengeluaran' },
-    { value: 'income', label: 'Pemasukan' }
+    { value: 'expense', label: isEn ? 'Expense' : 'Pengeluaran' },
+    { value: 'income', label: isEn ? 'Income' : 'Pemasukan' }
   ];
   const selectedType = typeOptions.find(t => t.value === formState.type);
 
@@ -71,7 +73,9 @@ export default function RecurringModal({
         
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-extrabold text-slate-900">
-            {modalMode === "add" ? "Tambah Transaksi Rutin" : "Edit Transaksi Rutin"}
+            {modalMode === "add"
+              ? (isEn ? "Add Recurring Transaction" : "Tambah Transaksi Rutin")
+              : (isEn ? "Edit Recurring Transaction" : "Edit Transaksi Rutin")}
           </h3>
           <button 
             onClick={onClose}
@@ -88,7 +92,7 @@ export default function RecurringModal({
             {/* Title */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Judul / Deskripsi
+                {isEn ? "Title / Description" : "Judul / Deskripsi"}
               </label>
               <input
                 type="text"
@@ -96,7 +100,7 @@ export default function RecurringModal({
                 value={formState.title}
                 onChange={(e) => setFormState({ ...formState, title: e.target.value })}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800"
-                placeholder="Mis. Gaji, Netflix"
+                placeholder={isEn ? "e.g. Salary, Netflix" : "Mis. Gaji, Netflix"}
               />
             </div>
 
@@ -104,14 +108,14 @@ export default function RecurringModal({
               {/* Type */}
               <div className="space-y-1.5 relative">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  Tipe
+                  {isEn ? "Type" : "Tipe"}
                 </label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('type')}
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-2xl flex items-center justify-between text-left text-sm font-bold text-slate-800 ${openDropdown === 'type' ? 'border-[#00685F] ring-4 ring-[#00685F]/10 bg-white' : 'border-slate-100'}`}
                 >
-                  <span>{selectedType?.label || "Pilih"}</span>
+                  <span>{selectedType?.label || (isEn ? "Select" : "Pilih")}</span>
                   <ChevronDown className="w-4 h-4 text-slate-400" />
                 </button>
                 {openDropdown === 'type' && (
@@ -136,7 +140,7 @@ export default function RecurringModal({
               {/* Amount */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  Nominal
+                  {isEn ? "Amount" : "Nominal"}
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">
@@ -158,14 +162,14 @@ export default function RecurringModal({
             {/* Period */}
             <div className="space-y-1.5 relative">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Periode (Seberapa sering)
+                {isEn ? "Period (Frequency)" : "Periode (Seberapa sering)"}
               </label>
               <button
                 type="button"
                 onClick={() => toggleDropdown('period')}
                 className={`w-full px-4 py-3 bg-slate-50 border rounded-2xl flex items-center justify-between text-left text-sm font-bold text-slate-800 ${openDropdown === 'period' ? 'border-[#00685F] ring-4 ring-[#00685F]/10 bg-white' : 'border-slate-100'}`}
               >
-                <span>{selectedPeriod?.label || "Pilih"}</span>
+                <span>{selectedPeriod?.label || (isEn ? "Select" : "Pilih")}</span>
                 <ChevronDown className="w-4 h-4 text-slate-400" />
               </button>
               {openDropdown === 'period' && (
@@ -191,14 +195,14 @@ export default function RecurringModal({
               {/* Account */}
               <div className="space-y-1.5 relative">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  Akun
+                  {isEn ? "Account" : "Akun"}
                 </label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('account')}
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-2xl flex items-center justify-between text-left text-sm font-bold text-slate-800 ${openDropdown === 'account' ? 'border-[#00685F] ring-4 ring-[#00685F]/10 bg-white' : 'border-slate-100'}`}
                 >
-                  <span className="truncate mr-2">{selectedAccount?.name || "Pilih Akun"}</span>
+                  <span className="truncate mr-2">{selectedAccount?.name || (isEn ? "Select Account" : "Pilih Akun")}</span>
                   <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                 </button>
                 {openDropdown === 'account' && (
@@ -223,14 +227,14 @@ export default function RecurringModal({
               {/* Category */}
               <div className="space-y-1.5 relative">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  Kategori
+                  {isEn ? "Category" : "Kategori"}
                 </label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('category')}
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-2xl flex items-center justify-between text-left text-sm font-bold text-slate-800 ${openDropdown === 'category' ? 'border-[#00685F] ring-4 ring-[#00685F]/10 bg-white' : 'border-slate-100'}`}
                 >
-                  <span className="truncate mr-2">{selectedCategory?.name || "Kategori"}</span>
+                  <span className="truncate mr-2">{selectedCategory?.name || (isEn ? "Category" : "Kategori")}</span>
                   <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                 </button>
                 {openDropdown === 'category' && (
@@ -248,7 +252,7 @@ export default function RecurringModal({
                         {cat.name}
                       </button>
                     )) : (
-                      <div className="px-3 py-2 text-xs text-slate-400 text-center font-medium">Tidak ada kategori</div>
+                      <div className="px-3 py-2 text-xs text-slate-400 text-center font-medium">{isEn ? "No categories available" : "Tidak ada kategori"}</div>
                     )}
                   </div>
                 )}
@@ -263,13 +267,13 @@ export default function RecurringModal({
               onClick={onClose}
               className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
             >
-              Batal
+              {isEn ? "Cancel" : "Batal"}
             </button>
             <button
               type="submit"
               className="flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
             >
-              Simpan
+              {isEn ? "Save" : "Simpan"}
             </button>
           </div>
         </form>

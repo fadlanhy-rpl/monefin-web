@@ -18,6 +18,7 @@ import {
   Inbox
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { getLocalizedAchievement } from "../../lib/gamificationDictionary";
 
 function BadgeIcon({ icon, className = "w-6 h-6" }) {
   switch (icon) {
@@ -35,28 +36,29 @@ function BadgeIcon({ icon, className = "w-6 h-6" }) {
   }
 }
 
+// Theme styling configuration per tier
 const TIER_STYLES = {
   bronze: {
     name: "Bronze",
-    border: "border-amber-300/80 hover:border-amber-400",
-    bg: "bg-gradient-to-b from-amber-50/80 via-white to-amber-50/40",
-    pill: "bg-amber-100/90 text-amber-800 border-amber-300",
-    iconBg: "bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-amber-600/30",
-    glow: "shadow-amber-500/10",
+    border: "border-amber-200 hover:border-amber-300",
+    bg: "bg-gradient-to-b from-amber-50/70 via-orange-50/30 to-white",
+    pill: "bg-amber-100/90 text-amber-900 border-amber-300",
+    iconBg: "bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-amber-700/20",
+    glow: "shadow-amber-600/10",
   },
   silver: {
     name: "Silver",
-    border: "border-slate-300/80 hover:border-slate-400",
-    bg: "bg-gradient-to-b from-slate-50/90 via-white to-slate-100/40",
+    border: "border-slate-200 hover:border-slate-300",
+    bg: "bg-gradient-to-b from-slate-50/90 via-slate-100/40 to-white",
     pill: "bg-slate-200/90 text-slate-800 border-slate-300",
-    iconBg: "bg-gradient-to-br from-slate-400 to-slate-600 text-white shadow-slate-600/30",
+    iconBg: "bg-gradient-to-br from-slate-500 to-slate-700 text-white shadow-slate-600/20",
     glow: "shadow-slate-500/10",
   },
   gold: {
     name: "Gold",
-    border: "border-yellow-300 hover:border-yellow-400",
-    bg: "bg-gradient-to-b from-yellow-50/90 via-amber-50/40 to-white",
-    pill: "bg-yellow-100 text-yellow-800 border-yellow-400",
+    border: "border-amber-300 hover:border-amber-400",
+    bg: "bg-gradient-to-b from-amber-100/60 via-yellow-50/40 to-white",
+    pill: "bg-amber-200 text-amber-950 border-amber-400",
     iconBg: "bg-gradient-to-br from-yellow-400 via-amber-500 to-amber-600 text-white shadow-yellow-500/30",
     glow: "shadow-yellow-500/15",
   },
@@ -71,24 +73,25 @@ const TIER_STYLES = {
 };
 
 export default function AchievementsGallery({ achievements = [], isLoading = false }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [filter, setFilter] = useState("all"); // all, unlocked, locked
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedBadge, setSelectedBadge] = useState(null);
 
-  const unlockedCount = achievements.filter((a) => a.is_unlocked).length;
-  const totalCount = achievements.length;
+  const achList = Array.isArray(achievements) ? achievements : (achievements ? Object.values(achievements) : []);
+  const unlockedCount = achList.filter((a) => a.is_unlocked).length;
+  const totalCount = achList.length;
 
   const categories = [
-    { key: "all", label: "Semua Kategori", icon: Layers },
-    { key: "transaction", label: "Transaksi", icon: ArrowLeftRight },
+    { key: "all", label: language === "en" ? "All Categories" : "Semua Kategori", icon: Layers },
+    { key: "transaction", label: language === "en" ? "Transactions" : "Transaksi", icon: ArrowLeftRight },
     { key: "streak", label: "Streak", icon: Flame },
-    { key: "saving", label: "Tabungan", icon: PiggyBank },
-    { key: "security", label: "Keamanan", icon: ShieldCheck },
-    { key: "budget", label: "Anggaran", icon: PieChart },
+    { key: "saving", label: language === "en" ? "Savings" : "Tabungan", icon: PiggyBank },
+    { key: "security", label: language === "en" ? "Security" : "Keamanan", icon: ShieldCheck },
+    { key: "budget", label: language === "en" ? "Budgets" : "Anggaran", icon: PieChart },
   ];
 
-  const filteredAchievements = achievements.filter((a) => {
+  const filteredAchievements = achList.filter((a) => {
     if (filter === "unlocked" && !a.is_unlocked) return false;
     if (filter === "locked" && a.is_unlocked) return false;
     if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
@@ -180,16 +183,22 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
       {isLoading ? (
         <div className="py-16 flex flex-col items-center justify-center gap-3">
           <span className="w-9 h-9 border-3 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
-          <p className="text-xs text-slate-400 font-bold">Memuat lencana...</p>
+          <p className="text-xs text-slate-400 font-bold">
+            {language === "en" ? "Loading badges..." : "Memuat lencana..."}
+          </p>
         </div>
       ) : filteredAchievements.length === 0 ? (
         <div className="py-14 flex flex-col items-center justify-center text-center animate-badge-in">
           <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
             <Inbox className="w-7 h-7" />
           </div>
-          <h4 className="text-sm font-black text-slate-700">Tidak Ada Lencana</h4>
+          <h4 className="text-sm font-black text-slate-700">
+            {language === "en" ? "No Badges Found" : "Tidak Ada Lencana"}
+          </h4>
           <p className="text-xs text-slate-400 mt-1 max-w-xs">
-            Belum ada lencana pada filter ini. Coba pilih kategori lain.
+            {language === "en"
+              ? "No badges match this filter. Try selecting another category."
+              : "Belum ada lencana pada filter ini. Coba pilih kategori lain."}
           </p>
         </div>
       ) : (
@@ -202,6 +211,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
             const percent = badge.required_count > 0 
               ? Math.min(100, Math.round((badge.progress / badge.required_count) * 100)) 
               : 0;
+            const localized = getLocalizedAchievement(badge, language);
 
             return (
               <div
@@ -241,10 +251,10 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
 
                   {/* Title & Description */}
                   <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug group-hover:text-[#00685F] transition-colors">
-                    {badge.title}
+                    {localized.title}
                   </h4>
                   <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1 leading-relaxed line-clamp-2">
-                    {badge.description}
+                    {localized.description}
                   </p>
                 </div>
 
@@ -281,77 +291,80 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
       )}
 
       {/* BADGE DETAIL POPUP MODAL */}
-      {selectedBadge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-100 text-center animate-badge-in">
-            
-            {/* Big Icon */}
-            <div className="flex justify-center pt-2">
-              <div
-                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-md ${
-                  selectedBadge.is_unlocked
-                    ? (TIER_STYLES[selectedBadge.tier]?.iconBg || "bg-emerald-600 text-white")
-                    : "bg-slate-200 text-slate-400"
-                }`}
-              >
+      {selectedBadge && (() => {
+        const modalLocalized = getLocalizedAchievement(selectedBadge, language);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-100 text-center animate-badge-in">
+              
+              {/* Big Icon */}
+              <div className="flex justify-center pt-2">
+                <div
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-md ${
+                    selectedBadge.is_unlocked
+                      ? (TIER_STYLES[selectedBadge.tier]?.iconBg || "bg-emerald-600 text-white")
+                      : "bg-slate-200 text-slate-400"
+                  }`}
+                >
+                  {selectedBadge.is_unlocked ? (
+                    <BadgeIcon icon={selectedBadge.icon} className="w-7 h-7 sm:w-8 sm:h-8" />
+                  ) : (
+                    <Lock className="w-6 h-6 sm:w-7 sm:h-7 text-slate-400" />
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                    Tier {selectedBadge.tier}
+                  </span>
+                  <span className="text-xs font-black text-[#00685F] bg-emerald-50 px-2 py-0.5 rounded-md">
+                    +{selectedBadge.xp_reward} XP
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">{modalLocalized.title}</h3>
+                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                  {modalLocalized.description}
+                </p>
+              </div>
+
+              {/* Progress Box */}
+              <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 text-xs">
                 {selectedBadge.is_unlocked ? (
-                  <BadgeIcon icon={selectedBadge.icon} className="w-7 h-7 sm:w-8 sm:h-8" />
+                  <div className="flex items-center justify-center gap-2 text-emerald-700 font-extrabold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span>{language === "en" ? "Achievement Unlocked!" : "Prestasi Berhasil Dicapai!"}</span>
+                  </div>
                 ) : (
-                  <Lock className="w-6 h-6 sm:w-7 sm:h-7 text-slate-400" />
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between font-bold text-slate-600 text-[11px]">
+                      <span>{language === "en" ? "Completion Target" : "Target Penyelesaian"}</span>
+                      <span>{selectedBadge.progress} / {selectedBadge.required_count}</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#00685F] to-[#00A896] rounded-full"
+                        style={{
+                          width: `${Math.min(100, Math.round((selectedBadge.progress / selectedBadge.required_count) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
 
-            <div>
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                  Tier {selectedBadge.tier}
-                </span>
-                <span className="text-xs font-black text-[#00685F] bg-emerald-50 px-2 py-0.5 rounded-md">
-                  +{selectedBadge.xp_reward} XP
-                </span>
-              </div>
-              <h3 className="text-base sm:text-lg font-black text-slate-900">{selectedBadge.title}</h3>
-              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                {selectedBadge.description}
-              </p>
+              <button
+                type="button"
+                onClick={() => setSelectedBadge(null)}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs transition-all cursor-pointer"
+              >
+                {language === "en" ? "Close" : "Tutup"}
+              </button>
             </div>
-
-            {/* Progress Box */}
-            <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 text-xs">
-              {selectedBadge.is_unlocked ? (
-                <div className="flex items-center justify-center gap-2 text-emerald-700 font-extrabold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span>Prestasi Berhasil Dicapai! 🎉</span>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between font-bold text-slate-600 text-[11px]">
-                    <span>Target Penyelesaian</span>
-                    <span>{selectedBadge.progress} / {selectedBadge.required_count}</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#00685F] to-[#00A896] rounded-full"
-                      style={{
-                        width: `${Math.min(100, Math.round((selectedBadge.progress / selectedBadge.required_count) * 100))}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setSelectedBadge(null)}
-              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs transition-all cursor-pointer"
-            >
-              Tutup
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

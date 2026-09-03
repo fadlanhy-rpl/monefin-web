@@ -1,21 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import SettingsTabs from "../../../components/settings/SettingsTabs";
 import ProfileSection from "../../../components/settings/ProfileSection";
 import SecuritySection from "../../../components/settings/SecuritySection";
 import PreferencesSection from "../../../components/settings/PreferencesSection";
 import DangerZoneSection from "../../../components/settings/DangerZoneSection";
+import AiSettingsSection from "../../../components/settings/AiSettingsSection";
 import { CheckCircle2, AlertCircle, X, Settings } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useSearchParams } from "next/navigation";
 
-export default function SettingsPage() {
+function SettingsContent() {
   const { user, updatePassword, updateProfile, deleteAccount } = useAuth();
   const { changeLanguage, language: currentGlobalLang, t } = useLanguage();
+  const searchParams = useSearchParams();
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["profile", "security", "preferences", "ai", "danger"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Form State - Profile
   const [fullName, setFullName] = useState("");
@@ -263,7 +273,14 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Tab 4: Danger Zone - Hapus Akun */}
+        {/* Tab 4: AI Chatbot Settings */}
+        {activeTab === "ai" && (
+          <div className={`transition-all duration-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <AiSettingsSection onShowToast={showToast} />
+          </div>
+        )}
+
+        {/* Tab 5: Danger Zone - Hapus Akun */}
         {activeTab === "danger" && (
           <div className={`transition-all duration-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <DangerZoneSection 
@@ -323,5 +340,13 @@ export default function SettingsPage() {
         </div>
       )}
     </DashboardLayout>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div className="flex items-center justify-center h-64 text-slate-400">Loading settings...</div></DashboardLayout>}>
+      <SettingsContent />
+    </Suspense>
   );
 }

@@ -165,7 +165,7 @@ function TransactionsPage() {
         setStats({ income, expense, net: income - expense });
       }
     } catch (error) {
-      toast.error("Gagal mengambil data transaksi");
+      toast.error(language === "en" ? "Failed to fetch transaction data" : "Gagal mengambil data transaksi");
     }
   };
 
@@ -234,10 +234,10 @@ function TransactionsPage() {
     try {
       setIsDeleting(true);
       await deleteTransaction(deletingId);
-      toast.success("Transaksi berhasil dihapus!");
+      toast.success(language === "en" ? "Transaction successfully deleted!" : "Transaksi berhasil dihapus!");
       fetchTransactionsData();
     } catch (error) {
-      toast.error("Gagal menghapus transaksi.");
+      toast.error(language === "en" ? "Failed to delete transaction." : "Gagal menghapus transaksi.");
     } finally {
       setIsDeleting(false);
       setIsConfirmOpen(false);
@@ -249,17 +249,17 @@ function TransactionsPage() {
     e.preventDefault();
     const amt = parseFloat(formAmount.replace(/\D/g, ''));
     if (isNaN(amt) || amt <= 0) {
-      toast.error("Jumlah transaksi harus angka positif!");
+      toast.error(language === "en" ? "Transaction amount must be a positive number!" : "Jumlah transaksi harus angka positif!");
       return;
     }
 
     if (!formCategoryId) {
-        toast.error("Silakan pilih kategori");
+        toast.error(language === "en" ? "Please select a category" : "Silakan pilih kategori");
         return;
     }
     
     if (!formAccountId) {
-        toast.error("Silakan pilih rekening");
+        toast.error(language === "en" ? "Please select an account" : "Silakan pilih rekening");
         return;
     }
 
@@ -275,21 +275,21 @@ function TransactionsPage() {
     try {
         if (modalMode === "add") {
             await createTransaction(payload);
-            toast.success("Transaksi berhasil ditambahkan!");
+            toast.success(language === "en" ? "Transaction successfully added!" : "Transaksi berhasil ditambahkan!");
         } else {
             await updateTransaction(editingTransaction.id, payload);
-            toast.success("Transaksi berhasil diperbarui!");
+            toast.success(language === "en" ? "Transaction successfully updated!" : "Transaksi berhasil diperbarui!");
         }
         setIsModalOpen(false);
         fetchTransactionsData();
     } catch (error) {
-        toast.error("Terjadi kesalahan saat menyimpan transaksi.");
+        toast.error(language === "en" ? "An error occurred while saving the transaction." : "Terjadi kesalahan saat menyimpan transaksi.");
     }
   };
 
   const handleExport = () => {
     if (!transactions || transactions.length === 0) {
-      toast.error("Tidak ada data transaksi untuk diekspor!");
+      toast.error(language === "en" ? "No transaction data to export!" : "Tidak ada data transaksi untuk diekspor!");
       return;
     }
 

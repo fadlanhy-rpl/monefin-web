@@ -71,6 +71,11 @@ export async function fetchAPI(endpoint, options = {}) {
     ...options.headers,
   };
 
+  if (typeof window !== "undefined") {
+    const activeLang = Cookies.get("NEXT_LOCALE") || localStorage.getItem("language") || "en";
+    headers["Accept-Language"] = activeLang;
+  }
+
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }

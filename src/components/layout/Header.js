@@ -3,14 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy, Flame, Zap } from "lucide-react";
+import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy, Flame, Zap, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useGlobalSearch } from "../../hooks/useGlobalSearch";
 import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
 import { getGamificationSummary } from "../../services/gamification.service";
-
 import { useCurrency } from "../../hooks/useCurrency";
-import { LanguageSwitcherDropdown } from "../ui/LanguageSwitcher";
+import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
 
 function getRelativeTime(dateString) {
   if (!dateString) return "";
@@ -32,6 +31,7 @@ export default function Header({ setMobileOpen }) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { formatCurrency } = useCurrency();
+  const { isBalanceHidden, toggleBalancePrivacy } = useBalancePrivacy();
 
   const userPhoto = user?.photo
     ? `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}/storage/${user.photo}`
@@ -193,9 +193,14 @@ export default function Header({ setMobileOpen }) {
           <input 
             ref={searchInputRef}
             id="header-search"
-            type="text" 
+            name="monefin_site_search"
+            type="search" 
             placeholder="Search analytics, transactions..." 
             autoComplete="off"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
+            data-form-type="other"
             value={searchQuery}
             aria-expanded={searchOpen}
             aria-controls="search-dropdown"
@@ -356,9 +361,11 @@ export default function Header({ setMobileOpen }) {
                             ? `/goals/achieved?search=${encodeURIComponent(g.title)}`
                             : `/goals?search=${encodeURIComponent(g.title)}`,
                           label: g.title,
-                          meta: g.is_achieved ? "Tercapai 🎉" : formatCurrency(g.current_amount),
+                          meta: g.is_achieved ? (language === "en" ? "Achieved" : "Tercapai") : formatCurrency(g.current_amount),
                           metaColor: g.is_achieved ? "text-emerald-600 font-extrabold" : "text-brand-700",
-                          sub: g.is_achieved ? `Terkumpul: ${formatCurrency(g.target_amount)}` : `Target: ${formatCurrency(g.target_amount)}`,
+                          sub: g.is_achieved 
+                            ? (language === "en" ? `Collected: ${formatCurrency(g.target_amount)}` : `Terkumpul: ${formatCurrency(g.target_amount)}`)
+                            : (language === "en" ? `Target: ${formatCurrency(g.target_amount)}` : `Target: ${formatCurrency(g.target_amount)}`),
                           icon: g.is_achieved ? <Trophy className="w-4 h-4 text-amber-500" /> : <Target className="w-4 h-4 text-amber-500" />,
                         })}
                       />
@@ -407,8 +414,16 @@ export default function Header({ setMobileOpen }) {
           </Link>
         )}
 
-        {/* Language Switcher */}
-        <LanguageSwitcherDropdown />
+        {/* Balance Privacy Toggle */}
+        <button
+          type="button"
+          onClick={toggleBalancePrivacy}
+          className="p-2.5 text-slate-600 hover:text-[#00685F] hover:bg-white rounded-xl transition-colors border border-transparent hover:border-slate-100 shadow-sm shadow-slate-100/50 cursor-pointer"
+          aria-label={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
+          title={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
+        >
+          {isBalanceHidden ? <EyeOff className="w-4 h-4 text-slate-500" /> : <Eye className="w-4 h-4 text-slate-600" />}
+        </button>
 
         {/* Notification */}
         <div className="relative">

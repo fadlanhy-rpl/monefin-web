@@ -116,7 +116,9 @@ export default function StreakCard({ streak = 0, longestStreak = 0, freezes = 0 
                     {reached ? (
                       <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                     ) : (
-                      <span className="text-[9px] text-slate-400 font-bold">Kunci</span>
+                      <span className="text-[9px] text-slate-400 font-bold">
+                        {language === "en" ? "Locked" : "Kunci"}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -138,8 +140,12 @@ export default function StreakCard({ streak = 0, longestStreak = 0, freezes = 0 
             </p>
             <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
               {freezes > 0
-                ? `Melindungi streak otomatis jika lupa mencatat 1 hari (${freezes} aktif).`
-                : "Tidak ada shield aktif. Dapatkan bonus shield setiap kelipatan Level 5."}
+                ? (language === "en"
+                    ? `Automatically protects your streak if you miss a day (${freezes} active).`
+                    : `Melindungi streak otomatis jika lupa mencatat 1 hari (${freezes} aktif).`)
+                : (language === "en"
+                    ? "No active shields. Earn bonus shields every 5 levels."
+                    : "Tidak ada shield aktif. Dapatkan bonus shield setiap kelipatan Level 5.")}
             </p>
           </div>
         </div>

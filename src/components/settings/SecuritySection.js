@@ -84,9 +84,13 @@ export default function SecuritySection({
     const result = await toggle2fa(newState);
     setIs2FALoading(false);
     if (result.success) {
-      toast.success(newState ? "Two-Factor Authentication diaktifkan." : "Two-Factor Authentication dinonaktifkan.");
+      if (newState) {
+        toast.success(language === "en" ? "Two-Factor Authentication enabled." : "Two-Factor Authentication diaktifkan.");
+      } else {
+        toast.success(language === "en" ? "Two-Factor Authentication disabled." : "Two-Factor Authentication dinonaktifkan.");
+      }
     } else {
-      toast.error(result.error || "Gagal mengubah pengaturan 2FA.");
+      toast.error(result.error || (language === "en" ? "Failed to change 2FA settings." : "Gagal mengubah pengaturan 2FA."));
     }
   };
 
@@ -94,10 +98,10 @@ export default function SecuritySection({
     setRevokingId(tokenId);
     try {
       await revokeSession(tokenId);
-      toast.success("Sesi berhasil dikeluarkan.");
+      toast.success(language === "en" ? "Session successfully signed out." : "Sesi berhasil dikeluarkan.");
       setSessions((prev) => prev.filter((s) => s.id !== tokenId));
     } catch (err) {
-      toast.error(err?.data?.message || "Gagal mengeluarkan sesi.");
+      toast.error(err?.data?.message || (language === "en" ? "Failed to sign out session." : "Gagal mengeluarkan sesi."));
     } finally {
       setRevokingId(null);
     }
@@ -107,10 +111,10 @@ export default function SecuritySection({
     setRevokingAll(true);
     try {
       await revokeOtherSessions();
-      toast.success("Semua sesi lain berhasil dikeluarkan.");
+      toast.success(language === "en" ? "All other sessions signed out successfully." : "Semua sesi lain berhasil dikeluarkan.");
       setSessions((prev) => prev.filter((s) => s.is_current));
     } catch (err) {
-      toast.error(err?.data?.message || "Gagal mengeluarkan sesi lain.");
+      toast.error(err?.data?.message || (language === "en" ? "Failed to sign out other sessions." : "Gagal mengeluarkan sesi lain."));
     } finally {
       setRevokingAll(false);
     }

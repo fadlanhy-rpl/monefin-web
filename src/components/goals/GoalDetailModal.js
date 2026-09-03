@@ -115,9 +115,9 @@ export default function GoalDetailModal({ isOpen, onClose, goal }) {
             <Sparkles className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <span>
               {language === 'en' ? (
-                <>Congratulations! Your hard work has paid off. The goal <strong>"{goal.name || goal.title}"</strong> is now fully accomplished! 🎉</>
+                <>Congratulations! Your hard work has paid off. The goal <strong>"{goal.name || goal.title}"</strong> is now fully accomplished.</>
               ) : (
-                <>Selamat! Kerja keras Anda telah membuahkan hasil. Target <strong>"{goal.name || goal.title}"</strong> sudah terwujud penuh! 🎉</>
+                <>Selamat! Kerja keras Anda telah membuahkan hasil. Target <strong>"{goal.name || goal.title}"</strong> sudah terwujud penuh.</>
               )}
             </span>
           </div>

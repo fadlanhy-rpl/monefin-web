@@ -4,12 +4,14 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setAuthToken } from "../../../lib/api";
 import { useAuth } from "../../../hooks/useAuth";
+import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { checkAuth } = useAuth();
+  const { language } = useLanguage();
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -27,13 +29,13 @@ function AuthCallbackContent() {
 
       // Verifikasi ke backend dan hydrate user state
       checkAuth().then(() => {
-        toast.success("Login dengan Google berhasil!");
+        toast.success(language === "en" ? "Google login successful!" : "Login dengan Google berhasil!");
         router.replace("/dashboard");
       });
     } else {
       router.replace("/login?error=callback_failed");
     }
-  }, [searchParams, router, checkAuth]);
+  }, [searchParams, router, checkAuth, language]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#e6f2f0] via-white to-[#f0faf9] flex items-center justify-center">
@@ -41,8 +43,12 @@ function AuthCallbackContent() {
         <div className="w-16 h-16 mx-auto bg-[#00685F]/10 rounded-2xl flex items-center justify-center">
           <span className="w-8 h-8 border-4 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
         </div>
-        <p className="text-gray-600 font-semibold">Menyelesaikan login...</p>
-        <p className="text-gray-400 text-sm">Harap tunggu sebentar</p>
+        <p className="text-gray-600 font-semibold">
+          {language === "en" ? "Completing sign in..." : "Menyelesaikan login..."}
+        </p>
+        <p className="text-gray-400 text-sm">
+          {language === "en" ? "Please wait a moment" : "Harap tunggu sebentar"}
+        </p>
       </div>
     </div>
   );

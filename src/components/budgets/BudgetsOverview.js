@@ -1,6 +1,6 @@
-import { ArrowRight, Lightbulb } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
+import SmartInsightCard from "../shared/SmartInsightCard";
 
 export default function BudgetsOverview({
   isVisible,
@@ -9,7 +9,8 @@ export default function BudgetsOverview({
   totalLimit,
   totalSpent,
   circumference,
-  strokeDashoffset
+  strokeDashoffset,
+  openAddModal
 }) {
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
@@ -61,23 +62,8 @@ export default function BudgetsOverview({
         </div>
       </div>
 
-      {/* Smart Saving Tip Card */}
-      <div className="bg-brand-50/40 p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-brand-100/30 flex flex-col sm:flex-row gap-6 relative overflow-hidden hover:shadow-lg transition-all duration-300 group">
-        <div className="space-y-4 relative z-10 w-full">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900">{language === 'en' ? "Smart Saving Tip" : "Tips Hemat Cerdas"}</h3>
-          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
-            {language === 'en' 
-              ? `Based on your current dining trends, switching to home cooking on weekends could save you ${formatCurrency(450000)} next month.` 
-              : `Berdasarkan tren pengeluaran makan di luar, beralih ke masak sendiri di akhir pekan dapat menghemat ${formatCurrency(450000)} bulan depan.`}
-          </p>
-          <button className="flex items-center gap-2 text-brand-600 font-bold text-xs sm:text-sm group cursor-pointer hover:underline">
-            {language === 'en' ? "Enable Auto-Savings" : "Aktifkan Tabungan Otomatis"} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-        <div className="absolute -right-8 -bottom-8 opacity-20 text-[#00685F] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-12 pointer-events-none">
-          <Lightbulb style={{ width: "160px", height: "160px" }} />
-        </div>
-      </div>
+      {/* Smart Saving Tip Card — Dynamic (AI or Engine) */}
+      <SmartInsightCard page="budgets" onActionClick={openAddModal} />
     </div>
   );
 }

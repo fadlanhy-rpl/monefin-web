@@ -11,7 +11,7 @@ import { useLanguage } from "../../context/LanguageContext";
 export default function LoginForm() {
   const router = useRouter();
   const { login, loading } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,7 +51,7 @@ export default function LoginForm() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-md">
-                      Sesi Dikeluarkan
+                      {language === "en" ? "Session Revoked" : "Sesi Dikeluarkan"}
                     </span>
                     <button
                       onClick={() => toast.dismiss(t.id)}
@@ -61,12 +61,14 @@ export default function LoginForm() {
                     </button>
                   </div>
                   <p className="mt-1.5 text-xs text-slate-600 font-medium">
-                    Akun Anda baru saja dikeluarkan dari sesi lain:
+                    {language === "en"
+                      ? "Your account was signed out from another session:"
+                      : "Akun Anda baru saja dikeluarkan dari sesi lain:"}
                   </p>
                   <div className="mt-2.5 space-y-1.5 bg-slate-50/90 rounded-xl p-3 border border-slate-200/70 text-xs">
                     <div className="flex items-center gap-2 text-slate-800 font-semibold">
                       <Laptop className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">{device || "Perangkat Tidak Diketahui"}</span>
+                      <span className="truncate">{device || (language === "en" ? "Unknown Device" : "Perangkat Tidak Diketahui")}</span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-600">
                       <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -81,7 +83,7 @@ export default function LoginForm() {
               </div>
             </div>
             <div className="bg-amber-500/10 px-4 py-2 border-t border-amber-200/60 flex items-center justify-between text-[11px] text-amber-800 font-medium">
-              <span>Silakan masuk kembali untuk melanjutkan.</span>
+              <span>{language === "en" ? "Please sign in again to continue." : "Silakan masuk kembali untuk melanjutkan."}</span>
             </div>
           </div>
         ),
@@ -91,9 +93,8 @@ export default function LoginForm() {
 
     const showGenericExpired = () => {
       hasAlertTriggered.current = true;
-      toast("Sesi Anda telah berakhir. Silakan login kembali.", {
+      toast(language === "en" ? "Your session has expired. Please sign in again." : "Sesi Anda telah berakhir. Silakan login kembali.", {
         id: "session-revoked-alert",
-        icon: "🔒",
         duration: 4000,
       });
     };
@@ -132,7 +133,7 @@ export default function LoginForm() {
         showGenericExpired();
       }
     }
-  }, []);
+  }, [language]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,16 +142,16 @@ export default function LoginForm() {
     const result = await login(email, password, rememberMe);
 
     if (result.success) {
-      toast.success("Login berhasil! Selamat datang kembali.");
+      toast.success(language === "en" ? "Sign in successful! Welcome back." : "Login berhasil! Selamat datang kembali.");
       router.push("/dashboard");
     } else if (result.require2fa) {
-      toast("Verifikasi dua faktor diperlukan. Cek email Anda.", { icon: "🔐" });
+      toast(language === "en" ? "Two-factor authentication required. Please check your email." : "Verifikasi dua faktor diperlukan. Silakan cek email Anda.");
       router.push(`/verify-2fa?email=${encodeURIComponent(result.email)}`);
     } else if (result.requireVerification) {
-      toast("Email belum diverifikasi. Silakan cek email Anda.", { icon: "📧" });
+      toast(language === "en" ? "Email is not verified yet. Please check your email inbox." : "Email belum diverifikasi. Silakan cek inbox email Anda.");
       router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
     } else {
-      toast.error(result.error || "Login gagal. Periksa email dan password Anda.");
+      toast.error(result.error || (language === "en" ? "Sign in failed. Check your email and password." : "Login gagal. Periksa email dan password Anda."));
     }
 
     setIsSubmitting(false);

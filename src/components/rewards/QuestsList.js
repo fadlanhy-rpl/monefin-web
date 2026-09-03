@@ -4,22 +4,25 @@ import { useState } from "react";
 import { Target, Sparkles, Clock, Check, Calendar, Zap } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { claimQuestReward } from "../../services/gamification.service";
+import { getLocalizedQuest } from "../../lib/gamificationDictionary";
 import toast from "react-hot-toast";
 
 export default function QuestsList({ quests = [], onClaimSuccess }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [claimingId, setClaimingId] = useState(null);
+
+  const questList = Array.isArray(quests) ? quests : (quests ? Object.values(quests) : []);
 
   const handleClaim = async (questId) => {
     setClaimingId(questId);
     try {
       const res = await claimQuestReward(questId);
-      toast.success(res.message || "Hadiah XP berhasil diklaim! 🎉");
+      toast.success(res.message || (language === "en" ? "XP reward claimed successfully!" : "Hadiah XP berhasil diklaim!"));
       if (onClaimSuccess) {
         onClaimSuccess(res);
       }
     } catch (err) {
-      toast.error(err?.data?.message || "Gagal mengklaim hadiah misi.");
+      toast.error(err?.data?.message || (language === "en" ? "Failed to claim quest reward." : "Gagal mengklaim hadiah misi."));
     } finally {
       setClaimingId(null);
     }
@@ -47,17 +50,18 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
 
       {/* Quests List */}
       <div className="space-y-3 sm:space-y-3.5">
-        {quests.length === 0 ? (
+        {questList.length === 0 ? (
           <p className="text-xs text-slate-400 text-center py-8">
             {t("rewards.no_quests", "Tidak ada misi aktif saat ini.")}
           </p>
         ) : (
-          quests.map((quest) => {
+          questList.map((quest) => {
             const percent = quest.target_count > 0 
               ? Math.min(100, Math.round((quest.current_count / quest.target_count) * 100)) 
               : 0;
 
             const canClaim = quest.is_completed && !quest.is_claimed;
+            const localized = getLocalizedQuest(quest, language);
 
             return (
               <div
@@ -94,10 +98,10 @@ export default function QuestsList({ quests = [], onClaimSuccess }) {
                   </div>
 
                   <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
-                    {quest.title}
+                    {localized.title}
                   </h4>
                   <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                    {quest.description}
+                    {localized.description}
                   </p>
 
                   {/* Progress bar */}

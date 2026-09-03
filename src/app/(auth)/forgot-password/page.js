@@ -4,12 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
+import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 import { Mail, ArrowRight, ArrowLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const { forgotPassword } = useAuth();
+  const { t, language } = useLanguage();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -22,13 +24,13 @@ export default function ForgotPasswordPage() {
 
     if (result.success) {
       setSent(true);
-      toast.success("Kode OTP telah dikirim ke email Anda!");
+      toast.success(language === "en" ? "OTP code has been sent to your email!" : "Kode OTP telah dikirim ke email Anda!");
       // Redirect ke reset password setelah 1.5 detik
       setTimeout(() => {
         router.push(`/reset-password?email=${encodeURIComponent(email)}`);
       }, 1500);
     } else {
-      toast.error(result.error || "Gagal mengirim OTP. Pastikan email Anda terdaftar.");
+      toast.error(result.error || (language === "en" ? "Failed to send OTP. Make sure your email is registered." : "Gagal mengirim OTP. Pastikan email Anda terdaftar."));
     }
 
     setIsSubmitting(false);

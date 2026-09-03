@@ -1,6 +1,6 @@
 "use client";
 
-import { User, ShieldCheck, Sliders, AlertTriangle } from "lucide-react";
+import { User, ShieldCheck, Sliders, AlertTriangle, Bot } from "lucide-react";
 
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -8,11 +8,13 @@ export default function SettingsTabs({ activeTab, setActiveTab }) {
   const { t } = useLanguage();
 
   const tabs = [
-    { id: "profile", label: t("settings.tab_profile"), icon: User },
-    { id: "security", label: t("settings.tab_security"), icon: ShieldCheck },
-    { id: "preferences", label: t("settings.tab_preferences"), icon: Sliders },
-    { id: "danger", label: t("settings.tab_delete"), icon: AlertTriangle, danger: true },
+    { id: "profile",     label: t("settings.tab_profile"),      icon: User },
+    { id: "security",    label: t("settings.tab_security"),     icon: ShieldCheck },
+    { id: "preferences", label: t("settings.tab_preferences"),  icon: Sliders },
+    { id: "ai",          label: "AI Chatbot",                   icon: Bot },
+    { id: "danger",      label: t("settings.tab_delete"),       icon: AlertTriangle, danger: true },
   ];
+
 
   return (
     <div className="w-full overflow-x-auto no-scrollbar select-none py-1">

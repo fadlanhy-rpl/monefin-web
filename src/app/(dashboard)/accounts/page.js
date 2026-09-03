@@ -253,6 +253,7 @@ function AccountsPageContent() {
             bankPercent={bankPercent}
             ewalletPercent={ewalletPercent}
             cashPercent={cashPercent}
+            openAddModal={openAddModal}
           />
         </div>
       </div>

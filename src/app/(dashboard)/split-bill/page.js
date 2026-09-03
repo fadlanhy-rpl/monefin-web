@@ -23,6 +23,7 @@ import {
   Percent,
   Layers,
   Share2,
+  X,
   Check,
   TrendingUp,
   CreditCard,
@@ -31,10 +32,12 @@ import {
   Info
 } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../hooks/useCurrency";
 import toast from "react-hot-toast";
 
 export default function SplitBillPage() {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [bills, setBills] = useState([]);
   const [summary, setSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -230,7 +233,7 @@ export default function SplitBillPage() {
             </div>
             <div className="mt-3">
               <h3 className="text-2xl sm:text-3xl font-black text-orange-600 truncate">
-                Rp {(summary?.total_owed_to_me || 0).toLocaleString()}
+                {formatCurrency(summary?.total_owed_to_me || 0)}
               </h3>
               <span className="text-[11px] font-bold text-slate-400">
                 {language === "en" ? "Owed by friends" : "Uang Anda ditalangi ke teman"}
@@ -284,9 +287,9 @@ export default function SplitBillPage() {
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 font-black text-xs cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
-                  ✕
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -345,56 +348,52 @@ export default function SplitBillPage() {
           </div>
         </div>
 
-        {/* BILLS GRID */}
+        {/* LIST OF BILLS GRID */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[1, 2, 3, 4, 5, 6].map(n => (
-              <div key={n} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs space-y-4 animate-pulse">
-                <div className="flex justify-between items-center">
-                  <div className="w-20 h-5 bg-slate-200 rounded-full" />
-                  <div className="w-16 h-5 bg-slate-200 rounded-full" />
-                </div>
-                <div className="w-3/4 h-6 bg-slate-200 rounded-xl" />
-                <div className="w-1/2 h-4 bg-slate-200 rounded-lg" />
-                <div className="w-full h-2 bg-slate-100 rounded-full" />
-                <div className="pt-2 flex justify-between">
-                  <div className="w-24 h-4 bg-slate-200 rounded-lg" />
-                  <div className="w-24 h-4 bg-slate-200 rounded-lg" />
-                </div>
-              </div>
-            ))}
+          <div className="py-20 flex flex-col items-center justify-center gap-3">
+            <span className="w-10 h-10 border-3 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
+            <p className="text-xs text-slate-400 font-bold">
+              {language === "en" ? "Loading your shared bills..." : "Memuat data split bill..."}
+            </p>
           </div>
         ) : filteredBills.length === 0 ? (
-          /* EMPTY STATE */
-          <div className="bg-white rounded-3xl p-10 sm:p-14 border border-slate-100 shadow-sm text-center space-y-4 max-w-lg mx-auto">
-            <div className="w-20 h-20 bg-emerald-50 text-[#00685F] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
-              <Receipt className="w-10 h-10" />
+          /* Empty State */
+          <div className="bg-white rounded-3xl border border-dashed border-slate-200 p-8 sm:p-12 text-center space-y-4 max-w-md mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-teal-50 text-[#00685F] flex items-center justify-center mx-auto">
+              <Receipt className="w-7 h-7" />
             </div>
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-slate-900">
-                {search || statusFilter !== "all" || modeFilter !== "all"
-                  ? (language === "en" ? "No Matching Split Bills" : "Tidak Ada Tagihan yang Cocok")
-                  : (language === "en" ? "No Split Bills Yet" : "Belum Ada Pembagian Tagihan")}
+            <div className="space-y-1">
+              <h3 className="text-base font-black text-slate-900">
+                {language === "en" ? "No Split Bills Found" : "Belum Ada Tagihan"}
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                 {search || statusFilter !== "all" || modeFilter !== "all"
-                  ? (language === "en" ? "Try adjusting your search query or filters." : "Coba ubah kata kunci pencarian atau filter status.")
-                  : (language === "en" ? "Start splitting bills for meals, trips, or gifts with friends easily." : "Mulai bagi tagihan makan bersama, liburan, atau kado patungan dengan teman secara rapi dan otomatis.")}
+                  ? (language === "en" ? "No bills match your current search / filter criteria." : "Tidak ada tagihan yang cocok dengan filter pencarian.")
+                  : (language === "en" ? "Create your first bill split to easily track dining, trips, or group expenses." : "Buat tagihan patungan pertama Anda untuk memudahkan hitung makan bareng atau liburan.")}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsWizardOpen(true)}
-              className="px-5 py-2.5 bg-[#00685F] hover:bg-[#00554E] text-white rounded-2xl font-bold text-xs inline-flex items-center gap-2 shadow-md shadow-emerald-800/20 transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{t("split_bill.create_new", "Buat Split Bill Sekarang")}</span>
-            </button>
+            {(search || statusFilter !== "all" || modeFilter !== "all") ? (
+              <button
+                type="button"
+                onClick={() => { setSearch(""); setStatusFilter("all"); setModeFilter("all"); }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                {language === "en" ? "Reset Filters" : "Reset Filter"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsWizardOpen(true)}
+                className="px-5 py-2.5 bg-[#00685F] hover:bg-[#00554E] text-white rounded-xl text-xs font-black shadow-md shadow-[#00685F]/20 inline-flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t("split_bill.create_new", "Buat Split Bill Sekarang")}</span>
+              </button>
+            )}
           </div>
         ) : (
-          /* BILLS CARD LIST */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredBills.map((bill, idx) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredBills.map((bill) => {
               const modeInfo = getModeBadge(bill.split_mode);
               const ModeIcon = modeInfo.icon;
               const isSettled = bill.status === "settled";
@@ -440,12 +439,12 @@ export default function SplitBillPage() {
                         {isSettled ? (
                           <>
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>{t("split_bill.status_settled_badge", "✓ Selesai")}</span>
+                            <span>{language === "en" ? "Settled" : "Selesai"}</span>
                           </>
                         ) : (
                           <>
                             <Clock className="w-3 h-3 text-amber-600" />
-                            <span>{t("split_bill.status_pending_badge", "⏳ Menunggu")}</span>
+                            <span>{language === "en" ? "Pending" : "Menunggu"}</span>
                           </>
                         )}
                       </span>
@@ -478,7 +477,7 @@ export default function SplitBillPage() {
                                 ? "bg-emerald-100 text-emerald-800"
                                 : "bg-slate-200 text-slate-700"
                             }`}
-                            title={`${p.name} (${p.status === "paid" ? "Lunas" : "Belum"})`}
+                            title={`${p.name} (${p.status === "paid" ? (language === "en" ? "Paid" : "Lunas") : (language === "en" ? "Pending" : "Belum")})`}
                           >
                             {p.name.charAt(0).toUpperCase()}
                             {p.status === "paid" && (
@@ -508,17 +507,17 @@ export default function SplitBillPage() {
                         <div 
                           style={{ width: `${(creatorShare / totalAmount) * 100}%` }} 
                           className="h-full bg-teal-600" 
-                          title="Bagian Saya"
+                          title={language === "en" ? "My Share" : "Bagian Saya"}
                         />
                         <div 
                           style={{ width: `${(friendsPaid / totalAmount) * 100}%` }} 
                           className="h-full bg-emerald-500" 
-                          title="Teman Lunas"
+                          title={language === "en" ? "Friends Paid" : "Teman Lunas"}
                         />
                         <div 
                           style={{ width: `${(friendsPending / totalAmount) * 100}%` }} 
                           className="h-full bg-amber-400" 
-                          title="Menunggu Transfer"
+                          title={language === "en" ? "Pending Transfer" : "Menunggu Transfer"}
                         />
                       </div>
                     </div>
@@ -528,14 +527,14 @@ export default function SplitBillPage() {
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-slate-500">{t("split_bill.final_total_bill", "Total Tagihan:")}</span>
                         <span className="font-black text-slate-900">
-                          Rp {bill.total_amount.toLocaleString()}
+                          {formatCurrency(bill.total_amount)}
                         </span>
                       </div>
 
                       <div className="flex justify-between items-center text-xs pt-1 border-t border-slate-200/50">
                         <span className="font-bold text-slate-500">{language === "en" ? "Pending from Friends:" : "Belum Ditransfer Teman:"}</span>
                         <span className={`font-black ${friendsPending > 0 ? "text-orange-600" : "text-emerald-600"}`}>
-                          {friendsPending > 0 ? `Rp ${friendsPending.toLocaleString()}` : "✓ Lunas"}
+                          {friendsPending > 0 ? formatCurrency(friendsPending) : (language === "en" ? "✓ Settled" : "✓ Lunas")}
                         </span>
                       </div>
                     </div>

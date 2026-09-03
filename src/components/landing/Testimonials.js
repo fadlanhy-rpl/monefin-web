@@ -1,5 +1,6 @@
 "use client";
 
+import { Star } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 export const Testimonials = () => {
@@ -47,8 +48,10 @@ export const Testimonials = () => {
               <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed font-medium">
                 &quot;{item.quote}&quot;
               </p>
-              <div className="flex text-amber-400 gap-0.5 text-[10px] sm:text-xs">
-                {"★".repeat(5)}
+              <div className="flex items-center gap-1 text-amber-400">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                ))}
               </div>
             </div>
           ))}

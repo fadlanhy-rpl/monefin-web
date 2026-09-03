@@ -24,11 +24,13 @@ import {
 } from "../../services/split-bill.service";
 import { getAccounts } from "../../services/account.service";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 import CustomSelect from "../ui/CustomSelect";
 import toast from "react-hot-toast";
 
 export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdated }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [bill, setBill] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
@@ -73,7 +75,7 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
       toast.success(
         isCurrentlyPaid 
           ? (language === "en" ? `${participant.name} marked as Unpaid` : `Status ${participant.name} diubah menjadi Belum Bayar`)
-          : (language === "en" ? `${participant.name} marked as Paid! 🎉` : `${participant.name} berhasil ditandai Lunas! 🎉`)
+          : (language === "en" ? `${participant.name} marked as Paid!` : `${participant.name} berhasil ditandai Lunas!`)
       );
       fetchDetail();
       if (onUpdated) onUpdated();
@@ -151,45 +153,35 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 font-bold transition-all cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* BODY */}
         <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
           {isLoading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3">
-              <span className="w-8 h-8 border-3 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
-              <p className="text-xs text-slate-400 font-bold">
-                {language === "en" ? "Loading bill details..." : "Memuat rincian tagihan..."}
-              </p>
+            <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+              <div className="w-8 h-8 border-4 border-[#00685F] border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs font-bold">{language === "en" ? "Loading details..." : "Memuat detail..."}</p>
             </div>
-          ) : !bill ? null : (
-            <>
-              {/* Top Overview Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          ) : bill ? (
+            <div className="space-y-6">
+              
+              {/* Top Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">
-                    {t("split_bill.total_bill", "Total Tagihan")}
-                  </span>
-                  <p className="text-sm font-black text-[#00685F] mt-0.5">
-                    Rp {bill.total_amount.toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Subtotal</span>
-                  <p className="text-sm font-bold text-slate-700 mt-0.5">
-                    Rp {bill.subtotal.toLocaleString()}
+                  <span className="text-[10px] uppercase font-bold text-slate-400">{t("split_bill.total_bill", "Total Tagihan")}</span>
+                  <p className="text-sm font-black text-slate-900 mt-0.5">
+                    {formatCurrency(bill.total_amount)}
                   </p>
                 </div>
 
                 <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
                   <span className="text-[10px] uppercase font-bold text-slate-400">
-                    {language === "en" ? "Tax & Service" : "Pajak & Service"}
+                    {t("split_bill.tax_service", "Pajak & Layanan")}
                   </span>
                   <p className="text-sm font-bold text-slate-700 mt-0.5">
-                    Rp {(bill.tax_amount + bill.service_amount).toLocaleString()}
+                    {formatCurrency(bill.tax_amount + bill.service_amount)}
                   </p>
                 </div>
 
@@ -197,12 +189,14 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
                   <span className="text-[10px] uppercase font-bold text-slate-400">Status</span>
                   <p className="text-sm font-black mt-0.5 capitalize">
                     {bill.status === "settled" ? (
-                      <span className="text-emerald-600">
-                        {t("split_bill.status_settled_badge", "✓ Selesai")}
+                      <span className="inline-flex items-center gap-1 text-emerald-600">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>{language === "en" ? "Settled" : "Selesai"}</span>
                       </span>
                     ) : (
-                      <span className="text-amber-600">
-                        {t("split_bill.status_pending_badge", "⏳ Menunggu")}
+                      <span className="inline-flex items-center gap-1 text-amber-600">
+                        <Clock className="w-4 h-4 text-amber-600" />
+                        <span>{language === "en" ? "Pending" : "Menunggu"}</span>
                       </span>
                     )}
                   </p>
@@ -229,7 +223,7 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
                         options={accounts.map(acc => ({
                           value: String(acc.id),
                           label: acc.name,
-                          sublabel: `Rp ${Math.round(acc.balance).toLocaleString()}`,
+                          sublabel: formatCurrency(Math.round(acc.balance)),
                           icon: Wallet
                         }))}
                         placeholder={t("split_bill.select_account_placeholder", "Pilih dompet...")}
@@ -254,7 +248,7 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>
                       {t("split_bill.already_recorded_notice", "Bagian Anda ({amount}) sudah dicatat ke transaksi dompet.")
-                        .replace("{amount}", `Rp ${(bill.participants?.find(p => p.is_creator)?.amount_owed || 0).toLocaleString()}`)}
+                        .replace("{amount}", formatCurrency(bill.participants?.find(p => p.is_creator)?.amount_owed || 0))}
                     </span>
                   </div>
                 </div>
@@ -289,10 +283,11 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
                                 {t("split_bill.my_share_tag", "Saya (Talangi)")}
                               </span>
                             )}
-                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
                               isPaid ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
                             }`}>
-                              {isPaid ? `✓ ${t("split_bill.paid", "Lunas")}` : `⏳ ${t("split_bill.unpaid", "Belum Bayar")}`}
+                              {isPaid ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <Clock className="w-3 h-3 text-amber-600" />}
+                              <span>{isPaid ? t("split_bill.paid", "Lunas") : t("split_bill.unpaid", "Belum Bayar")}</span>
                             </span>
                           </div>
 
@@ -316,7 +311,7 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
                         <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center shrink-0">
                           <div className="text-right">
                             <span className="text-sm sm:text-base font-black text-slate-900">
-                              Rp {p.amount_owed.toLocaleString()}
+                              {formatCurrency(p.amount_owed)}
                             </span>
                           </div>
 
@@ -375,8 +370,8 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
                   </p>
                 </div>
               )}
-            </>
-          )}
+            </div>
+          ) : null}
         </div>
 
         {/* FOOTER */}

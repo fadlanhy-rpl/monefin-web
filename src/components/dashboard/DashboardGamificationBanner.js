@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Flame, Zap, Trophy, ArrowRight, Sparkles, Target, Shield, CheckCircle2 } from "lucide-react";
 import { getGamificationSummary } from "../../services/gamification.service";
 import { useLanguage } from "../../context/LanguageContext";
+import { getLocalizedQuest } from "../../lib/gamificationDictionary";
 
 export default function DashboardGamificationBanner() {
   const { t, language } = useLanguage();
@@ -28,7 +29,8 @@ export default function DashboardGamificationBanner() {
   const rankTitle = language === "en" ? data.rank_title : (data.rank_title_id || data.rank_title);
   
   // Find first actionable (unclaimed) quest
-  const activeQuest = data.quests?.find((q) => !q.is_claimed) || data.quests?.[0];
+  const questList = Array.isArray(data.quests) ? data.quests : (data.quests ? Object.values(data.quests) : []);
+  const activeQuest = questList.find((q) => !q.is_claimed) || questList[0];
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-white border border-emerald-100/90 hover:border-emerald-200/90 rounded-[1.75rem] p-4 sm:p-5 shadow-[0_4px_20px_-4px_rgba(0,104,95,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,104,95,0.12)] transition-all duration-300 group">
@@ -93,20 +95,23 @@ export default function DashboardGamificationBanner() {
 
         {/* RIGHT: Active Mission & CTA Button */}
         <div className="flex items-center justify-between lg:justify-end gap-3 sm:gap-4 shrink-0">
-          {activeQuest && (
-            <div className="hidden md:flex flex-col items-start text-xs max-w-[200px] xl:max-w-xs">
-              <div className="flex items-center gap-1.5 text-[#00685F] font-extrabold text-[11px] uppercase tracking-wider">
-                <Target className="w-3 h-3 text-emerald-600" />
-                <span>{t("rewards.quests_title", "Misi Aktif")}</span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">
-                  +{activeQuest.xp_reward} XP
+          {activeQuest && (() => {
+            const localizedQuest = getLocalizedQuest(activeQuest, language);
+            return (
+              <div className="hidden md:flex flex-col items-start text-xs max-w-[200px] xl:max-w-xs">
+                <div className="flex items-center gap-1.5 text-[#00685F] font-extrabold text-[11px] uppercase tracking-wider">
+                  <Target className="w-3 h-3 text-emerald-600" />
+                  <span>{t("rewards.quests_title", "Misi Aktif")}</span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">
+                    +{activeQuest.xp_reward} XP
+                  </span>
+                </div>
+                <span className="text-slate-600 font-medium truncate w-full mt-0.5">
+                  {localizedQuest.title}
                 </span>
               </div>
-              <span className="text-slate-600 font-medium truncate w-full mt-0.5">
-                {activeQuest.title}
-              </span>
-            </div>
-          )}
+            );
+          })()}
 
           <Link
             href="/rewards"

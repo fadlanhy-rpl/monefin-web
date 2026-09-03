@@ -7,12 +7,14 @@ import ChartsRow from "../../../components/dashboard/ChartsRow";
 import RecentTransactions from "../../../components/dashboard/RecentTransactions";
 import SmartInsight from "../../../components/dashboard/SmartInsight";
 import DashboardGamificationBanner from "../../../components/dashboard/DashboardGamificationBanner";
+import AiInsightsCard from "../../../components/ai/AiInsightsCard";
+import AiChatWidget from "../../../components/ai/AiChatWidget";
 import { getDashboardSummary } from "../../../services/dashboard.service";
 import { Calendar, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function DashboardPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState("30days");
@@ -105,7 +107,12 @@ export default function DashboardPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-slate-400">Loading dashboard...</div>
+        <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
+          <span className="w-8 h-8 border-3 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-slate-400">
+            {language === "en" ? "Loading dashboard..." : "Memuat dashboard..."}
+          </span>
+        </div>
       ) : data ? (
         <div className="space-y-6 sm:space-y-8">
           <DashboardGamificationBanner />
@@ -115,6 +122,8 @@ export default function DashboardPage() {
             totalIncome={data.total_income_this_month} 
             totalExpense={data.total_expense_this_month} 
           />
+
+          <AiInsightsCard />
           
           <ChartsRow 
             weeklyTrend={data.weekly_trend}
@@ -123,7 +132,7 @@ export default function DashboardPage() {
           />
 
           {/* BOTTOM ROW */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 items-stretch">
             <RecentTransactions transactions={data.recent_transactions} />
             <SmartInsight 
               status={data.spending_status} 
@@ -132,8 +141,11 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="text-center text-slate-500 py-10">Gagal memuat data.</div>
+        <div className="text-center text-slate-500 py-10 text-sm font-medium">
+          {language === "en" ? "Failed to load dashboard data." : "Gagal memuat data dashboard."}
+        </div>
       )}
+      <AiChatWidget />
     </DashboardLayout>
   );
 }

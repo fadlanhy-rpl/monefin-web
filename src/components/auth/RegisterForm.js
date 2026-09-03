@@ -11,7 +11,7 @@ import { useLanguage } from "../../context/LanguageContext";
 export default function RegisterForm() {
   const router = useRouter();
   const { register } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +34,7 @@ export default function RegisterForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!agreeTerms) {
-      toast.error("Anda harus menyetujui Syarat dan Ketentuan!");
+      toast.error(language === "en" ? "You must agree to the Terms and Conditions!" : "Anda harus menyetujui Syarat dan Ketentuan!");
       return;
     }
 
@@ -42,10 +42,10 @@ export default function RegisterForm() {
     const result = await register(fullName, email, password);
 
     if (result.success) {
-      toast.success("Registrasi berhasil! Silakan cek email Anda untuk kode OTP.");
+      toast.success(language === "en" ? "Registration successful! Please check your email for the OTP code." : "Registrasi berhasil! Silakan cek email Anda untuk kode OTP.");
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } else {
-      toast.error(result.error || "Registrasi gagal. Silakan coba lagi.");
+      toast.error(result.error || (language === "en" ? "Registration failed. Please try again." : "Registrasi gagal. Silakan coba lagi."));
     }
 
     setIsSubmitting(false);

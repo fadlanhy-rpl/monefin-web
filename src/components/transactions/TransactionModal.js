@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { X, ChevronDown, Check } from "lucide-react";
+import { X, ChevronDown, Check, Sparkles } from "lucide-react";
 import DatePicker from "../ui/DatePicker";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
+import { aiSuggestCategory } from "../../services/ai.service";
 
 export default function TransactionModal({
   isOpen,
@@ -28,6 +29,8 @@ export default function TransactionModal({
   const { currencySymbol } = useCurrency();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+  const [aiSuggestNote, setAiSuggestNote] = useState("");
 
   const categoryRef = useRef(null);
   const accountRef = useRef(null);
@@ -63,6 +66,29 @@ export default function TransactionModal({
 
   const selectedCategory = categories.find((c) => String(c.id) === String(formCategoryId));
   const selectedAccount = accounts.find((a) => String(a.id) === String(formAccountId));
+
+  const handleAiSuggestCategory = async () => {
+    if (!formNote.trim() || aiSuggestLoading) return;
+    setAiSuggestLoading(true);
+    setAiSuggestNote("");
+    try {
+      const res = await aiSuggestCategory(formNote, formType);
+      const cat = res?.data?.category;
+      if (cat?.id) {
+        setFormCategoryId(cat.id);
+        setAiSuggestNote(`AI menyarankan: ${cat.name}`);
+        setTimeout(() => setAiSuggestNote(""), 3000);
+      } else {
+        setAiSuggestNote("Tidak ada saran — coba tulis catatan lebih detail.");
+        setTimeout(() => setAiSuggestNote(""), 3000);
+      }
+    } catch {
+      setAiSuggestNote("Gagal mendapatkan saran AI.");
+      setTimeout(() => setAiSuggestNote(""), 3000);
+    } finally {
+      setAiSuggestLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -121,7 +147,29 @@ export default function TransactionModal({
 
             {/* Category Dropdown */}
             <div className="space-y-1.5 relative" ref={categoryRef}>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.category") || "Category"}</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.category") || "Category"}</label>
+                {/* AI Suggest button — only active when Note field has text */}
+                <button
+                  type="button"
+                  onClick={handleAiSuggestCategory}
+                  disabled={!formNote.trim() || aiSuggestLoading}
+                  title={formNote.trim() ? "Biarkan AI menyarankan kategori berdasarkan catatan" : "Isi catatan terlebih dahulu"}
+                  className="flex items-center gap-1 text-[10px] font-bold text-brand-600 hover:text-brand-700 disabled:text-slate-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {aiSuggestLoading ? (
+                    <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="40" strokeDashoffset="10" />
+                    </svg>
+                  ) : (
+                    <Sparkles className="w-3 h-3" />
+                  )}
+                  AI Suggest
+                </button>
+              </div>
+              {aiSuggestNote && (
+                <p className="text-[10px] text-brand-600 font-semibold animate-in fade-in duration-200">{aiSuggestNote}</p>
+              )}
               <button
                 type="button"
                 onClick={() => {

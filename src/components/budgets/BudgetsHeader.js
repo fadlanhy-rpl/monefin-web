@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Sparkles } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 export default function BudgetsHeader({
@@ -10,7 +10,8 @@ export default function BudgetsHeader({
   handleNextMonth,
   viewMode,
   setViewMode,
-  openAddModal
+  openAddModal,
+  onAiRecommend
 }) {
   const { t } = useLanguage();
 
@@ -54,6 +55,17 @@ export default function BudgetsHeader({
             onClick={handleNextMonth}
           />
         </div>
+
+        {/* AI Recommend Button (shrink-0) */}
+        {onAiRecommend && (
+          <button
+            onClick={onAiRecommend}
+            className="press-scale flex items-center gap-1.5 bg-gradient-to-r from-brand-500 to-brand-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-brand-500/30 transition-all hover:scale-[1.02] active:scale-95 shadow-sm cursor-pointer shrink-0 text-xs sm:text-sm"
+          >
+            <Sparkles className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">AI</span>
+          </button>
+        )}
 
         {/* Set New Budget Button (shrink-0) */}
         <button 
