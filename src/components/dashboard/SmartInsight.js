@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { 
   Lightbulb, 
   Check, 
@@ -23,6 +24,12 @@ export default function SmartInsight({ status = null, savings = 0 }) {
   const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [budgetValue, setBudgetValue] = useState(1500000);
   const [savedBudget, setSavedBudget] = useState(1500000);
@@ -87,12 +94,13 @@ export default function SmartInsight({ status = null, savings = 0 }) {
                     e.stopPropagation();
                     setShowInfoModal(true);
                   }}
-                  className="flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-brand-700 bg-white/80 hover:bg-brand-50 px-2.5 py-1 rounded-full border border-slate-200/70 transition-all cursor-pointer shadow-2xs group"
+                  className="flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-brand-700 bg-white/80 hover:bg-brand-50 px-2.5 py-1 rounded-full border border-slate-200/70 transition-all cursor-pointer shadow-2xs group"
                   title={t("dashboard.smart_insight_info_btn", "Cara kerja fitur")}
                 >
-                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-brand-600 transition-colors" />
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-600 group-hover:text-brand-600 transition-colors" />
                   <span className="hidden xs:inline">{language === "en" ? "How it works" : "Cara Kerja"}</span>
                 </button>
+
               </div>
               
               {/* Title & Saved indicator */}
@@ -155,18 +163,21 @@ export default function SmartInsight({ status = null, savings = 0 }) {
               </button>
 
               <h3 className="font-bold text-slate-900 mt-3 text-sm">{t("dashboard.adjust_budget_sim") || "Sesuaikan Uang Saku (Simulasi)"}</h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">{t("dashboard.adjust_budget_sim_desc") || "Tentukan batas maksimal pengeluaran simulasi."}</p>
+              <p className="text-[11px] text-slate-600 mt-0.5">{t("dashboard.adjust_budget_sim_desc") || "Tentukan batas maksimal pengeluaran simulasi."}</p>
+
 
               {/* Range Slider */}
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-xs text-slate-400 font-semibold">
+                  <label htmlFor="allowance-limit-slider" className="text-xs text-slate-600 font-bold cursor-pointer">
                     {language === "en" ? "Allowance Limit:" : "Batas Uang Saku:"}
-                  </span>
+                  </label>
                   <span className="text-sm font-extrabold text-brand-700">{formatCurrency(budgetValue)}</span>
                 </div>
                 <input 
+                  id="allowance-limit-slider"
                   type="range" 
+                  aria-label={language === "en" ? "Set monthly allowance limit" : "Atur batas uang saku bulanan"}
                   min="500000" 
                   max="5000000" 
                   step="100000"
@@ -175,10 +186,11 @@ export default function SmartInsight({ status = null, savings = 0 }) {
                   onClick={(e) => e.stopPropagation()}
                   className="w-full accent-brand-600 cursor-pointer h-1.5 bg-slate-100 rounded-lg appearance-none"
                 />
-                <div className="flex justify-between text-[9px] text-slate-400 font-bold">
+                <div className="flex justify-between text-[10px] text-slate-500 font-bold">
                   <span>{formatCurrency(500000)}</span>
                   <span>{formatCurrency(5000000)}</span>
                 </div>
+
               </div>
             </div>
 
@@ -195,13 +207,13 @@ export default function SmartInsight({ status = null, savings = 0 }) {
       </div>
 
       {/* DETAILED EXPLANATION GUIDE MODAL */}
-      {showInfoModal && (
+      {showInfoModal && mounted && createPortal(
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 w-screen h-screen min-h-[100dvh] z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto"
           onClick={() => setShowInfoModal(false)}
         >
           <div 
-            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-7 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-7 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -239,7 +251,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
 
               {/* 3 Status Indicators */}
               <div className="space-y-2.5">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-600">
                   {language === "en" ? "3 Spending Health Statuses" : "3 Status Kesehatan Pengeluaran"}
                 </h4>
 
@@ -291,9 +303,10 @@ export default function SmartInsight({ status = null, savings = 0 }) {
 
               {/* 3 Steps to Setup */}
               <div className="space-y-2.5 pt-2">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-600">
                   {t("dashboard.smart_insight_steps_title", "3 Langkah Mudah Memulai")}
                 </h4>
+
                 
                 <div className="space-y-2">
                   <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
@@ -331,8 +344,10 @@ export default function SmartInsight({ status = null, savings = 0 }) {
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
     </>
   );
 }

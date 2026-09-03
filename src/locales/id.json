@@ -667,8 +667,9 @@
     "select_category_placeholder": "Pilih kategori pengeluaran...",
     "hero_card_title": "Sistem Patungan & Bagi Tagihan Cerdas",
     "hero_card_desc": "Kelola tagihan patungan dengan perhitungan pajak proporsional, status pelunasan instan, dan notifikasi WhatsApp.",
-    "create_new": "+ Buat Split Bill Baru",
+    "create_new": "Buat Split Bill Baru",
     "total_active_bills": "Tagihan Aktif",
+
     "total_owed_to_me": "Perlu Ditagih (Piutang)",
     "total_settled_bills": "Tagihan Selesai",
     "search_placeholder": "Cari nama acara, teman, atau catatan tagihan...",

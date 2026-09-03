@@ -43,7 +43,7 @@ function SettingsContent() {
 
   // Form State - Preferences
   const [currency, setCurrency] = useState("IDR");
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(currentGlobalLang || "id");
   const [emailNotif, setEmailNotif] = useState(true);
   const [txAlert, setTxAlert] = useState(true);
   const [budgetAlert, setBudgetAlert] = useState(true);
@@ -57,6 +57,12 @@ function SettingsContent() {
     setIsVisible(true);
   }, []);
 
+  useEffect(() => {
+    if (currentGlobalLang) {
+      setLanguage(currentGlobalLang);
+    }
+  }, [currentGlobalLang]);
+
   const populateUserData = () => {
     if (user) {
       setFullName(user.name || "");
@@ -68,7 +74,8 @@ function SettingsContent() {
       
       if (user.preferences) {
         setCurrency(user.preferences.currency || "IDR");
-        setLanguage(user.preferences.language || "en");
+        const activeLang = currentGlobalLang || (typeof window !== "undefined" && localStorage.getItem("language")) || user.preferences.language || "id";
+        setLanguage(activeLang);
         setEmailNotif(user.preferences.emailNotif ?? true);
         setTxAlert(user.preferences.txAlert ?? true);
         setBudgetAlert(user.preferences.budgetAlert ?? true);
@@ -80,6 +87,7 @@ function SettingsContent() {
   useEffect(() => {
     populateUserData();
   }, [user]);
+
 
   const showToast = (message) => {
     setToastMessage(message);

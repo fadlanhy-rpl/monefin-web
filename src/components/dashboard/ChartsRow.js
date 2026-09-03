@@ -47,7 +47,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
   };
 
   const computedDonutData = useMemo(() => {
-    if (!categoryData || categoryData.length === 0) return [];
+    if (!categoryData || !Array.isArray(categoryData) || categoryData.length === 0) return [];
     
     const total = categoryData.reduce((sum, item) => sum + item.amount, 0);
     const colors = ['#00685F', '#465569', '#b3572b', '#D97706', '#2563EB', '#7C3AED'];
@@ -76,19 +76,21 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
     });
   }, [categoryData]);
 
-  const totalDonutAmount = categoryData.reduce((sum, item) => sum + item.amount, 0);
+  const safeCategory = Array.isArray(categoryData) ? categoryData : [];
+  const totalDonutAmount = safeCategory.reduce((sum, item) => sum + item.amount, 0);
   const activeDonutInfo = hoveredDonut || { label: t("dashboard.total_spend") || 'Total Spend', amount: totalDonutAmount, pct: 100 };
+
 
   return (
     <>
       <div ref={ref} className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         
         {/* Interactive Weekly Spending Trend */}
-        <div className={`reveal card-hover xl:col-span-2 bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-100/50 ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "220ms" }}>
+        <div className={`reveal card-hover xl:col-span-2 bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-100/50 flex flex-col justify-between ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "220ms" }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="font-bold text-slate-900 text-lg">{t("dashboard.spending_analytics") || "Spending Analytics"}</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{t("dashboard.spending_analytics_desc") || "Analisis pengeluaran berkala Anda"}</p>
+              <p className="text-xs text-slate-600 mt-0.5">{t("dashboard.spending_analytics_desc") || "Analisis pengeluaran berkala Anda"}</p>
             </div>
             
             {/* Toggle tabs */}
@@ -96,13 +98,13 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
               <div className="bg-slate-100/80 p-0.5 rounded-xl flex">
                 <button 
                   onClick={() => setPeriod("weekly")}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${period === "weekly" ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${period === "weekly" ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                   {t("dashboard.weekly") || "Mingguan"}
                 </button>
                 <button 
                   onClick={() => setPeriod("monthly")}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${period === "monthly" ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${period === "monthly" ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                   {t("dashboard.monthly") || "Bulanan"}
                 </button>
@@ -115,9 +117,9 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
           </div>
 
           {/* Interactive Chart Container with Grid Lines */}
-          <div className="mt-6 relative">
+          <div className="mt-6 flex-1 flex flex-col justify-end relative min-h-[260px] sm:min-h-[300px]">
             {/* Background Grid Lines */}
-            <div className="absolute inset-x-0 top-0 bottom-7 flex flex-col justify-between pointer-events-none">
+            <div className="absolute inset-x-0 top-3 bottom-8 flex flex-col justify-between pointer-events-none">
               <div className="border-b border-dashed border-slate-100 w-full"></div>
               <div className="border-b border-dashed border-slate-100 w-full"></div>
               <div className="border-b border-dashed border-slate-100 w-full"></div>
@@ -125,7 +127,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
             </div>
 
             {/* Bars Grid */}
-            <div className={`grid ${period === "weekly" ? "grid-cols-7" : "grid-cols-6"} gap-2 sm:gap-4 items-end h-56 sm:h-64 relative z-10 pt-4 pb-1 border-b border-slate-200/60`}>
+            <div className={`grid ${period === "weekly" ? "grid-cols-7" : "grid-cols-6"} gap-2 sm:gap-4 items-end h-full min-h-[240px] sm:min-h-[280px] relative z-10 pt-4 pb-2 border-b border-slate-200/60`}>
               {activeData.map((d, i) => {
                 const isAnyBarHovered = hoveredBar !== null;
                 const isThisHovered = isAnyBarHovered && hoveredBar.index === i && hoveredBar.type === 'this';
@@ -139,7 +141,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
                     <div className="flex items-end gap-1 sm:gap-2 h-full w-full justify-center">
                       {/* This Period Bar */}
                       <div 
-                        className={`chart-bar w-3.5 sm:w-6 bg-gradient-to-t from-brand-700 to-brand-500 rounded-t-md transition-all duration-300 relative ${isVisible ? 'bar-rise' : ''}`} 
+                        className={`chart-bar w-3.5 sm:w-6 bg-gradient-to-t from-brand-700 to-brand-500 rounded-t-md transition-all duration-300 relative cursor-pointer ${isVisible ? 'bar-rise' : ''}`} 
                         style={{ 
                           height: `${thisHeight}%`, 
                           animationDelay: `${i * 50}ms`,
@@ -156,7 +158,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
                       </div>
                       {/* Last Period Bar */}
                       <div 
-                        className={`chart-bar w-3.5 sm:w-6 bg-slate-200/80 hover:bg-slate-300 rounded-t-md transition-all duration-300 relative ${isVisible ? 'bar-rise' : ''}`} 
+                        className={`chart-bar w-3.5 sm:w-6 bg-slate-200/80 hover:bg-slate-300 rounded-t-md transition-all duration-300 relative cursor-pointer ${isVisible ? 'bar-rise' : ''}`} 
                         style={{ 
                           height: `${lastHeight}%`, 
                           animationDelay: `${i * 50 + 40}ms`,
@@ -178,14 +180,14 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
         </div>
 
         {/* Category Breakdown (Donut Chart) */}
-        <div className={`reveal card-hover bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-100/50 flex flex-col ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "280ms" }}>
+        <div className={`reveal card-hover bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-100/50 flex flex-col justify-between ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "280ms" }}>
           <div>
             <h2 className="font-bold text-slate-900 text-lg">{t("dashboard.category_breakdown") || "Category Breakdown"}</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{t("dashboard.category_breakdown_desc") || "Proporsi pembagian pengeluaran Anda"}</p>
+            <p className="text-xs text-slate-600 mt-0.5">{t("dashboard.category_breakdown_desc") || "Proporsi pembagian pengeluaran Anda"}</p>
           </div>
 
-          <div className="flex-1 flex items-center justify-center py-6">
-            <div className="relative w-44 h-44">
+          <div className="flex-1 flex items-center justify-center py-5">
+            <div className="relative w-40 h-40 sm:w-44 sm:h-44">
               <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
                 <circle cx="100" cy="100" r="88" fill="none" stroke="#f1f5f4" strokeWidth="18"/>
                 {computedDonutData.map((d, index) => {
@@ -216,7 +218,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
               {/* Dynamic Information Center */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4 overflow-hidden">
                 <span 
-                  className="text-[10px] tracking-wider text-slate-400 font-extrabold uppercase transition-all duration-300 truncate w-full px-2"
+                  className="text-[10px] tracking-wider text-slate-600 font-extrabold uppercase transition-all duration-300 truncate w-full px-2"
                   title={activeDonutInfo.label}
                 >
                   {activeDonutInfo.label}
@@ -232,22 +234,22 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
           </div>
 
           {/* Interactive Legend List */}
-          <div className="space-y-3 mt-2">
+          <div className="space-y-2.5 mt-2 max-h-52 overflow-y-auto hide-scrollbar">
             {computedDonutData.map(d => {
               const isHovered = hoveredDonut && hoveredDonut.label === d.label;
               return (
                 <div 
                   key={d.label}
-                  className={`legend-item flex flex-col gap-1.5 rounded-xl px-3 py-2 transition-all cursor-pointer ${isHovered ? 'bg-brand-50/60 shadow-sm' : 'hover:bg-slate-50'}`}
+                  className={`legend-item flex flex-col gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${isHovered ? 'bg-brand-50/60 shadow-sm' : 'hover:bg-slate-50'}`}
                   onMouseEnter={() => setHoveredDonut({ label: d.label, amount: d.amount, pct: d.pct })}
                   onMouseLeave={() => setHoveredDonut(null)}
                 >
-                  <div className="flex items-center justify-between text-sm gap-2">
+                  <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
                     <span className="flex items-center gap-2 text-slate-600 font-medium truncate min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }}></span>
                       <span className="truncate" title={d.label}>{d.label}</span>
                     </span>
-                    <span className="font-extrabold text-slate-900 tabular-nums">{formatCurrency(d.amount)}</span>
+                    <span className="font-extrabold text-slate-900 tabular-nums text-xs sm:text-sm">{formatCurrency(d.amount)}</span>
                   </div>
                   {/* Small visual bar indicator */}
                   <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
@@ -265,6 +267,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
             })}
           </div>
         </div>
+
       </div>
 
       {/* FLOATING TOOLTIP */}

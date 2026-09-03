@@ -191,11 +191,15 @@ export default function CategoryModal({
           {/* Budget Realization slider */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{t("categories.budget_realization") || "Realisasi Anggaran"} (%)</label>
+              <label htmlFor="budget-realization-slider" className="text-xs font-bold text-slate-600 uppercase tracking-wider cursor-pointer">
+                {t("categories.budget_realization") || "Realisasi Anggaran"} (%)
+              </label>
               <span className="text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">{formRealization}%</span>
             </div>
             <input 
+              id="budget-realization-slider"
               type="range"
+              aria-label={t("categories.budget_realization") || "Realisasi Anggaran"}
               value={formRealization}
               onChange={(e) => setFormRealization(parseInt(e.target.value) || 0)}
               min="0"
@@ -203,6 +207,7 @@ export default function CategoryModal({
               className="w-full accent-[#00685F] cursor-pointer h-2 bg-slate-100 rounded-lg appearance-none"
             />
           </div>
+
 
           {/* Icon Selection */}
           <div className="space-y-2.5">

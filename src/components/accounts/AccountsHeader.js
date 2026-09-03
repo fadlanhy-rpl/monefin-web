@@ -13,11 +13,11 @@ export default function AccountsHeader({
   const { isBalanceHidden, toggleBalancePrivacy } = useBalancePrivacy();
 
   return (
-    <div className={`transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 sm:gap-8`}>
+    <div className={`transition-opacity duration-700 ease-out ${isVisible ? 'opacity-100' : 'opacity-0'} flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 sm:gap-8`}>
       {/* Text Overview */}
       <div className="flex-1 w-full">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">{t("accounts.title") || "Overview Akun"}</h2>
-        <p className="text-slate-500 mt-2 font-medium max-w-lg leading-relaxed text-xs sm:text-sm">
+        <p className="text-slate-600 mt-2 font-medium max-w-lg leading-relaxed text-xs sm:text-sm">
           {t("accounts.subtitle") || "Kelola semua sumber dana Anda dalam satu tempat yang aman."}
         </p>
       </div>
@@ -25,7 +25,8 @@ export default function AccountsHeader({
       {/* Card Total Saldo */}
       <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center lg:items-end w-full lg:w-fit min-w-0 sm:min-w-[320px] transition-all hover:shadow-md duration-300">
         <div className="flex items-center gap-2 text-center lg:text-right">
-          <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("accounts.total_balance") || "Total Saldo Seluruh Akun"}</p>
+          <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">{t("accounts.total_balance") || "Total Saldo Seluruh Akun"}</p>
+
           <button
             type="button"
             onClick={toggleBalancePrivacy}

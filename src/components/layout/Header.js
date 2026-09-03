@@ -3,13 +3,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Search, Bell, User, Settings, LogOut, CheckCheck, CreditCard, Tag, Target, ArrowUpRight, ArrowDownLeft, Trophy, Flame, Zap, Eye, EyeOff } from "lucide-react";
+
 import { useAuth } from "../../hooks/useAuth";
 import { useGlobalSearch } from "../../hooks/useGlobalSearch";
 import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
 import { getGamificationSummary } from "../../services/gamification.service";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 function getRelativeTime(dateString) {
   if (!dateString) return "";
@@ -32,10 +35,13 @@ export default function Header({ setMobileOpen }) {
   const { user, logout } = useAuth();
   const { formatCurrency } = useCurrency();
   const { isBalanceHidden, toggleBalancePrivacy } = useBalancePrivacy();
+  const { t, language } = useLanguage();
+
 
   const userPhoto = user?.photo
-    ? `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}/storage/${user.photo}`
+    ? `/api/avatar/${user.photo}`
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=00685F&color=fff&size=64`;
+
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
 
@@ -195,15 +201,13 @@ export default function Header({ setMobileOpen }) {
             id="header-search"
             name="monefin_site_search"
             type="search" 
-            placeholder="Search analytics, transactions..." 
+            placeholder={language === "en" ? "Search analytics, transactions..." : "Cari analitik, transaksi..."} 
             autoComplete="off"
             data-lpignore="true"
             data-1p-ignore="true"
             data-bwignore="true"
             data-form-type="other"
             value={searchQuery}
-            aria-expanded={searchOpen}
-            aria-controls="search-dropdown"
             onChange={(e) => { 
               handleSearchChange(e.target.value); 
               setSearchOpen(true); 
@@ -228,10 +232,10 @@ export default function Header({ setMobileOpen }) {
                 setSearchOpen(false);
               }, 200);
             }}
-            className={`w-full h-full bg-white border border-slate-200/80 rounded-full py-2 text-sm placeholder:text-slate-400 text-slate-700 focus:border-brand-600 focus:outline-none transition-all shadow-sm shadow-slate-100/50 ${
+            className={`w-full h-full bg-white border border-slate-200/80 rounded-full py-2 text-sm placeholder:text-slate-400 text-slate-700 focus:border-brand-600 focus:outline-none transition-all shadow-sm shadow-slate-100/50 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden ${
               isExpanded 
-                ? "pl-10 pr-8 opacity-100 cursor-text" 
-                : "pl-0 pr-0 opacity-0 sm:opacity-100 sm:pl-10 sm:pr-8 cursor-pointer sm:cursor-text"
+                ? "pl-10 pr-9 opacity-100 cursor-text" 
+                : "pl-0 pr-0 opacity-0 sm:opacity-100 sm:pl-10 sm:pr-9 cursor-pointer sm:cursor-text"
             }`} 
           />
 
@@ -251,7 +255,7 @@ export default function Header({ setMobileOpen }) {
 
           {/* Shortcut hints */}
           {!searchQuery && (
-            <kbd className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px] font-black text-slate-400 shadow-sm pointer-events-none select-none font-mono">
+            <kbd className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px] font-black text-slate-600 shadow-sm pointer-events-none select-none font-mono">
               /
             </kbd>
           )}
@@ -261,7 +265,8 @@ export default function Header({ setMobileOpen }) {
             <button 
               type="button"
               onClick={() => handleSearchChange("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 z-10"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 z-10 cursor-pointer"
+              aria-label={language === "en" ? "Clear search" : "Hapus pencarian"}
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M18 6 6 18M6 6l12 12" />
@@ -269,20 +274,24 @@ export default function Header({ setMobileOpen }) {
             </button>
           )}
 
+
           {/* ── SEARCH DROPDOWN ───────────────────────────────────────── */}
           {searchOpen && isExpanded && hasSearch && (
             <div
               id="search-dropdown"
               onMouseDown={(e) => e.preventDefault()}
-              className="dropdown-pop absolute left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl shadow-2xl overflow-hidden z-50"
+              className="dropdown-pop absolute left-0 right-0 w-full mt-2 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl shadow-2xl overflow-hidden z-50"
             >
               <div className="p-2">
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-3 py-1.5">
-                  Hasil Pencarian
+
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-600 px-3 py-1.5">
+                  {language === "en" ? "Search Results" : "Hasil Pencarian"}
                 </p>
 
-                <div className="max-h-[65vh] overflow-y-auto space-y-0.5">
+
+                <div className="max-h-[65vh] overflow-y-auto overflow-x-auto space-y-0.5 overscroll-contain [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
                   {isLoading ? (
+
                     /* Loading Skeleton */
                     <div className="px-2 space-y-4 animate-pulse py-2">
                       {[1, 2].map((group) => (
@@ -493,13 +502,28 @@ export default function Header({ setMobileOpen }) {
             className="hidden md:flex items-center gap-2 hover:bg-white rounded-lg pr-2 py-1 transition-colors border border-transparent hover:border-slate-100/50" 
             aria-expanded={profileOpen}
           >
-            <img src={userPhoto} alt={`Foto profil ${userName}`} className="w-8 h-8 rounded-full object-cover" />
+            <Image 
+              src={userPhoto} 
+              alt={`Foto profil ${userName}`} 
+              width={32} 
+              height={32} 
+              className="w-8 h-8 rounded-full object-cover" 
+            />
             <span className="text-xs font-bold text-slate-700">{userName}</span>
             <svg className={`w-3 h-3 text-slate-400 transition-transform ${profileOpen ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <button onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); setSearchOpen(false); }} className="md:hidden flex items-center pl-1" aria-label="Profil">
-            <img src={userPhoto} alt={`Foto profil ${userName}`} className="w-8 h-8 rounded-full object-cover" />
+            <Image 
+              src={userPhoto} 
+              alt={`Foto profil ${userName}`} 
+              width={32} 
+              height={32} 
+              className="w-8 h-8 rounded-full object-cover" 
+            />
           </button>
+
+
+
 
           {profileOpen && (
             <div className="dropdown-pop absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden z-40">
@@ -533,59 +557,65 @@ function SearchResultGroup({ title, icon, items, renderItem, onItemClick }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="mb-1 last:mb-0">
-      <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest bg-slate-50/70">
+    <div className="mb-1.5 last:mb-0 min-w-max sm:min-w-full">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-extrabold text-slate-600 uppercase tracking-widest bg-slate-50/80 rounded-lg mx-1">
         {icon}
         <span>{title}</span>
       </div>
 
-      {items.map((item) => {
-        const { href, label, meta, metaColor, sub, icon: itemIcon } = renderItem(item);
-        return (
-          <Link
-            key={item.id}
-            href={href}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              sessionStorage.setItem("global-search", label);
-            }}
-            onClick={onItemClick}
-            className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-50/70 transition-all mx-1"
-          >
-            {/* Icon container */}
-            <div className="w-8 h-8 rounded-xl bg-slate-50 group-hover:bg-white flex items-center justify-center transition-all shadow-sm border border-slate-100 shrink-0">
-              {itemIcon}
-            </div>
-
-            {/* Teks */}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-700 truncate group-hover:text-brand-700 transition-colors">
-                {label}
-              </p>
-              {sub && (
-                <p className="text-[10px] text-slate-400 truncate">{sub}</p>
-              )}
-            </div>
-
-            {/* Meta (nominal/tipe) */}
-            {meta && (
-              <span className={`text-[11px] font-bold shrink-0 ${metaColor}`}>
-                {meta}
-              </span>
-            )}
-
-            {/* Arrow hover */}
-            <svg
-              className="w-3.5 h-3.5 text-slate-200 opacity-0 group-hover:opacity-100 transition-all -translate-x-1.5 group-hover:translate-x-0 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      <div className="mt-1 space-y-0.5">
+        {items.map((item) => {
+          const { href, label, meta, metaColor, sub, icon: itemIcon } = renderItem(item);
+          return (
+            <Link
+              key={item.id}
+              href={href}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                sessionStorage.setItem("global-search", label);
+              }}
+              onClick={onItemClick}
+              className="group flex items-center justify-between gap-4 px-3 py-2.5 rounded-xl hover:bg-brand-50/80 active:bg-brand-100/70 transition-all mx-1 cursor-pointer min-w-max sm:min-w-full"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        );
-      })}
+              {/* Left group: Icon & Text */}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-xl bg-slate-50 group-hover:bg-white flex items-center justify-center transition-all shadow-xs border border-slate-100 shrink-0">
+                  {itemIcon}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-slate-800 whitespace-nowrap group-hover:text-brand-700 transition-colors">
+                    {label}
+                  </p>
+                  {sub && (
+                    <p className="text-[10px] text-slate-500 whitespace-nowrap mt-0.5">{sub}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Right group: Meta & Arrow */}
+              <div className="flex items-center gap-2 shrink-0">
+                {meta && (
+                  <span className={`text-xs font-bold tabular-nums whitespace-nowrap ${metaColor}`}>
+                    {meta}
+                  </span>
+                )}
+
+                <svg
+                  className="w-3.5 h-3.5 text-slate-400 group-hover:text-brand-600 transition-all -translate-x-0.5 group-hover:translate-x-0 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
+

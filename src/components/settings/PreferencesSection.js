@@ -46,8 +46,9 @@ export default function PreferencesSection({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const currentEffectiveLang = language || globalLanguage || "id";
   const selectedCurrencyLabel = currencyOptions.find(o => o.value === currency)?.label || "IDR - Rupiah Indonesia (Rp)";
-  const selectedLanguageLabel = languageOptions.find(o => o.value === language)?.label || "English (US)";
+  const selectedLanguageLabel = languageOptions.find(o => o.value === currentEffectiveLang)?.label || "Bahasa Indonesia";
 
   return (
     <div className="bg-white p-5 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8 hover:shadow-md transition-all duration-300">
@@ -140,13 +141,14 @@ export default function PreferencesSection({
           {isLanguageOpen && (
             <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
               {languageOptions.map((opt) => {
-                const isSelected = language === opt.value;
+                const isSelected = currentEffectiveLang === opt.value;
                 return (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => {
                       setLanguage(opt.value);
+                      changeLanguage(opt.value);
                       setIsLanguageOpen(false);
                     }}
                     className={`w-full px-4 py-2.5 rounded-xl flex items-center justify-between text-xs sm:text-sm font-bold transition-all text-left cursor-pointer ${
@@ -163,6 +165,7 @@ export default function PreferencesSection({
             </div>
           )}
         </div>
+
 
       </div>
 
