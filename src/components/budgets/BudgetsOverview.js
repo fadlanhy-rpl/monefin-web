@@ -18,22 +18,25 @@ export default function BudgetsOverview({
   return (
     <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 pb-10 transition-all duration-700 delay-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
       {/* Spending Overview Card */}
-      <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-6 sm:gap-8 items-center hover:shadow-lg transition-all duration-300 group overflow-hidden">
-        <div className="flex-1 space-y-4 w-full">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900">{t("dashboard.spending_analytics") || "Spending Overview"}</h3>
-          <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-            {t("budgets.overview_insight_p1") || "You've spent"} {overallPercentage}{t("budgets.overview_insight_p2") || "% of your total monthly budget across all categories. You have"} {t("budgets.overview_insight_p3") || ""} {formatCurrency(remainingBudget)} {language === 'en' ? "remaining." : ""}
+      <div className="bg-white p-5 sm:p-6 lg:p-7 rounded-2xl sm:rounded-[2rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-6 sm:gap-7 items-center hover:shadow-lg transition-all duration-300 group overflow-hidden">
+        <div className="flex-1 space-y-3.5 w-full min-w-0">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">{t("dashboard.spending_analytics") || "Spending Overview"}</h3>
+          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+            {language === "id"
+              ? `Anda telah menggunakan ${overallPercentage}% dari total anggaran bulanan Anda. Tersisa ${formatCurrency(remainingBudget)}.`
+              : `You've spent ${overallPercentage}% of your total monthly budget across all categories. You have ${formatCurrency(remainingBudget)} remaining.`
+            }
           </p>
           
           {/* Side-by-Side 2-Column Grid on all screen sizes with divide line */}
           <div className="grid grid-cols-2 divide-x divide-slate-100 pt-2 w-full select-none">
-            <div className="pr-3 sm:pr-4">
+            <div className="pr-3 sm:pr-4 min-w-0">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("budgets.total_budget") || "Total Budget"}</p>
-              <p className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 truncate">{formatCurrency(totalLimit)}</p>
+              <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 mt-0.5 truncate" title={formatCurrency(totalLimit)}>{formatCurrency(totalLimit)}</p>
             </div>
-            <div className="pl-3 sm:pl-4">
+            <div className="pl-3 sm:pl-4 min-w-0">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("budgets.total_spent") || "Total Spent"}</p>
-              <p className="text-sm sm:text-lg font-black text-brand-600 mt-0.5 truncate">{formatCurrency(totalSpent)}</p>
+              <p className="text-sm sm:text-base lg:text-lg font-black text-brand-600 mt-0.5 truncate" title={formatCurrency(totalSpent)}>{formatCurrency(totalSpent)}</p>
             </div>
           </div>
         </div>

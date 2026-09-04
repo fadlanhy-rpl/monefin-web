@@ -36,7 +36,7 @@ export default function BudgetsGrid({
       {viewMode === "card" ? (
         <div 
           key={`grid-${monthIndex}-${currentPage}`}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500"
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
           {paginatedBudgets.map((b, index) => {
             const percent = b.limit > 0 ? (b.spent / b.limit) : 0;
@@ -91,7 +91,7 @@ export default function BudgetsGrid({
             return (
               <div 
                 key={b.id} 
-                className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl group relative overflow-hidden"
+                className="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between space-y-5 sm:space-y-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl group relative overflow-hidden"
               >
                 <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                   <button 

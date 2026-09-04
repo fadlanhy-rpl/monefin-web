@@ -1,170 +1,228 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { TrendingUp, Rss, PiggyBank } from "lucide-react";
+import { useRef, useEffect } from "react";
+import { Target, CheckCircle2, Shield, Lock } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { AuthInteractiveCanvas } from "./AuthInteractiveCanvas";
 
 export default function RegisterIllustration() {
   const { t } = useLanguage();
-  const wrapperRef = useRef(null);
-  const containerRef = useRef(null);
+  const illustrationRef = useRef(null);
+  const cardRef = useRef(null);
+  const rafMoveRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    if (!illustrationRef.current || !cardRef.current) return;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    if (rafMoveRef.current) return;
+    rafMoveRef.current = requestAnimationFrame(() => {
+      rafMoveRef.current = null;
+      if (!illustrationRef.current || !cardRef.current) return;
+
+      const rect = illustrationRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const deltaX = (clientX - centerX) / (rect.width / 2);
+      const deltaY = (clientY - centerY) / (rect.height / 2);
+
+      const rx = Math.max(-5, Math.min(5, -deltaY * 4));
+      const ry = Math.max(-5, Math.min(5, deltaX * 4));
+      cardRef.current.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (rafMoveRef.current) {
+      cancelAnimationFrame(rafMoveRef.current);
+      rafMoveRef.current = null;
+    }
+    if (cardRef.current) {
+      cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+    }
+  };
 
   useEffect(() => {
-    const wrapper = wrapperRef.current;
-    const container = containerRef.current;
-    if (!wrapper || !container) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        const { width, height } = entry.contentRect;
-        // Reference size of the illustration container is 512x400
-        const scaleX = width / 512;
-        const scaleY = height / 400;
-        // Choose the smaller scale to fit both width and height, capped at 1.0
-        const scale = Math.min(scaleX, scaleY, 1);
-        container.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    return () => {
+      if (rafMoveRef.current) {
+        cancelAnimationFrame(rafMoveRef.current);
       }
-    });
-
-    resizeObserver.observe(wrapper);
-    return () => resizeObserver.disconnect();
+    };
   }, []);
 
   return (
-    <div className="hidden lg:flex w-1/2 h-screen bg-[#00685F] p-6 xl:p-12 flex-col justify-between relative overflow-hidden">
-      {/* CSS Stylesheet Injector for keyframe animation and responsive scaling */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .animate-float-register {
-            animation: float-reg 6s ease-in-out infinite;
-        }
-        @keyframes float-reg {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .illustration-scale-container {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%) scale(1);
-            transform-origin: center;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card-shadow { 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
-        }
-        @media (max-width: 1400px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.85);
-            }
-        }
-        @media (max-width: 1200px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.75);
-            }
-        }
-        @media (max-height: 900px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.85);
-            }
-        }
-        @media (max-height: 800px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.75);
-            }
-        }
-        @media (max-height: 700px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.65);
-            }
-        }
-        @media (max-height: 600px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.55);
-            }
-        }
-      `}} />
+    <div
+      ref={illustrationRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="hidden lg:flex w-[50%] h-screen bg-gradient-to-br from-[#061714] via-[#002b27] to-[#001714] p-8 xl:p-12 flex-col justify-between relative overflow-hidden select-none border-r border-emerald-950/40"
+    >
+      {/* Dynamic Flowing Streamlines Canvas (60FPS) */}
+      <AuthInteractiveCanvas />
 
-      {/* Logo */}
-      <div className="flex items-center gap-3 z-10">
-        <div className="bg-white p-2 rounded-xl shadow-lg">
-          <img
-            src="/images/LogoMonefinGreen.svg"
-            alt="MoneFin Logo"
-            className="w-6 h-6"
-          />
-        </div>
-        <span className="text-white text-2xl font-bold tracking-tight">MoneFin</span>
+      {/* Atmospheric Background Layers */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute inset-0 bg-topo-pattern opacity-30" />
+        <div className="absolute top-1/3 -left-20 w-80 h-80 rounded-full bg-emerald-400/10 blur-2xl animate-float-orb pointer-events-none" />
+        <div className="absolute bottom-1/3 -right-20 w-80 h-80 rounded-full bg-brand-500/12 blur-2xl animate-float-orb-reverse pointer-events-none" />
       </div>
 
-      {/* AREA ILUSTRASI KARTU */}
-      <div 
-        ref={wrapperRef}
-        className="illustration-scale-wrapper flex-1 flex items-center justify-center min-h-0 my-4 w-full relative z-10"
-      >
-        <div 
-          ref={containerRef}
-          className="illustration-scale-container w-[512px] h-[400px] shrink-0"
-        >
-          {/* Card 1: Net Worth */}
-          <div className="absolute top-0 left-0 bg-white/95 backdrop-blur-md p-6 rounded-[2rem] w-72 card-shadow animate-float-register z-20">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Net Worth</span>
-              <TrendingUp className="text-[#00685F] w-5 h-5" />
-            </div>
-            <h3 className="text-2xl font-extrabold text-gray-900">$248,500.00</h3>
-            
-            {/* Simple Bar Chart Visualization */}
-            <div className="flex items-end gap-2 mt-6 h-16">
-              <div className="bg-teal-100 w-full rounded-t-md h-1/3"></div>
-              <div className="bg-teal-200 w-full rounded-t-md h-1/2"></div>
-              <div className="bg-teal-300 w-full rounded-t-md h-3/4"></div>
-              <div className="bg-[#00685F] w-full rounded-t-md h-2/3"></div>
-              <div className="bg-teal-500 w-full rounded-t-md h-full"></div>
-            </div>
+      {/* Top Header: Logo & Status */}
+      <div className="relative z-10 flex items-center justify-between w-full">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-brand-600 border border-emerald-400/30 flex items-center justify-center shadow-lg shadow-brand-900/40">
+            <img
+              src="/images/LogoMonefinWhite.svg"
+              alt="MoneFin Logo"
+              className="w-5 h-5"
+            />
           </div>
+          <span className="text-white text-xl font-black tracking-tight">
+            MoneFin
+          </span>
+        </div>
 
-          {/* Card 2: Platinum Reserve (Black Card) */}
-          <div className="absolute bottom-10 right-0 bg-[#1A1A1A] p-8 rounded-[2.5rem] w-80 h-52 text-white flex flex-col justify-between shadow-2xl z-10 translate-x-4">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Platinum Reserve</span>
-              <Rss className="w-6 h-6 opacity-50" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-lg tracking-[0.3em] font-medium opacity-80">•••• •••• •••• 8</p>
-            </div>
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="text-[8px] text-zinc-500 uppercase mb-1">Member Since</p>
-                <p className="text-xs font-bold">22</p>
-              </div>
-              <div className="bg-zinc-800 px-3 py-1 rounded text-[10px] font-bold">VISA</div>
-            </div>
-          </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Smart Wealth Horizon</span>
+        </div>
+      </div>
 
-          {/* Card 3: Monthly Savings (Bubble) */}
-          <div 
-            className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-12 bg-[#E6F0EF] p-4 rounded-full flex items-center gap-3 shadow-xl z-30 animate-float-register" 
-            style={{ animationDelay: "1s" }}
+      {/* Centerpiece: Simple & Clean Single Goal Card */}
+      <div className="relative z-10 flex-1 flex items-center justify-center my-4 w-full">
+        <div className="perspective-1000 w-full max-w-[420px]">
+          <div
+            ref={cardRef}
+            className="w-full bg-[#091A17]/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-7 border border-emerald-500/30 shadow-2xl shadow-emerald-950/50 space-y-5 transition-transform duration-150 ease-out"
+            style={{
+              transform: "perspective(1000px) rotateX(0deg) rotateY(0deg)",
+              willChange: "transform",
+            }}
           >
-            <div className="bg-[#00685F] w-10 h-10 rounded-full flex items-center justify-center text-white shadow-inner">
-              <PiggyBank className="w-5 h-5" />
+            {/* Target Card Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-emerald-900/60">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-black text-white tracking-tight uppercase">
+                  Target: DP Rumah Pertama
+                </span>
+              </div>
+              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                40% Selesai
+              </span>
             </div>
-            <div className="pr-4">
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Monthly Savings</p>
-              <p className="text-sm font-black text-[#00685F]">+$3,450.00</p>
+
+            {/* Target Value Number */}
+            <div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-2xl xl:text-3xl font-black text-emerald-400 tabular-nums">
+                  Rp 48.000.000
+                </span>
+                <span className="text-xs font-bold text-slate-400">
+                  Target: Rp 120 Jt
+                </span>
+              </div>
+
+              {/* Smooth Progress Bar */}
+              <div className="w-full bg-emerald-950/80 h-2.5 rounded-full overflow-hidden mt-3 border border-emerald-800/40">
+                <div
+                  className="bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 h-full rounded-full transition-all duration-500"
+                  style={{ width: "40%" }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] font-semibold text-emerald-300 mt-2">
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Rutin Rp 3.5 Jt/bln
+                </span>
+                <span className="text-slate-400 font-medium">Sisa 16 Bulan</span>
+              </div>
             </div>
+
+            {/* Clean 50/30/20 Distribution Preview */}
+            <div className="bg-emerald-950/40 rounded-2xl p-3.5 border border-emerald-800/40 space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-bold text-emerald-200">
+                <span>Alokasi Gaji Terencana</span>
+                <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black">
+                  Formula 50/30/20
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-slate-400">Kebutuhan</p>
+                  <p className="font-extrabold text-white">50%</p>
+                </div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-slate-400">Keinginan</p>
+                  <p className="font-extrabold text-emerald-300">30%</p>
+                </div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-slate-400">Tabungan</p>
+                  <p className="font-extrabold text-teal-300">20%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Integration Chips */}
+            <div className="pt-2 border-t border-emerald-900/60 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Bisa Buat Akun Bank & Dompet
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/10">
+                  <img
+                    src="/images/providers/bca.svg"
+                    alt="BCA"
+                    className="h-3 w-auto object-contain"
+                  />
+                </div>
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/10">
+                  <img
+                    src="/images/providers/mandiri.svg"
+                    alt="Mandiri"
+                    className="h-3 w-auto object-contain"
+                  />
+                </div>
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/10">
+                  <img
+                    src="/images/providers/bibit.svg"
+                    alt="Bibit"
+                    className="h-3 w-auto object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
 
-      {/* TEKS SLOGAN */}
-      <div className="z-10">
-        <h2 className="text-2xl xl:text-4xl font-extrabold text-white leading-tight max-w-lg">
+      {/* Bottom Slogan & Reassurance */}
+      <div className="relative z-10 space-y-2.5">
+        <h2 className="text-xl xl:text-2xl font-black text-white leading-tight max-w-lg">
           {t("auth.slogan_title")}
         </h2>
-        <p className="text-white/70 mt-2 xl:mt-4 text-xs xl:text-sm max-w-lg font-medium">
+        <p className="text-slate-300 text-xs xl:text-sm max-w-md font-normal leading-relaxed">
           {t("auth.slogan_desc")}
         </p>
+
+        <div className="pt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-emerald-300/80 font-semibold border-t border-emerald-900/50">
+          <span className="flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Enkripsi Standar Bank</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-emerald-400" />
+            <span>100% Kontrol Mandiri</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>100% Gratis Selamanya</span>
+          </span>
+        </div>
       </div>
     </div>
   );

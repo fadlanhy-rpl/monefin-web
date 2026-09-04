@@ -8,11 +8,13 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function LoginPage() {
   return (
-    <div className={`${inter.className} flex min-h-screen bg-white overflow-hidden w-full text-slate-700`}>
-      {/* Kiri: Ilustrasi & Branding */}
+    <div
+      className={`${inter.className} flex min-h-screen bg-[#f8faf9] overflow-hidden w-full text-slate-900 selection:bg-brand-500/20 selection:text-brand-900`}
+    >
+      {/* Kiri: Studio Finansial Interaktif */}
       <LoginIllustration />
 
-      {/* Kanan: Form Sign In */}
+      {/* Kanan: Formulir Masuk MoneFin */}
       <LoginForm />
     </div>
   );

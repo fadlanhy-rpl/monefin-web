@@ -67,10 +67,10 @@ export default function DashboardPage() {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{t("dashboard.title") || "Financial Overview"}</h1>
           <p className="text-sm text-slate-500 mt-1">{t("dashboard.subtitle") || "Here's what's happening with your wealth today."}</p>
         </div>
-        
+
         {/* Date Filter Dropdown */}
         <div className="relative" ref={dropdownRef}>
-          <button 
+          <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="press-scale flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 shadow-card self-start hover:border-brand-300 hover:text-brand-700 transition-colors"
           >
@@ -90,11 +90,10 @@ export default function DashboardPage() {
                       setSelectedRange(opt.value);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold transition-colors ${
-                      isSelected 
-                        ? 'text-brand-700 bg-brand-50/70 font-bold' 
+                    className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold transition-colors ${isSelected
+                        ? 'text-brand-700 bg-brand-50/70 font-bold'
                         : 'text-slate-600 hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     <span>{opt.label}</span>
                     {isSelected && <Check className="w-3.5 h-3.5 text-brand-600" />}
@@ -125,15 +124,15 @@ export default function DashboardPage() {
         <div className="space-y-6 sm:space-y-8">
           <DashboardGamificationBanner />
 
-          <StatCards 
-            totalBalance={data.total_balance} 
-            totalIncome={data.total_income_this_month} 
-            totalExpense={data.total_expense_this_month} 
+          <StatCards
+            totalBalance={data.total_balance}
+            totalIncome={data.total_income_this_month}
+            totalExpense={data.total_expense_this_month}
           />
 
           <AiInsightsCard />
-          
-          <ChartsRow 
+
+          <ChartsRow
             weeklyTrend={data.weekly_trend}
             monthlyTrend={data.monthly_trend}
             categoryData={data.expense_by_category}
@@ -142,9 +141,9 @@ export default function DashboardPage() {
           {/* BOTTOM ROW */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 items-stretch">
             <RecentTransactions transactions={data.recent_transactions} />
-            <SmartInsight 
-              status={data.spending_status} 
-              savings={data.savings_this_month} 
+            <SmartInsight
+              status={data.spending_status}
+              savings={data.savings_this_month}
             />
           </div>
         </div>

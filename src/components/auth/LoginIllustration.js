@@ -1,167 +1,204 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { TrendingUp, CheckCircle2, Rss } from "lucide-react";
+import { useRef, useEffect } from "react";
+import { TrendingUp, Shield, Lock, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { AuthInteractiveCanvas } from "./AuthInteractiveCanvas";
 
 export default function LoginIllustration() {
   const { t } = useLanguage();
-  const wrapperRef = useRef(null);
-  const containerRef = useRef(null);
+  const illustrationRef = useRef(null);
+  const cardRef = useRef(null);
+  const rafMoveRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    if (!illustrationRef.current || !cardRef.current) return;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    if (rafMoveRef.current) return;
+    rafMoveRef.current = requestAnimationFrame(() => {
+      rafMoveRef.current = null;
+      if (!illustrationRef.current || !cardRef.current) return;
+
+      const rect = illustrationRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const deltaX = (clientX - centerX) / (rect.width / 2);
+      const deltaY = (clientY - centerY) / (rect.height / 2);
+
+      const rx = Math.max(-5, Math.min(5, -deltaY * 4));
+      const ry = Math.max(-5, Math.min(5, deltaX * 4));
+      cardRef.current.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (rafMoveRef.current) {
+      cancelAnimationFrame(rafMoveRef.current);
+      rafMoveRef.current = null;
+    }
+    if (cardRef.current) {
+      cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+    }
+  };
 
   useEffect(() => {
-    const wrapper = wrapperRef.current;
-    const container = containerRef.current;
-    if (!wrapper || !container) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        const { width, height } = entry.contentRect;
-        // Reference size of the illustration container is 580x450
-        const scaleX = width / 580;
-        const scaleY = height / 450;
-        // Choose the smaller scale to fit both width and height, capped at 1.0
-        const scale = Math.min(scaleX, scaleY, 1);
-        container.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    return () => {
+      if (rafMoveRef.current) {
+        cancelAnimationFrame(rafMoveRef.current);
       }
-    });
-
-    resizeObserver.observe(wrapper);
-    return () => resizeObserver.disconnect();
+    };
   }, []);
 
   return (
-    <div className="hidden lg:flex w-[55%] h-screen bg-[#00685F] p-6 xl:p-12 flex-col justify-between relative overflow-hidden">
-      {/* CSS Stylesheet Injector for keyframe animation */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .animate-float-spending {
-            animation: float-spend 4s ease-in-out infinite;
-        }
-        @keyframes float-spend {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-12px); }
-        }
-        .illustration-scale-container {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%) scale(1);
-            transform-origin: center;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @media (max-width: 1400px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.85);
-            }
-        }
-        @media (max-width: 1200px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.75);
-            }
-        }
-        @media (max-height: 900px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.85);
-            }
-        }
-        @media (max-height: 800px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.75);
-            }
-        }
-        @media (max-height: 700px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.65);
-            }
-        }
-        @media (max-height: 600px) {
-            .illustration-scale-container {
-                transform: translate(-50%, -50%) scale(0.55);
-            }
-        }
-      `}} />
+    <div
+      ref={illustrationRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="hidden lg:flex w-[50%] h-screen bg-gradient-to-br from-[#061714] via-[#002b27] to-[#001714] p-8 xl:p-12 flex-col justify-between relative overflow-hidden select-none border-r border-emerald-950/40"
+    >
+      {/* Dynamic Flowing Streamlines Canvas (60FPS) */}
+      <AuthInteractiveCanvas />
 
-      {/* Logo */}
-      <div className="flex items-center gap-2 z-20">
-        <div className="bg-white p-1.5 rounded-lg">
-          <img
-            src="/images/LogoMonefinGreen.svg"
-            alt="MoneFin Logo"
-            className="w-5 h-5"
-          />
-        </div>
-        <span className="text-white text-xl font-bold tracking-tight">MoneFin</span>
+      {/* Atmospheric Background Mesh & Radial Lighting */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute inset-0 bg-topo-pattern opacity-30" />
+        <div className="absolute top-1/4 -left-20 w-80 h-80 rounded-full bg-emerald-400/10 blur-2xl animate-float-orb pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-brand-500/12 blur-2xl animate-float-orb-reverse pointer-events-none" />
       </div>
 
-      {/* CONTAINER ILUSTRASI */}
-      <div 
-        ref={wrapperRef}
-        className="illustration-scale-wrapper flex-1 flex items-center justify-center min-h-0 my-4 w-full relative z-10"
-      >
-        <div 
-          ref={containerRef}
-          className="illustration-scale-container w-[580px] h-[450px] shrink-0"
-        >
-          {/* 1. Total Portfolio (Kiri Atas) */}
-          <div className="absolute top-10 left-0 bg-[#F9FBFA] p-6 rounded-[2.5rem] shadow-xl w-[360px] h-[240px] z-10">
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Portfolio</p>
-            <h3 className="text-3xl font-extrabold text-gray-900 mt-1">$142,850.40</h3>
-            
-            <div className="flex items-center gap-1.5 mt-4 text-[#00685F] font-bold text-sm">
-              <TrendingUp className="w-4 h-4" />
-              <span>+12.5% this month</span>
+      {/* Top Header: Logo & Status */}
+      <div className="relative z-10 flex items-center justify-between w-full">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-brand-600 border border-emerald-400/30 flex items-center justify-center shadow-lg shadow-brand-900/40">
+            <img
+              src="/images/LogoMonefinWhite.svg"
+              alt="MoneFin Logo"
+              className="w-5 h-5"
+            />
+          </div>
+          <span className="text-white text-xl font-black tracking-tight">
+            MoneFin
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Core Desk Live</span>
+        </div>
+      </div>
+
+      {/* Centerpiece: Simple & Clean Single Cockpit Card */}
+      <div className="relative z-10 flex-1 flex items-center justify-center my-4 w-full">
+        <div className="perspective-1000 w-full max-w-[420px]">
+          <div
+            ref={cardRef}
+            className="w-full bg-[#091A17]/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-7 border border-emerald-500/30 shadow-2xl shadow-emerald-950/50 space-y-5 transition-transform duration-150 ease-out"
+            style={{
+              transform: "perspective(1000px) rotateX(0deg) rotateY(0deg)",
+              willChange: "transform",
+            }}
+          >
+            {/* Cockpit Card Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-emerald-900/60">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse ring-4 ring-emerald-500/20" />
+                <span className="text-xs font-black text-white tracking-tight uppercase">
+                  MoneFin Live Control Desk
+                </span>
+              </div>
+              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Multi-Rekening
+              </span>
             </div>
 
-            {/* Mini Chart SVG */}
-            <div className="mt-6 flex justify-center">
-              <div className="w-32 h-16 opacity-40">
-                <svg viewBox="0 0 100 40" className="w-full h-full">
-                  <path d="M0 35 Q 20 30, 40 32 T 70 15 T 100 10" fill="none" stroke="#00685F" strokeWidth="3" strokeLinecap="round"/>
-                </svg>
+            {/* Total Balance Metric */}
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">
+                Total Net Worth
+              </p>
+              <h3 className="text-3xl xl:text-4xl font-black text-emerald-400 tabular-nums tracking-tight mt-1">
+                Rp 48.750.000
+              </h3>
+              <div className="flex items-center gap-2 mt-2 text-xs font-bold text-emerald-300">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span>+12.5% Bulan Ini (Cashflow Sehat)</span>
+              </div>
+            </div>
+
+            {/* Dynamic Smooth Sparkline */}
+            <div className="py-1">
+              <svg
+                className="w-full h-8 text-emerald-400"
+                viewBox="0 0 200 32"
+                fill="none"
+              >
+                <path
+                  d="M0 24 Q35 6, 70 18 T130 10 T170 16 T200 4"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+
+            {/* Provider Badges */}
+            <div className="pt-3 border-t border-emerald-900/60 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Bisa Buat Akun Bank & Dompet
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/10">
+                  <img
+                    src="/images/providers/bca.svg"
+                    alt="BCA"
+                    className="h-3 w-auto object-contain"
+                  />
+                </div>
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/10">
+                  <img
+                    src="/images/providers/mandiri.svg"
+                    alt="Mandiri"
+                    className="h-3 w-auto object-contain"
+                  />
+                </div>
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/10">
+                  <img
+                    src="/images/providers/gopay.svg"
+                    alt="GoPay"
+                    className="h-2.5 w-auto object-contain"
+                  />
+                </div>
               </div>
             </div>
           </div>
-
-          {/* 2. Spending (Kanan Atas - FLOATING) */}
-          <div className="absolute top-10 right-8 bg-[#F9FBFA] rounded-[2.2rem] shadow-lg w-[135px] h-[115px] flex flex-col items-center justify-center z-20 animate-float-spending">
-            <div className="w-14 h-14 bg-[#A0522D] rounded-full border-[3px] border-white shadow-inner flex items-center justify-center mb-1.5">
-              <div className="w-full h-full rounded-full border-[3px] border-white/30"></div>
-            </div>
-            <p className="text-gray-600 text-xs font-bold">Spending</p>
-          </div>
-
-          {/* 3. Invoice Paid (Bawah Portfolio) */}
-          <div className="absolute bottom-16 left-0 bg-[#F9FBFA] p-5 rounded-[2rem] shadow-lg w-[260px] flex items-center gap-4 z-20">
-            <div className="bg-[#E6F0EF] w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
-              <CheckCircle2 className="text-[#00685F] w-7 h-7" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-gray-900 uppercase tracking-tight">Invoice Paid</p>
-              <p className="text-base font-extrabold text-gray-400">$2,400.00</p>
-            </div>
-          </div>
-
-          {/* 4. Black Credit Card (Kanan - Sedikit Miring) */}
-          <div className="absolute top-[180px] right-8 bg-[#141414] p-6 rounded-[2rem] shadow-2xl w-[175px] h-[195px] flex flex-col justify-between text-white z-0 transform rotate-[6deg]">
-            <div className="flex justify-between items-start">
-              <Rss className="w-6 h-6 opacity-60" />
-              <div className="w-10 h-7 bg-zinc-800 rounded-md border border-zinc-700/50"></div>
-            </div>
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 mb-2">**** 4412</p>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* TEKS SLOGAN BAWAH */}
-      <div className="z-20">
-        <h2 className="text-2xl xl:text-4xl font-extrabold text-white leading-tight max-w-lg">
+      {/* Bottom Slogan & Clean Reassurance */}
+      <div className="relative z-10 space-y-2.5">
+        <h2 className="text-xl xl:text-2xl font-black text-white leading-tight max-w-lg">
           {t("auth.slogan_title")}
         </h2>
-        <p className="text-white/60 mt-2 xl:mt-4 text-xs xl:text-sm max-w-md font-medium">
+        <p className="text-slate-300 text-xs xl:text-sm max-w-md font-normal leading-relaxed">
           {t("auth.slogan_desc")}
         </p>
+
+        <div className="pt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-emerald-300/80 font-semibold border-t border-emerald-900/50">
+          <span className="flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Enkripsi Bank 256-Bit</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-emerald-400" />
+            <span>100% Kontrol Mandiri</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Privasi Terproteksi</span>
+          </span>
+        </div>
       </div>
     </div>
   );

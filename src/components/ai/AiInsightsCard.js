@@ -323,14 +323,15 @@ export default function AiInsightsCard() {
         <div className="absolute bottom-0 left-1/4 -mb-24 w-56 h-56 bg-gradient-to-tr from-cyan-400/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         {/* Top Header Row */}
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-4 sm:pb-5 border-b border-slate-100">
-          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#00685F] to-[#00A896] flex items-center justify-center text-white shadow-md shadow-emerald-700/20 shrink-0 group-hover:scale-105 transition-transform duration-300">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 sm:pb-5 border-b border-slate-100">
+          {/* Blue Box Area: Icon + Title & Description Flex Container */}
+          <div className="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#00685F] to-[#00A896] flex items-center justify-center text-white shadow-md shadow-emerald-700/20 shrink-0 group-hover:scale-105 transition-transform duration-300 mt-0.5 sm:mt-0">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 fill-white" />
             </div>
-            <div className="min-w-0">
+            <div className="flex flex-col min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <h2 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 tracking-tight truncate">
+                <h2 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 tracking-tight leading-tight">
                   {language === "id" ? "AI Financial Health & Insights" : "AI Financial Health & Insights"}
                 </h2>
                 <span className="inline-flex items-center gap-1 bg-slate-100/90 border border-slate-200/60 text-slate-600 text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider shrink-0">
@@ -338,20 +339,21 @@ export default function AiInsightsCard() {
                   <span>MoneFin Engine</span>
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-snug truncate sm:whitespace-normal">
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">
                 {language === "id" ? "Diagnosa cerdas & rekomendasi aksi personal berdasarkan arus kas Anda" : "Intelligent diagnosis & actionable recommendations based on your cash flow"}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 self-start sm:self-auto shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+          {/* Red Box Area: Badges & Action Buttons Flex Container */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
             {getStatusBadge(score, label)}
 
             <div className="flex items-center gap-1.5 sm:gap-2">
               {aiEnabled ? (
                 <button
                   onClick={() => triggerAiChat()}
-                  className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00685F] hover:bg-[#004D46] text-white text-[11px] sm:text-xs font-bold rounded-xl shadow-sm shadow-[#00685F]/20 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+                  className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00685F] hover:bg-[#004D46] text-white text-[11px] sm:text-xs font-bold rounded-xl shadow-sm shadow-[#00685F]/20 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap cursor-pointer"
                 >
                   <MessageSquareText className="w-3.5 h-3.5" />
                   <span>{language === "id" ? "Tanya AI" : "Ask AI"}</span>
@@ -359,7 +361,7 @@ export default function AiInsightsCard() {
               ) : (
                 <button
                   onClick={() => router.push("/settings?tab=ai")}
-                  className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] sm:text-xs font-bold rounded-xl border border-slate-200/80 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+                  className="press-scale inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] sm:text-xs font-bold rounded-xl border border-slate-200/80 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap cursor-pointer"
                   title={language === "id" ? "Aktifkan AI Chatbot di Settings" : "Enable AI Chatbot in Settings"}
                 >
                   <Sparkles className="w-3.5 h-3.5 text-[#00685F]" />
@@ -370,7 +372,7 @@ export default function AiInsightsCard() {
               <button
                 onClick={fetchInsights}
                 title={language === "id" ? "Perbarui analisis AI" : "Refresh AI insights"}
-                className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0"
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0 cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#00685F]" : ""}`} />
               </button>
@@ -380,7 +382,7 @@ export default function AiInsightsCard() {
 
         {/* Main Content: Left Diagnostic Section + Right Recommendation Cards */}
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 pt-4 sm:pt-5 items-stretch">
-          
+
           {/* LEFT: Score Gauge & Diagnostic Summary */}
           <div className="lg:col-span-5 flex flex-col justify-between bg-gradient-to-br from-slate-50/90 via-slate-50/50 to-emerald-50/30 rounded-2xl p-3.5 sm:p-5 border border-slate-200/60 shadow-xs">
             <div className="flex items-center gap-3 sm:gap-4 lg:gap-5">
@@ -488,14 +490,14 @@ export default function AiInsightsCard() {
       {showDetailModal && mounted && createPortal(
         <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
           {/* Clickable Backdrop to close */}
-          <div 
-            className="fixed inset-0 -z-10" 
+          <div
+            className="fixed inset-0 -z-10"
             onClick={() => setShowDetailModal(false)}
             aria-hidden="true"
           />
 
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
-            
+
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-[#00685F] to-[#00A896] px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
@@ -521,7 +523,7 @@ export default function AiInsightsCard() {
 
             {/* Modal Body */}
             <div className="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              
+
               {/* Summary Block */}
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
