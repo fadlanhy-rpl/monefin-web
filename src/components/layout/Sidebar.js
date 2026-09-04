@@ -199,18 +199,18 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
 
   const BrandHeader = ({ isMobile }) => (
     <div
-      className={`px-6 pt-6 pb-5 ${isMobile ? "flex items-center justify-between" : ""}`}
+      className={`px-4 lg:px-5 xl:px-6 pt-5 lg:pt-6 pb-4 lg:pb-5 ${isMobile ? "flex items-center justify-between" : ""}`}
     >
-      <div className="flex items-center gap-2">
-        <div className="w-10 h-9 rounded-lg bg-brand-600 flex items-center justify-center">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="w-8 h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-9 rounded-lg bg-brand-600 flex items-center justify-center shrink-0">
           <img
             src="/images/LogoMonefinWhite.svg"
             alt="MoneFin Logo"
-            className="w-5 h-5"
+            className="w-4 h-4 lg:w-5 lg:h-5"
           />
         </div>
-        <div className="leading-tight">
-          <p className="font-extrabold text-slate-800 text-[16px]">MoneFin</p>
+        <div className="leading-tight min-w-0">
+          <p className="font-extrabold text-slate-800 text-sm lg:text-[15px] xl:text-[16px] truncate">MoneFin</p>
         </div>
       </div>
       {isMobile && (
@@ -235,7 +235,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
 
   const NavLinks = () => (
     <>
-      <nav className="flex-1 px-3 space-y-1 mt-2">
+      <nav className="flex-1 px-2 lg:px-2.5 xl:px-3 space-y-0.5 xl:space-y-1 mt-1 lg:mt-2 overflow-y-auto">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -245,33 +245,38 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
               key={item.name}
               href={item.href}
               onClick={() => setMobileOpen && setMobileOpen(false)}
-              className={`sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                isActive ? "active" : "text-slate-600"
-              }`}
+              title={item.name}
+              className={`sidebar-link flex items-center gap-2.5 lg:gap-3 px-2.5 lg:px-3 py-2 lg:py-2.5 rounded-lg text-xs lg:text-sm font-medium transition-colors ${isActive ? "active font-semibold" : "text-slate-600"
+                }`}
             >
-              {item.icon}
-              {item.name}
+              <span className="shrink-0 [&>svg]:w-4 [&>svg]:h-4 lg:[&>svg]:w-[18px] lg:[&>svg]:h-[18px] flex items-center justify-center">
+                {item.icon}
+              </span>
+              <span className="truncate">{item.name}</span>
             </Link>
           );
         })}
       </nav>
-      <div className="px-3 pb-6 border-t border-slate-100 pt-4 space-y-2">
+      <div className="px-2 lg:px-2.5 xl:px-3 pb-5 lg:pb-6 border-t border-slate-100 pt-3 lg:pt-4 space-y-1">
         <Link
           href="/settings"
           onClick={() => setMobileOpen && setMobileOpen(false)}
-          className={`sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${pathname === "/settings" ? "active" : "text-slate-600"}`}
+          title={t("sidebar.settings") || "Settings"}
+          className={`sidebar-link flex items-center gap-2.5 lg:gap-3 px-2.5 lg:px-3 py-2 lg:py-2.5 rounded-lg text-xs lg:text-sm font-medium transition-colors ${pathname === "/settings" ? "active font-semibold" : "text-slate-600"}`}
         >
-          <svg
-            className="w-[18px] h-[18px]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
-          {t("sidebar.settings") || "Settings"}
+          <span className="shrink-0 [&>svg]:w-4 [&>svg]:h-4 lg:[&>svg]:w-[18px] lg:[&>svg]:h-[18px] flex items-center justify-center">
+            <svg
+              className="w-[18px] h-[18px]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </span>
+          <span className="truncate">{t("sidebar.settings") || "Settings"}</span>
         </Link>
       </div>
     </>
@@ -280,7 +285,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
   return (
     <>
       {/* SIDEBAR (desktop / tablet md) */}
-      <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-white border-r border-slate-100 sticky top-0 h-screen z-30">
+      <aside className="hidden md:flex md:flex-col w-48 lg:w-56 xl:w-64 shrink-0 bg-white border-r border-slate-100 sticky top-0 h-screen z-30 transition-all duration-300">
         <BrandHeader isMobile={false} />
         <NavLinks />
       </aside>

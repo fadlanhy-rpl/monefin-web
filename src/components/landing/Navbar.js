@@ -13,9 +13,10 @@ export const Navbar = ({ isLoggedIn }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      const scrolled = window.scrollY > 40;
+      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -39,51 +40,50 @@ export const Navbar = ({ isLoggedIn }) => {
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-bold text-slate-800">
-          <a href="#features" className="hover:text-brand-600 transition-colors">{t("nav.features")}</a>
-          <a href="#simulator" className="hover:text-brand-600 transition-colors">{t("nav.simulator")}</a>
-          <a href="#comparison" className="hover:text-brand-600 transition-colors">{t("nav.comparison")}</a>
-          <a href="#testimonials" className="hover:text-brand-600 transition-colors">{t("nav.testimonials")}</a>
-          <a href="#faq" className="hover:text-brand-600 transition-colors">{t("nav.faq")}</a>
+        <div className="hidden lg:flex items-center gap-3.5 xl:gap-7 text-xs xl:text-sm font-bold text-slate-800">
+          <a href="#features" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.features")}</a>
+          <a href="#simulator" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.simulator")}</a>
+          <a href="#comparison" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.comparison")}</a>
+          <a href="#testimonials" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.testimonials")}</a>
+          <a href="#faq" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.faq")}</a>
         </div>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
           <LanguageSwitcher />
           {isLoggedIn ? (
-            <CatalisButton href="/dashboard" variant="primary">
-              <span>{t("nav.dashboard")}</span>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            <CatalisButton href="/dashboard" variant="primary" size="sm">
+              <span className="whitespace-nowrap">{t("nav.dashboard")}</span>
             </CatalisButton>
           ) : (
             <>
               <Link
                 href="/login"
-                className="text-sm font-bold text-slate-800 hover:text-brand-600 px-3.5 py-2 rounded-full transition-colors"
+                className="text-xs xl:text-sm font-bold text-slate-800 hover:text-brand-600 px-2.5 xl:px-3.5 py-2 rounded-full transition-colors whitespace-nowrap shrink-0"
               >
                 {t("nav.login")}
               </Link>
-              <CatalisButton href="/register" variant="primary">
-                <span>{t("nav.register")}</span>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              <CatalisButton href="/register" variant="primary" size="sm">
+                <span className="whitespace-nowrap">{t("nav.register")}</span>
               </CatalisButton>
             </>
           )}
         </div>
 
-        {/* Mobile Right Actions & Hamburger */}
-        <div className="flex items-center gap-1.5 md:hidden">
+        {/* Mobile / Tablet Right Actions & Hamburger */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 lg:hidden">
+          <LanguageSwitcher />
           {!isLoggedIn && (
             <Link
               href="/login"
-              className="text-xs font-extrabold text-slate-800 hover:text-brand-600 px-2.5 py-1.5 rounded-full border border-slate-200/80 bg-white/80"
+              className="text-xs font-extrabold text-slate-800 hover:text-brand-600 px-3 py-1.5 rounded-full border border-slate-200/80 bg-white/80 transition-colors whitespace-nowrap"
             >
               {t("nav.login")}
             </Link>
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 text-slate-800 hover:text-slate-900 rounded-full hover:bg-white/80 transition-colors"
+            className="p-1.5 sm:p-2 text-slate-800 hover:text-slate-900 rounded-full hover:bg-white/80 transition-colors cursor-pointer shrink-0"
             aria-label="Toggle Menu"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -93,24 +93,21 @@ export const Navbar = ({ isLoggedIn }) => {
         </div>
       </nav>
 
-      {/* Mobile Dropdown */}
+      {/* Mobile / Tablet Dropdown */}
       {mobileMenuOpen && (
-        <div className="pointer-events-auto md:hidden mt-2 bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-3 animate-popIn text-xs sm:text-sm">
-          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.features")}</a>
-          <a href="#simulator" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.simulator")}</a>
-          <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.comparison")}</a>
-          <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5 border-b border-slate-100">{t("nav.testimonials")}</a>
-          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 font-bold py-1.5">{t("nav.faq")}</a>
+        <div className="pointer-events-auto lg:hidden mt-2 bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-3 animate-popIn text-sm">
+          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.features")}</a>
+          <a href="#simulator" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.simulator")}</a>
+          <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.comparison")}</a>
+          <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.testimonials")}</a>
+          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 transition-colors">{t("nav.faq")}</a>
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
-            <div className="flex justify-center">
-              <LanguageSwitcher />
-            </div>
             {isLoggedIn ? (
-              <Link href="/dashboard" className="w-full text-center py-2.5 rounded-full bg-brand-600 text-white font-bold text-xs">
+              <Link href="/dashboard" className="w-full text-center py-3 rounded-full bg-brand-600 text-white font-bold text-sm shadow-md hover:bg-brand-700 transition-colors">
                 {t("nav.dashboard_mobile")}
               </Link>
             ) : (
-              <Link href="/register" className="w-full text-center py-2.5 rounded-full bg-brand-600 text-white font-bold text-xs shadow-md">
+              <Link href="/register" className="w-full text-center py-3 rounded-full bg-brand-600 text-white font-bold text-sm shadow-md hover:bg-brand-700 transition-colors">
                 {t("nav.register_mobile")}
               </Link>
             )}

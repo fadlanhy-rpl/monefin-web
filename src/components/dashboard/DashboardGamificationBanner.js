@@ -16,7 +16,7 @@ export default function DashboardGamificationBanner() {
       .then((res) => {
         if (res) setData(res);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   if (!data) return null;
@@ -27,23 +27,23 @@ export default function DashboardGamificationBanner() {
   const xpInLevel = data.xp_in_current_level || 0;
   const xpNeeded = data.xp_needed_for_next || 150;
   const rankTitle = language === "en" ? data.rank_title : (data.rank_title_id || data.rank_title);
-  
+
   // Find first actionable (unclaimed) quest
   const questList = Array.isArray(data.quests) ? data.quests : (data.quests ? Object.values(data.quests) : []);
   const activeQuest = questList.find((q) => !q.is_claimed) || questList[0];
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-white border border-emerald-100/90 hover:border-emerald-200/90 rounded-[1.5rem] sm:rounded-[1.75rem] p-4 sm:p-5 shadow-[0_4px_20px_-4px_rgba(0,104,95,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,104,95,0.12)] transition-all duration-300 group">
-      
+
       {/* Ambient background decoration */}
       <div className="absolute top-0 right-0 -mr-16 -mt-16 w-56 h-56 bg-emerald-200/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/3 -mb-16 w-40 h-40 bg-teal-200/20 rounded-full blur-2xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        
+
         {/* SISI KIRI: Level + Rank + XP Bar + Streak & Badge Pills */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 flex-1">
-          
+
           {/* Level Icon & XP Progress */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#00685F] to-[#00A896] flex items-center justify-center text-white shadow-md shadow-emerald-700/20 shrink-0 group-hover:scale-105 transition-transform duration-300">
@@ -102,7 +102,7 @@ export default function DashboardGamificationBanner() {
 
         {/* SISI KANAN: Misi Aktif & Tombol CTA */}
         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-emerald-100/70">
-          
+
           {/* Active Mission Mini Card */}
           {activeQuest && (() => {
             const localizedQuest = getLocalizedQuest(activeQuest, language);

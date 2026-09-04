@@ -402,6 +402,8 @@ input:focus {
   display: flex;
   width: max-content;
   animation: marquee 30s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 .animate-marquee:hover {
   animation-play-state: paused;
@@ -483,9 +485,13 @@ input:focus {
 }
 .animate-float-orb {
   animation: floatOrb 10s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 .animate-float-orb-reverse {
   animation: floatOrb 12s ease-in-out infinite reverse;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* Unique Section Backgrounds & Visual Character */
@@ -579,6 +585,72 @@ input[type="search"]::-webkit-search-results-decoration {
   -webkit-appearance: none;
   appearance: none;
   display: none;
+}
+
+/* 3D Perspective & Spatial Transform Utilities */
+.perspective-800 { perspective: 800px; }
+.perspective-1000 { perspective: 1000px; }
+.perspective-1200 { perspective: 1200px; }
+.transform-style-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+/* Topographic & Contour Pattern Utilities */
+.bg-topo-pattern {
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 104, 95, 0.04) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 104, 95, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 104, 95, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px, 32px 32px, 32px 32px;
+}
+
+/* Modern Glowing Aurora & Spotlight */
+.aurora-blur-emerald {
+  background: radial-gradient(circle, rgba(0, 240, 160, 0.16) 0%, rgba(0, 104, 95, 0.05) 50%, transparent 75%);
+  filter: blur(28px);
+  will-change: filter;
+  transform: translateZ(0);
+}
+
+.aurora-blur-cyan {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.16) 0%, rgba(6, 78, 59, 0.06) 50%, transparent 75%);
+  filter: blur(32px);
+  will-change: filter;
+  transform: translateZ(0);
+}
+
+/* Glassmorphism Refinements */
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.glass-panel-dark {
+  background: rgba(9, 26, 23, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Floating animation with slight rotation */
+@keyframes floatSubtle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(0.8deg); }
+}
+.animate-float-subtle {
+  animation: floatSubtle 6s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+@keyframes floatSubtleReverse {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(8px) rotate(-0.8deg); }
+}
+.animate-float-subtle-reverse {
+  animation: floatSubtleReverse 7s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 

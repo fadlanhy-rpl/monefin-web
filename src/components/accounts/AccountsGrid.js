@@ -87,7 +87,7 @@ export default function AccountsGrid({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 xl:gap-8">
           <SortableContext 
             items={accounts.map(a => a.id)}
             strategy={rectSortingStrategy}

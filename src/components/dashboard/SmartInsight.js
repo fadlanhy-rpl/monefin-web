@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { 
-  Lightbulb, 
-  Check, 
-  ChevronLeft, 
-  HelpCircle, 
-  X, 
-  ShieldCheck, 
-  AlertTriangle, 
-  Sparkles, 
+import {
+  Lightbulb,
+  Check,
+  ChevronLeft,
+  HelpCircle,
+  X,
+  ShieldCheck,
+  AlertTriangle,
+  Sparkles,
   ArrowRight,
   TrendingDown,
   Activity,
@@ -68,25 +68,25 @@ export default function SmartInsight({ status = null, savings = 0 }) {
 
   return (
     <>
-      <div 
-        ref={ref} 
-        className={`reveal xl:col-span-1 min-h-[295px] sm:min-h-[260px] [perspective:1000px] ${isVisible ? 'in-view' : ''}`} 
+      <div
+        ref={ref}
+        className={`reveal xl:col-span-1 min-h-[295px] sm:min-h-[260px] [perspective:1000px] ${isVisible ? 'in-view' : ''}`}
         style={{ animationDelay: "400ms" }}
       >
-        <div 
+        <div
           className={`w-full h-full relative transition-transform duration-700 [transform-style:preserve-3d] ${isFlipped ? 'flip-card-flipped' : ''}`}
         >
-          
+
           {/* CARD FRONT */}
           <div className="absolute inset-0 w-full h-full flip-card-front card-hover bg-gradient-to-br from-brand-50/70 via-brand-50/30 to-white rounded-2xl p-5 sm:p-6 shadow-card border border-brand-100 flex flex-col justify-between [backface-visibility:hidden]">
             <div className="flex-1 flex flex-col">
-              
+
               {/* Header Icon + Info Trigger */}
               <div className="flex items-center justify-between">
                 <div className="float-icon w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700">
                   <Lightbulb className="w-5 h-5" />
                 </div>
-                
+
                 {/* Info Guide Button */}
                 <button
                   type="button"
@@ -102,7 +102,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
                 </button>
 
               </div>
-              
+
               {/* Title & Saved indicator */}
               <h2 className="font-bold text-slate-900 mt-3.5 text-base flex items-center justify-between gap-1.5">
                 <span className="flex items-center gap-1.5">
@@ -119,7 +119,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
                   </span>
                 )}
               </h2>
-              
+
               {/* Message / Description */}
               <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed font-medium">
                 {status?.message || t("dashboard.smart_insight_empty") || 'Silakan atur uang saku terlebih dahulu di halaman Transaksi Rutin atau simulasi.'}
@@ -142,7 +142,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
             </div>
 
             {/* Bottom Action Button */}
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
               className="ripple-container ripple-dark press-scale mt-3 sm:mt-4 w-full bg-white border border-brand-200 text-brand-700 font-bold text-xs py-2.5 sm:py-3 rounded-xl hover:bg-brand-50 hover:border-brand-400 transition-colors shadow-sm shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
             >
@@ -154,7 +154,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
           {/* CARD BACK (INTERACTIVE CONFIG FORM) */}
           <div className="absolute inset-0 w-full h-full flip-card-back bg-white rounded-2xl p-5 sm:p-6 shadow-card border border-slate-200 flex flex-col justify-between [backface-visibility:hidden]">
             <div className="flex-1 flex flex-col">
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setIsFlipped(false); }}
                 className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 font-bold self-start -ml-1 py-1 px-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
               >
@@ -174,12 +174,12 @@ export default function SmartInsight({ status = null, savings = 0 }) {
                   </label>
                   <span className="text-sm font-extrabold text-brand-700">{formatCurrency(budgetValue)}</span>
                 </div>
-                <input 
+                <input
                   id="allowance-limit-slider"
-                  type="range" 
+                  type="range"
                   aria-label={language === "en" ? "Set monthly allowance limit" : "Atur batas uang saku bulanan"}
-                  min="500000" 
-                  max="5000000" 
+                  min="500000"
+                  max="5000000"
                   step="100000"
                   value={budgetValue}
                   onChange={(e) => setBudgetValue(Number(e.target.value))}
@@ -194,7 +194,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={handleSave}
               className="ripple-container press-scale mt-3 sm:mt-4 w-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2.5 sm:py-3 rounded-xl transition-all shadow-md shadow-brand-600/15 flex items-center justify-center gap-1.5 cursor-pointer"
             >
@@ -208,11 +208,11 @@ export default function SmartInsight({ status = null, savings = 0 }) {
 
       {/* DETAILED EXPLANATION GUIDE MODAL */}
       {showInfoModal && mounted && createPortal(
-        <div 
+        <div
           className="fixed inset-0 w-screen h-screen min-h-[100dvh] z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto"
           onClick={() => setShowInfoModal(false)}
         >
-          <div 
+          <div
             className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-7 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col my-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -242,7 +242,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
 
             {/* Modal Scrollable Body */}
             <div className="py-4 space-y-4 overflow-y-auto pr-1 text-slate-700 text-xs sm:text-sm leading-relaxed">
-              
+
               <div className="bg-brand-50/60 p-4 rounded-2xl border border-brand-100/80">
                 <p className="text-slate-700 font-medium">
                   {t("dashboard.smart_insight_guide_desc", "Smart Insight MoneFin memonitor rasio pengeluaran harian Anda terhadap uang saku secara otomatis dan real-time.")}
@@ -307,7 +307,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
                   {t("dashboard.smart_insight_steps_title", "3 Langkah Mudah Memulai")}
                 </h4>
 
-                
+
                 <div className="space-y-2">
                   <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
                     <span className="w-5 h-5 rounded-full bg-brand-100 text-brand-700 font-black flex items-center justify-center text-[10px] shrink-0">1</span>

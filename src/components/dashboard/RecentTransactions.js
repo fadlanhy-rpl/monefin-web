@@ -31,11 +31,11 @@ export default function RecentTransactions({ transactions = [] }) {
     const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
     const tag = txn.type;
     const amt = tag === 'expense' ? -txn.amount : txn.amount;
-    
+
     let IconComponent = ShoppingBag;
     let iconColor = 'text-orange-600';
     let bgClass = 'bg-orange-50';
-    
+
     if (tag === 'income') {
       IconComponent = Wallet;
       iconColor = 'text-brand-600';
@@ -73,10 +73,10 @@ export default function RecentTransactions({ transactions = [] }) {
           <h2 className="font-bold text-slate-900 text-base sm:text-lg">{t("dashboard.recent_transactions") || "Recent Transactions"}</h2>
           <p className="text-xs text-slate-600 mt-0.5">{t("dashboard.recent_transactions_desc") || "Daftar transaksi mutakhir di seluruh rekening"}</p>
         </div>
-        
+
         {/* View all button */}
-        <Link 
-          href="/transactions" 
+        <Link
+          href="/transactions"
           className="ripple-container press-scale text-xs font-bold text-brand-700 bg-brand-50 px-3.5 py-2 rounded-xl hover:bg-brand-100 transition-colors flex items-center gap-1.5 self-start sm:self-auto shrink-0"
         >
           <Eye className="w-3.5 h-3.5" />
@@ -93,11 +93,10 @@ export default function RecentTransactions({ transactions = [] }) {
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 ${
-                isActive 
-                  ? 'bg-brand-600 text-white shadow-sm shadow-brand-600/15' 
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all shrink-0 ${isActive
+                  ? 'bg-brand-600 text-white shadow-sm shadow-brand-600/15'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-              }`}
+                }`}
             >
               {label}
             </button>
@@ -119,9 +118,9 @@ export default function RecentTransactions({ transactions = [] }) {
               filteredTransactions.map((t, i) => {
                 const amountClass = t.amount < 0 ? 'text-red-500' : 'text-brand-700';
                 return (
-                  <tr 
-                    key={t.id} 
-                    className={`txn-row text-slate-700 reveal ${isVisible ? 'in-view' : ''}`} 
+                  <tr
+                    key={t.id}
+                    className={`txn-row text-slate-700 reveal ${isVisible ? 'in-view' : ''}`}
                     style={{ animationDelay: `${420 + i * 60}ms` }}
                   >
                     <td className="py-3.5 sm:py-4 whitespace-nowrap text-slate-500 font-medium text-xs sm:text-sm">{t.date}</td>

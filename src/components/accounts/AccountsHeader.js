@@ -23,7 +23,7 @@ export default function AccountsHeader({
       </div>
 
       {/* Card Total Saldo */}
-      <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center lg:items-end w-full lg:w-fit min-w-0 sm:min-w-[320px] transition-all hover:shadow-md duration-300">
+      <div className="bg-white p-4 sm:p-6 lg:p-7 xl:p-8 rounded-3xl lg:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center lg:items-end w-full lg:w-fit min-w-0 sm:min-w-[280px] lg:min-w-[320px] transition-all hover:shadow-md duration-300">
         <div className="flex items-center gap-2 text-center lg:text-right">
           <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">{t("accounts.total_balance") || "Total Saldo Seluruh Akun"}</p>
 
@@ -34,11 +34,11 @@ export default function AccountsHeader({
             title={isBalanceHidden ? (language === "en" ? "Show Balance" : "Tampilkan Saldo") : (language === "en" ? "Hide Balance" : "Sembunyikan Saldo")}
             aria-label="Toggle Total Balance Privacy"
           >
-            {isBalanceHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            {isBalanceHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
           </button>
         </div>
         
-        <h3 className="text-2xl sm:text-4xl font-black text-[#00685F] mt-1.5 text-center lg:text-right font-mono sm:font-sans">
+        <h3 className="text-xl sm:text-3xl lg:text-4xl font-black text-[#00685F] mt-1.5 text-center lg:text-right font-mono sm:font-sans truncate max-w-full">
           {isBalanceHidden ? "••••••••" : formatCurrency(totalBalance)}
         </h3>
         

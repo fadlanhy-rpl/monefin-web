@@ -68,28 +68,28 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
 
   return (
     <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
-      
+
       {/* Premium Total Balance Card (Credit Card UI) - Spans 2 cols on tablet for optimal width */}
       <div className={`reveal relative pt-2 sm:pt-3 sm:col-span-2 xl:col-span-1 ${isVisible ? 'in-view' : ''}`} style={{ animationDelay: "0ms" }}>
         <div className="absolute top-0 left-3 right-3 h-10 sm:h-12 rounded-2xl bg-brand-400/50 blur-[1px]"></div>
         <div className="tilt-card shimmer-sweep glow-card relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4.5 sm:p-6 text-white shadow-lg cursor-pointer">
           {/* Card texture overlay */}
           <div className="absolute inset-0 opacity-[0.06] pointer-events-none"
-               style={{ backgroundImage: "repeating-linear-gradient(45deg, #fff 0px, #fff 2px, transparent 2px, transparent 18px)" }}></div>
+            style={{ backgroundImage: "repeating-linear-gradient(45deg, #fff 0px, #fff 2px, transparent 2px, transparent 18px)" }}></div>
           <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/10 blur-xl"></div>
           <div className="absolute top-12 right-12 w-28 h-28 rounded-full bg-white/5 blur-lg"></div>
-          
+
           <div className="flex justify-between items-start relative z-10 gap-3">
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-xs text-white/70 font-semibold tracking-wider uppercase">{t("dashboard.total_balance") || "Total Balance"}</p>
-                <button 
+                <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleBalancePrivacy();
-                  }} 
+                  }}
                   className="p-1 hover:bg-white/10 rounded-lg transition-colors shrink-0 cursor-pointer"
                   aria-label={isBalanceHidden ? (language === "en" ? "Show Balance" : "Tampilkan saldo") : (language === "en" ? "Hide Balance" : "Sembunyikan saldo")}
                   title={isBalanceHidden ? (language === "en" ? "Show Balance" : "Tampilkan saldo") : (language === "en" ? "Hide Balance" : "Sembunyikan saldo")}
@@ -123,7 +123,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
               </div>
             </div>
           </div>
-          
+
           <div className="mt-4 sm:mt-5 flex justify-between items-center relative z-10">
             <span className="inline-block bg-white/15 text-[10px] font-extrabold tracking-wider px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg">{t("dashboard.savings") || "SAVINGS"} +4.2%</span>
             <span className="text-[10px] text-white/60 tracking-widest font-mono">•••• 8820</span>
@@ -142,7 +142,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
               <CountUp target={totalIncome} />
             </p>
             <span className="flex items-center gap-0.5 text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md shrink-0">
-              <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
               12%
             </span>
           </div>
@@ -165,16 +165,16 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
                   <stop offset="100%" stopColor="#00685F" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path 
-                d="M0,35 Q15,30 30,15 T60,25 T90,5 L100,5" 
-                fill="none" 
-                stroke="#00685F" 
-                strokeWidth="2.5" 
-                strokeLinecap="round" 
+              <path
+                d="M0,35 Q15,30 30,15 T60,25 T90,5 L100,5"
+                fill="none"
+                stroke="#00685F"
+                strokeWidth="2.5"
+                strokeLinecap="round"
                 className="sparkline-path"
               />
-              <path 
-                d="M0,35 Q15,30 30,15 T60,25 T90,5 L100,5 L100,40 L0,40 Z" 
+              <path
+                d="M0,35 Q15,30 30,15 T60,25 T90,5 L100,5 L100,40 L0,40 Z"
                 fill="url(#incomeGlow)"
               />
             </svg>
@@ -193,7 +193,7 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
               <CountUp target={totalExpense} />
             </p>
             <span className="flex items-center gap-0.5 text-xs font-extrabold text-red-700 bg-red-50 px-2 py-0.5 rounded-md shrink-0">
-              <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+              <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M19 12l-7 7-7-7" /></svg>
               5%
             </span>
           </div>
@@ -218,16 +218,16 @@ export default function StatCards({ totalBalance = 0, totalIncome = 0, totalExpe
                   <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path 
-                d="M0,5 Q20,10 40,30 T80,15 T100,28" 
-                fill="none" 
-                stroke="#ef4444" 
-                strokeWidth="2.5" 
+              <path
+                d="M0,5 Q20,10 40,30 T80,15 T100,28"
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 className="sparkline-path"
               />
-              <path 
-                d="M0,5 Q20,10 40,30 T80,15 T100,28 L100,40 L0,40 Z" 
+              <path
+                d="M0,5 Q20,10 40,30 T80,15 T100,28 L100,40 L0,40 Z"
                 fill="url(#expenseGlow)"
               />
             </svg>
