@@ -58,8 +58,9 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
       getAccounts().then(res => {
         const accs = res.data || res || [];
         setAccounts(accs);
-        if (accs.length > 0) setSelectedAccountId(accs[0].id);
-      }).catch(console.error);
+      }).catch((err) => {
+        console.warn("Failed to load accounts for split bill detail:", err?.message || err);
+      });
     }
   }, [isOpen, billId]);
 

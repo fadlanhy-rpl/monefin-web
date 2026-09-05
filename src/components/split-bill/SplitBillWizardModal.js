@@ -93,14 +93,17 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
       getAccounts().then((res) => {
         const accs = res.data || res || [];
         setAccounts(accs);
-        if (accs.length > 0) setSelectedAccountId(String(accs[0].id));
-      }).catch(console.error);
+      }).catch((err) => {
+        console.warn("Could not load accounts:", err?.message || err);
+      });
 
       getCategories().then((res) => {
         const cats = res.data || res || [];
         setCategories(cats);
         if (cats.length > 0) setSelectedCategoryId(String(cats[0].id));
-      }).catch(console.error);
+      }).catch((err) => {
+        console.warn("Could not load categories:", err?.message || err);
+      });
     }
   }, [isOpen]);
 
@@ -254,7 +257,9 @@ export default function SplitBillWizardModal({ isOpen, onClose, onSuccess }) {
       .then(res => {
         if (res.data) setCalcPreview(res.data);
       })
-      .catch(console.error);
+      .catch(() => {
+        setCalcPreview(null);
+      });
   }, [
     isOpen, subtotal, taxPercent, taxAmount, servicePercent, 
     serviceAmount, discountAmount, splitMode, roundingMode, 
