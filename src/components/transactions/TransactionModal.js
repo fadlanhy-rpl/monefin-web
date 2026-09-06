@@ -10,6 +10,7 @@ export default function TransactionModal({
   onClose,
   modalMode,
   handleFormSubmit,
+  isSubmitting = false,
   formType,
   setFormType,
   formAmount,
@@ -266,16 +267,25 @@ export default function TransactionModal({
           <div className="p-6 pt-4 border-t border-slate-100 flex gap-3 shrink-0 bg-white">
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={onClose}
-              className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
+              className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t("transactions.cancel") || "Cancel"}
             </button>
             <button
               type="submit"
-              className="flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
+              disabled={isSubmitting}
+              className={`flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${isSubmitting ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
             >
-              {t("transactions.save") || "Save"}
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>{language === "en" ? "Saving..." : "Menyimpan..."}</span>
+                </>
+              ) : (
+                t("transactions.save") || "Save"
+              )}
             </button>
           </div>
         </form>

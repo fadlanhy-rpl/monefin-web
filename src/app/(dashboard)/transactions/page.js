@@ -245,8 +245,12 @@ function TransactionsPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     const amt = parseFloat(formAmount.replace(/\D/g, ''));
     if (isNaN(amt) || amt <= 0) {
       toast.error(language === "en" ? "Transaction amount must be a positive number!" : "Jumlah transaksi harus angka positif!");
@@ -273,6 +277,7 @@ function TransactionsPage() {
     };
 
     try {
+        setIsSubmitting(true);
         if (modalMode === "add") {
             await createTransaction(payload);
             toast.success(language === "en" ? "Transaction successfully added!" : "Transaksi berhasil ditambahkan!");
@@ -284,6 +289,8 @@ function TransactionsPage() {
         fetchTransactionsData();
     } catch (error) {
         toast.error(language === "en" ? "An error occurred while saving the transaction." : "Terjadi kesalahan saat menyimpan transaksi.");
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
@@ -497,7 +504,7 @@ function TransactionsPage() {
               <Search className="w-4 h-4 text-brand-600 shrink-0" />
               <span className="truncate">
                 {language === 'en' ? 'Showing search result for:' : 'Menampilkan hasil pencarian untuk:'}{' '}
-                <span className="font-bold text-slate-900">"{searchQuery}"</span>
+                <span className="font-bold text-slate-900">&ldquo;{searchQuery}&rdquo;</span>
               </span>
             </div>
             <button
@@ -532,6 +539,7 @@ function TransactionsPage() {
         onClose={() => setIsModalOpen(false)}
         modalMode={modalMode}
         handleFormSubmit={handleFormSubmit}
+        isSubmitting={isSubmitting}
         formType={formType}
         setFormType={setFormType}
         formAmount={formAmount}
