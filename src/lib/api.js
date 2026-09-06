@@ -58,6 +58,18 @@ async function checkIsBrave() {
 // Core Fetch Wrapper
 // =============================================
 
+export class ApiError extends Error {
+  constructor(message, status, data = null, errors = null) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.data = data;
+    this.errors = errors;
+    this.isApiError = true;
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
+
 /**
  * fetchAPI — wrapper untuk semua HTTP request ke backend
  * Otomatis: attach Bearer token, handle error, parse JSON
@@ -128,15 +140,12 @@ export async function fetchAPI(endpoint, options = {}) {
         }
       }
 
-      // Gunakan plain object alih-alih instance Error agar Next.js dev overlay tidak ter-trigger
-      // saat komponen melakukan console.error(error) pada response 401.
-      throw {
-        isApiError: true,
-        message: errorMsg,
-        status: response.status,
-        data: payload,
-        errors: response.status === 422 ? payload?.errors : null
-      };
+      throw new ApiError(
+        errorMsg,
+        response.status,
+        payload,
+        response.status === 422 ? payload?.errors : null
+      );
     }
 
     // Normalize response
@@ -162,10 +171,10 @@ export async function fetchAPI(endpoint, options = {}) {
 
     // Network error
     if (error.name === "TypeError" || error.name === "FetchError") {
-      const networkError = new Error(
-        "Koneksi ke server terputus. Periksa koneksi internet Anda."
+      const networkError = new ApiError(
+        "Koneksi ke server terputus. Periksa koneksi internet Anda.",
+        503
       );
-      networkError.status = 503;
       throw networkError;
     }
 
