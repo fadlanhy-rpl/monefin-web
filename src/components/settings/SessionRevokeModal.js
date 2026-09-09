@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { LogOut, X, AlertTriangle, Laptop, Globe } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export default function SessionRevokeModal({
   isOpen,
@@ -14,11 +18,7 @@ export default function SessionRevokeModal({
   isLoading = false,
 }) {
   const { t } = useLanguage();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function SessionRevokeModal({
   const isSingle = !!session;
 
   return createPortal(
-    <div className="fixed inset-0 w-screen h-screen min-h-screen bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 w-screen h-screen min-h-screen bg-slate-950/70 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto select-none">
       {/* Click outside to close backdrop */}
       <div 
         className="fixed inset-0 -z-10" 
@@ -45,7 +45,7 @@ export default function SessionRevokeModal({
         aria-hidden="true"
       />
 
-      <div className="bg-white rounded-[2.25rem] w-full max-w-md shadow-2xl p-6 sm:p-8 border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-center relative my-auto overflow-hidden">
+      <div className="bg-white rounded-[2.25rem] sm:rounded-[2.5rem] w-full max-w-md shadow-2xl p-6 sm:p-8 border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-center relative my-auto overflow-hidden">
         
         {/* Top Accent Line */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-red-600" />

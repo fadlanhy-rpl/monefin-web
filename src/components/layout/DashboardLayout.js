@@ -1,15 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import OnboardingTutorialModal from "../onboarding/OnboardingTutorialModal";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function DashboardLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isAuthenticated, loading } = useAuth();
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const hasTriggeredRef = useRef(false);
+
+  const { isAuthenticated, loading, user, updateProfile } = useAuth();
   const router = useRouter();
+
+  const tutorialShowOnLogin = user?.preferences?.showTutorialOnLogin !== false &&
+    user?.preferences?.showTutorialOnLogin !== "false" &&
+    user?.preferences?.showTutorialOnLogin !== 0;
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -19,6 +27,71 @@ export default function DashboardLayout({ children }) {
       router.replace("/login");
     }
   }, [loading, isAuthenticated, router]);
+
+  // Periksa apakah preferensi pengguna mengaktifkan tutorial setiap kali login
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      const showPref = user?.preferences?.showTutorialOnLogin !== false &&
+                       user?.preferences?.showTutorialOnLogin !== "false" &&
+                       user?.preferences?.showTutorialOnLogin !== 0;
+
+      // Cek apakah di sesi browser saat ini tutorial sudah pernah dimunculkan untuk akun ini
+      if (typeof window !== "undefined") {
+        const userKey = user.id ? `monefin_tutorial_shown_v2_${user.id}` : `monefin_tutorial_shown_v2_${user.email || "guest"}`;
+        
+        // Cek jika ini adalah event login baru
+        const isLoginEvent = sessionStorage.getItem("monefin_login_event") === "true";
+        if (isLoginEvent) {
+          sessionStorage.removeItem("monefin_login_event");
+          sessionStorage.removeItem(userKey);
+        }
+
+        const sessionShown = sessionStorage.getItem(userKey);
+
+        // Hapus legacy global key jika ada agar tidak memblokir akun lain di tab yang sama
+        sessionStorage.removeItem("monefin_tutorial_session_shown");
+
+        if ((isLoginEvent || !sessionShown) && showPref && !hasTriggeredRef.current) {
+          const t = setTimeout(() => {
+            hasTriggeredRef.current = true;
+            sessionStorage.setItem(userKey, "true");
+            setIsTutorialOpen(true);
+          }, 80);
+          return () => clearTimeout(t);
+        }
+      }
+    }
+  }, [loading, isAuthenticated, user]);
+
+  // Listener untuk event kustom saat tombol "Buka Panduan Tutorial Sekarang" ditekan di Pengaturan
+  useEffect(() => {
+    function handleOpenTutorialEvent() {
+      setIsTutorialOpen(true);
+    }
+    window.addEventListener("open-onboarding-tutorial", handleOpenTutorialEvent);
+    return () => window.removeEventListener("open-onboarding-tutorial", handleOpenTutorialEvent);
+  }, []);
+
+  // Handler toggle langsung dari modal, otomatis update preferensi akun
+  const handleToggleTutorialFromModal = async (newVal) => {
+    if (user && updateProfile) {
+      try {
+        const updatedPrefs = {
+          ...(user.preferences || {}),
+          showTutorialOnLogin: newVal,
+        };
+        const formData = new FormData();
+        formData.append("name", user.name || "");
+        if (user.phone) formData.append("phone", user.phone);
+        if (user.occupation) formData.append("occupation", user.occupation);
+        if (user.bio) formData.append("bio", user.bio);
+        formData.append("preferences", JSON.stringify(updatedPrefs));
+        await updateProfile(formData);
+      } catch (err) {
+        console.error("Gagal memperbarui preferensi tutorial dari modal:", err);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -44,6 +117,14 @@ export default function DashboardLayout({ children }) {
           {children}
         </main>
       </div>
+
+      {/* Interactive Onboarding Tutorial Modal */}
+      <OnboardingTutorialModal
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
+        showTutorialOnLogin={tutorialShowOnLogin}
+        onToggleShowTutorialOnLogin={handleToggleTutorialFromModal}
+      />
     </div>
   );
 }

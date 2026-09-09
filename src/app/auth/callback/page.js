@@ -34,6 +34,9 @@ function AuthCallbackContent() {
 
       // Verifikasi ke backend dan hydrate user state
       checkAuth().then(() => {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("monefin_tutorial_session_shown");
+        }
         const activeLang = typeof window !== "undefined" ? (localStorage.getItem("language") || language) : language;
         toast.success(
           activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",

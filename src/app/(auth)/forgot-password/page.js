@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 import { Mail, ArrowRight, ArrowLeft } from "lucide-react";
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordContent() {
   const router = useRouter();
-  const { forgotPassword } = useAuth();
-  const { t, language } = useLanguage();
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const { forgotPassword, isAuthenticated } = useAuth();
+  const { language } = useLanguage();
+  const isEn = language === "en";
+
+  const initialEmail = searchParams.get("email") || "";
+  const [email, setEmail] = useState(initialEmail);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -24,13 +28,17 @@ export default function ForgotPasswordPage() {
 
     if (result.success) {
       setSent(true);
-      toast.success(language === "en" ? "OTP code has been sent to your email!" : "Kode OTP telah dikirim ke email Anda!");
-      // Redirect ke reset password setelah 1.5 detik
+      toast.success(isEn ? "OTP code has been sent to your email!" : "Kode OTP telah dikirim ke email Anda!");
       setTimeout(() => {
         router.push(`/reset-password?email=${encodeURIComponent(email)}`);
       }, 1500);
     } else {
-      toast.error(result.error || (language === "en" ? "Failed to send OTP. Make sure your email is registered." : "Gagal mengirim OTP. Pastikan email Anda terdaftar."));
+      toast.error(
+        result.error ||
+          (isEn
+            ? "Failed to send OTP. Make sure your email is registered."
+            : "Gagal mengirim OTP. Pastikan email Anda terdaftar.")
+      );
     }
 
     setIsSubmitting(false);
@@ -40,13 +48,14 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#e6f2f0] via-white to-[#f0faf9] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-3xl shadow-xl shadow-[#00685F]/10 border border-[#00685F]/5 p-8 sm:p-10">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-[#00685F] transition-colors group mb-6"
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-[#00685F] transition-colors group mb-6 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            <span>Kembali ke Beranda</span>
-          </Link>
+            <span>{isEn ? "Go Back" : "Kembali"}</span>
+          </button>
 
           {/* Icon */}
           <div className="flex justify-center mb-6">
@@ -56,16 +65,22 @@ export default function ForgotPasswordPage() {
           </div>
 
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Lupa Password?</h1>
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              {isEn ? "Forgot Password?" : "Lupa Password?"}
+            </h1>
             <p className="text-gray-500 text-sm mt-2 leading-relaxed">
-              Masukkan email akun Anda. Kami akan mengirimkan kode OTP untuk mereset password.
+              {isEn
+                ? "Enter your account email. We will send an OTP verification code to reset your password."
+                : "Masukkan email akun Anda. Kami akan mengirimkan kode OTP untuk mereset password."}
             </p>
           </div>
 
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Email Address</label>
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {isEn ? "Email Address" : "Alamat Email"}
+                </label>
                 <div className="relative mt-2 group">
                   <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-300 group-focus-within:text-[#00685F] transition-colors">
                     <Mail className="w-5 h-5" />
@@ -84,15 +99,17 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#00685F] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004D46] transition-all shadow-lg shadow-[#00685F]/20 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-[#00685F] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004D46] transition-all shadow-lg shadow-[#00685F]/20 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    Mengirim OTP...
+                    {isEn ? "Sending OTP..." : "Mengirim OTP..."}
                   </>
                 ) : (
-                  <>Kirim Kode OTP <ArrowRight className="w-4 h-4" /></>
+                  <>
+                    {isEn ? "Send OTP Code" : "Kirim Kode OTP"} <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </form>
@@ -102,20 +119,42 @@ export default function ForgotPasswordPage() {
                 <ArrowRight className="w-6 h-6 text-green-500" />
               </div>
               <p className="text-sm text-gray-600 font-medium">
-                OTP dikirim ke <span className="font-bold text-[#00685F]">{email}</span>
+                {isEn ? "OTP sent to" : "OTP dikirim ke"}{" "}
+                <span className="font-bold text-[#00685F]">{email}</span>
               </p>
-              <p className="text-xs text-gray-400">Mengarahkan ke halaman reset password...</p>
+              <p className="text-xs text-gray-400">
+                {isEn ? "Redirecting to reset password page..." : "Mengarahkan ke halaman reset password..."}
+              </p>
             </div>
           )}
 
           <div className="mt-6 text-center">
-            <Link href="/login" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#00685F] transition-colors font-medium">
+            <Link
+              href={isAuthenticated ? "/settings" : "/login"}
+              className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#00685F] transition-colors font-medium"
+            >
               <ArrowLeft className="w-3 h-3" />
-              Kembali ke Login
+              {isAuthenticated
+                ? (isEn ? "Back to Settings" : "Kembali ke Pengaturan")
+                : (isEn ? "Back to Login" : "Kembali ke Login")}
             </Link>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-[#e6f2f0] via-white to-[#f0faf9] flex items-center justify-center p-4">
+          <div className="w-8 h-8 border-4 border-[#00685F]/20 border-t-[#00685F] rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <ForgotPasswordContent />
+    </Suspense>
   );
 }

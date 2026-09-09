@@ -20,8 +20,6 @@ const authOnlyPaths = [
   "/login",
   "/register",
   "/verify-email",
-  "/forgot-password",
-  "/reset-password",
 ];
 
 export function middleware(request) {

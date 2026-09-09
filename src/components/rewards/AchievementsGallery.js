@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Zap, 
   Flame, 
@@ -15,7 +15,9 @@ import {
   ArrowLeftRight,
   PiggyBank,
   PieChart,
-  Inbox
+  Inbox,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { getLocalizedAchievement } from "../../lib/gamificationDictionary";
@@ -77,6 +79,9 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
   const [filter, setFilter] = useState("all"); // all, unlocked, locked
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedBadge, setSelectedBadge] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 6;
 
   const achList = Array.isArray(achievements) ? achievements : (achievements ? Object.values(achievements) : []);
   const unlockedCount = achList.filter((a) => a.is_unlocked).length;
@@ -91,12 +96,31 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
     { key: "budget", label: language === "en" ? "Budgets" : "Anggaran", icon: PieChart },
   ];
 
-  const filteredAchievements = achList.filter((a) => {
-    if (filter === "unlocked" && !a.is_unlocked) return false;
-    if (filter === "locked" && a.is_unlocked) return false;
-    if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
-    return true;
-  });
+  const filteredAchievements = useMemo(() => {
+    return achList.filter((a) => {
+      if (filter === "unlocked" && !a.is_unlocked) return false;
+      if (filter === "locked" && a.is_unlocked) return false;
+      if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
+      return true;
+    });
+  }, [achList, filter, categoryFilter]);
+
+  const totalPages = Math.ceil(filteredAchievements.length / ITEMS_PER_PAGE) || 1;
+
+  const paginatedAchievements = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAchievements.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredAchievements, currentPage]);
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (newCat) => {
+    setCategoryFilter(newCat);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="bg-white p-5 sm:p-7 md:p-8 rounded-3xl sm:rounded-[2.25rem] border border-slate-100 shadow-sm space-y-5 sm:space-y-6 overflow-hidden">
@@ -108,10 +132,15 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
             <Trophy className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-              {t("rewards.achievements_title", "Koleksi Lencana & Prestasi")}
-            </h3>
-            <p className="text-xs text-slate-500 font-medium">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                {t("rewards.achievements_title", "Koleksi Lencana & Prestasi")}
+              </h3>
+              <span className="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-900 border border-amber-200/80 shadow-2xs">
+                {unlockedCount} / {totalCount} {language === "en" ? "Unlocked" : "Terbuka"} ({Math.round((unlockedCount / Math.max(1, totalCount)) * 100)}%)
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
               {t("rewards.achievements_desc", "Buka lencana khusus dengan mencapai milestone finansial penting.")}
             </p>
           </div>
@@ -121,7 +150,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
         <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl self-start md:self-auto overflow-x-auto max-w-full scrollbar-none border border-slate-200/50">
           <button
             type="button"
-            onClick={() => setFilter("all")}
+            onClick={() => handleFilterChange("all")}
             className={`px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
               filter === "all" 
                 ? "bg-white text-slate-900 shadow-sm ring-1 ring-black/5 scale-[1.02]" 
@@ -132,7 +161,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
           </button>
           <button
             type="button"
-            onClick={() => setFilter("unlocked")}
+            onClick={() => handleFilterChange("unlocked")}
             className={`px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
               filter === "unlocked" 
                 ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5 scale-[1.02]" 
@@ -143,7 +172,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
           </button>
           <button
             type="button"
-            onClick={() => setFilter("locked")}
+            onClick={() => handleFilterChange("locked")}
             className={`px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
               filter === "locked" 
                 ? "bg-white text-slate-700 shadow-sm ring-1 ring-black/5 scale-[1.02]" 
@@ -165,7 +194,7 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
             <button
               key={cat.key}
               type="button"
-              onClick={() => setCategoryFilter(cat.key)}
+              onClick={() => handleCategoryChange(cat.key)}
               className={`px-3.5 sm:px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all duration-300 ease-out cursor-pointer border shrink-0 flex items-center gap-1.5 active:scale-95 ${
                 isActive
                   ? "bg-[#00685F] text-white border-[#00685F] shadow-md shadow-emerald-800/20 scale-[1.03] ring-2 ring-[#00685F]/20"
@@ -203,10 +232,10 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
         </div>
       ) : (
         <div 
-          key={`${filter}-${categoryFilter}`}
+          key={`${filter}-${categoryFilter}-${currentPage}`}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4"
         >
-          {filteredAchievements.map((badge, idx) => {
+          {paginatedAchievements.map((badge, idx) => {
             const tierStyle = TIER_STYLES[badge.tier] || TIER_STYLES.bronze;
             const percent = badge.required_count > 0 
               ? Math.min(100, Math.round((badge.progress / badge.required_count) * 100)) 
@@ -287,6 +316,60 @@ export default function AchievementsGallery({ achievements = [], isLoading = fal
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination Controls (Shows 6 badges per page) */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
+          <p className="text-xs text-slate-500 font-medium order-2 sm:order-1">
+            {language === "en" ? "Showing" : "Menampilkan"}{" "}
+            <span className="font-bold text-slate-800">
+              {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredAchievements.length)}
+            </span>{" "}
+            {language === "en" ? "of" : "dari"}{" "}
+            <span className="font-bold text-slate-800">{filteredAchievements.length}</span>{" "}
+            {language === "en" ? "badges" : "lencana"}
+          </p>
+
+          <div className="flex items-center gap-2 order-1 sm:order-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>{language === "en" ? "Prev" : "Sebelumnya"}</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    currentPage === pageNum
+                      ? "bg-[#00685F] text-white shadow-xs"
+                      : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <span>{language === "en" ? "Next" : "Berikutnya"}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       )}
 
