@@ -119,9 +119,10 @@ export async function resetPassword(data) {
 /**
  * Hapus akun secara permanen
  */
-export async function deleteAccount() {
+export async function deleteAccount(password) {
   const result = await fetchAPI(`${ENDPOINT}/profile`, {
     method: "DELETE",
+    body: { password },
   });
   setAuthToken(null);
   return result;

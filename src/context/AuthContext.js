@@ -170,6 +170,17 @@ export function AuthProvider({ children }) {
 
       if (typeof window !== "undefined") {
         localStorage.setItem("user_data", JSON.stringify(data.user));
+        // Reset sesi tutorial untuk login baru agar panduan onboarding muncul sesuai preferensi
+        sessionStorage.removeItem("monefin_tutorial_session_shown");
+        sessionStorage.setItem("monefin_login_event", "true");
+        if (data.user?.id) {
+          sessionStorage.removeItem(`monefin_tutorial_shown_v2_${data.user.id}`);
+          sessionStorage.removeItem(`monefin_tutorial_shown_${data.user.id}`);
+        }
+        if (data.user?.email) {
+          sessionStorage.removeItem(`monefin_tutorial_shown_v2_${data.user.email}`);
+          sessionStorage.removeItem(`monefin_tutorial_shown_${data.user.email}`);
+        }
       }
 
       return { success: true, user: data.user };
@@ -207,6 +218,20 @@ export function AuthProvider({ children }) {
       setLoading(false);
       if (typeof window !== "undefined") {
         localStorage.removeItem("user_data");
+        sessionStorage.removeItem("monefin_tutorial_session_shown");
+        sessionStorage.removeItem("monefin_login_event");
+        try {
+          const keysToRemove = [];
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key && (key.startsWith("monefin_tutorial_shown") || key === "monefin_tutorial_session_shown")) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((k) => sessionStorage.removeItem(k));
+        } catch {
+          // Ignore session storage errors
+        }
       }
       router.push("/");
     }
@@ -329,10 +354,10 @@ export function AuthProvider({ children }) {
   // -------------------------------------------------------
   // Delete Account
   // -------------------------------------------------------
-  const deleteAccount = async () => {
+  const deleteAccount = async (password) => {
     setLoading(true);
     try {
-      await apiDeleteAccount();
+      await apiDeleteAccount(password);
     } catch (err) {
       console.error("Delete Account API failed:", err);
       const msg = err.data?.message || err.message || "Gagal menghapus akun.";
@@ -364,6 +389,16 @@ export function AuthProvider({ children }) {
         setIsAuthenticated(true);
         if (typeof window !== "undefined") {
           localStorage.setItem("user_data", JSON.stringify(data.user));
+          sessionStorage.removeItem("monefin_tutorial_session_shown");
+          sessionStorage.setItem("monefin_login_event", "true");
+          if (data.user?.id) {
+            sessionStorage.removeItem(`monefin_tutorial_shown_v2_${data.user.id}`);
+            sessionStorage.removeItem(`monefin_tutorial_shown_${data.user.id}`);
+          }
+          if (data.user?.email) {
+            sessionStorage.removeItem(`monefin_tutorial_shown_v2_${data.user.email}`);
+            sessionStorage.removeItem(`monefin_tutorial_shown_${data.user.email}`);
+          }
         }
       }
       return { success: true, user: data?.user };

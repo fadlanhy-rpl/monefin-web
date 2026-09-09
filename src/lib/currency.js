@@ -1,5 +1,8 @@
-// Primary: ExchangeRate-API v6 (paid, with API key)
-const EXCHANGE_RATE_API_V6 = "https://v6.exchangerate-api.com/v6/afce414b970a7edd65b756e9/latest/USD";
+// Primary: ExchangeRate-API v6 (paid, with API key) — key via env, lihat .env.example
+const EXCHANGE_RATE_API_KEY = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
+const EXCHANGE_RATE_API_V6 = EXCHANGE_RATE_API_KEY
+  ? `https://v6.exchangerate-api.com/v6/${EXCHANGE_RATE_API_KEY}/latest/USD`
+  : null;
 // Fallback: ExchangeRate-API v4 (free, no key needed)
 const EXCHANGE_RATE_API_FREE = "https://api.exchangerate-api.com/v4/latest/USD";
 
@@ -67,13 +70,15 @@ export async function getLiveRates() {
     }
   } catch (_) { /* ignore cache parse errors */ }
 
-  // 2. Coba API v6 (paid)
-  try {
-    const rates = await fetchRatesFrom(EXCHANGE_RATE_API_V6);
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, timestamp: Date.now() }));
-    return rates;
-  } catch (err) {
-    console.warn("ExchangeRate-API v6 failed, trying free API:", err.message);
+  // 2. Coba API v6 (paid) — hanya jika key tersedia
+  if (EXCHANGE_RATE_API_V6) {
+    try {
+      const rates = await fetchRatesFrom(EXCHANGE_RATE_API_V6);
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, timestamp: Date.now() }));
+      return rates;
+    } catch (err) {
+      console.warn("ExchangeRate-API v6 failed, trying free API:", err.message);
+    }
   }
 
   // 3. Fallback ke API v4 (free)

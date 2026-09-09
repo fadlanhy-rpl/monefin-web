@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { getAuthToken } from "../lib/api";
 
 /**
  * Custom hook to consume Server-Sent Events (SSE) stream from /api/ai/chat/stream
@@ -24,7 +25,7 @@ export function useAiStream() {
     setIsStreaming(true);
     setError(null);
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? getAuthToken() : null;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
     try {

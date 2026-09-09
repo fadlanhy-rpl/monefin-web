@@ -18,6 +18,19 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
 
   const activeData = period === "weekly" ? weeklyTrend : monthlyTrend;
 
+  // Calculate the maximum spending amount across the current period dataset
+  const maxActiveAmount = useMemo(() => {
+    if (!activeData || !Array.isArray(activeData) || activeData.length === 0) return 1;
+    let max = 0;
+    for (const d of activeData) {
+      const thisVal = Number(d.thisAmt) || 0;
+      const lastVal = Number(d.lastAmt) || 0;
+      if (thisVal > max) max = thisVal;
+      if (lastVal > max) max = lastVal;
+    }
+    return max > 0 ? max : 1;
+  }, [activeData]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
@@ -143,8 +156,16 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
                 const isThisHovered = isAnyBarHovered && hoveredBar.index === i && hoveredBar.type === 'this';
                 const isLastHovered = isAnyBarHovered && hoveredBar.index === i && hoveredBar.type === 'last';
 
-                const thisHeight = d.thisAmt > 0 ? Math.max(d.thisWeek, 4) : (d.thisWeek > 0 ? d.thisWeek : 0);
-                const lastHeight = d.lastAmt > 0 ? Math.max(d.last, 4) : (d.last > 0 ? d.last : 0);
+                const thisAmt = Number(d.thisAmt) || 0;
+                const lastAmt = Number(d.lastAmt) || 0;
+
+                // Proporsi tinggi bar terhadap pengeluaran tertinggi pada periode aktif
+                const thisHeight = thisAmt > 0
+                  ? Math.max(Math.round((thisAmt / maxActiveAmount) * 100), 4)
+                  : 0;
+                const lastHeight = lastAmt > 0
+                  ? Math.max(Math.round((lastAmt / maxActiveAmount) * 100), 4)
+                  : 0;
 
                 return (
                   <div key={d.label} className="flex flex-col items-center justify-end h-full gap-2 group">
@@ -200,7 +221,7 @@ export default function ChartsRow({ weeklyTrend = [], monthlyTrend = [], categor
             <div className="relative w-40 h-40 sm:w-44 sm:h-44">
               <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
                 <circle cx="100" cy="100" r="88" fill="none" stroke="#f1f5f4" strokeWidth="18" />
-                {computedDonutData.map((d, index) => {
+                {computedDonutData.map((d) => {
                   const isHovered = hoveredDonut && hoveredDonut.label === d.label;
                   return (
                     <circle
