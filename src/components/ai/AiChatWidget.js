@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { aiChat } from "../../services/ai.service";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useAiStream } from "../../hooks/useAiStream";
@@ -245,9 +244,6 @@ export default function AiChatWidget() {
 
   const quickQs = language === "id" ? QUICK_QUESTIONS : QUICK_QUESTIONS_EN;
 
-  // If AI is not enabled — don't render anything
-  if (!aiEnabled) return null;
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -353,6 +349,8 @@ export default function AiChatWidget() {
     setShowIntro(true);
     setQuotaError(null);
   };
+
+  if (!aiEnabled) return null;
 
   return (
     <>
