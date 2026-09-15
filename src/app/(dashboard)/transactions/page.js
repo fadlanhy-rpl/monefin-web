@@ -60,6 +60,7 @@ function TransactionsPageContent() {
     formNote,
     setFormNote,
     handleFormSubmit,
+    handleExport,
   } = useTransactionsPage();
 
   return (
@@ -76,55 +77,37 @@ function TransactionsPageContent() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1 sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setPage(1);
-                }}
-                placeholder={t("transactions.search_placeholder", "Cari transaksi...")}
-                className="w-full bg-white border border-slate-200/80 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#00685F] focus:ring-1 focus:ring-[#00685F] transition shadow-xs"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setPage(1);
-                  }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={openAddModal}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-[#00685F] text-white font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 text-xs sm:text-sm shadow-sm cursor-pointer whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{t("transactions.add_btn", "Tambah Transaksi")}</span>
-            </button>
-          </div>
+          <button
+            onClick={openAddModal}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#00685F] text-white font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 text-xs sm:text-sm shadow-sm cursor-pointer whitespace-nowrap self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{t("transactions.add_btn", "Tambah Transaksi")}</span>
+          </button>
         </div>
 
         {/* STATS OVERVIEW CARDS */}
-        <TransactionsStats stats={stats} isVisible={isVisible} />
+        <TransactionsStats 
+          totalIncome={stats.income}
+          totalExpenses={stats.expense}
+          netCashFlow={stats.net}
+          stats={stats}
+          isVisible={isVisible} 
+        />
 
         {/* FILTERS & SEARCH ROW */}
         <TransactionsFilters
           categoryIdFilter={categoryIdFilter}
-          setCategoryIdFilter={setCategoryIdFilter}
+          setCategoryIdFilter={(val) => { setCategoryIdFilter(val); setPage(1); }}
           accountFilter={accountFilter}
-          setAccountFilter={setAccountFilter}
+          setAccountFilter={(val) => { setAccountFilter(val); setPage(1); }}
+          accountIdFilter={accountFilter}
+          setAccountIdFilter={(val) => { setAccountFilter(val); setPage(1); }}
           dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
+          setDateFilter={(val) => { setDateFilter(val); setPage(1); }}
+          searchQuery={searchQuery}
+          setSearchQuery={(val) => { setSearchQuery(val); setPage(1); }}
+          handleExport={handleExport}
           setPage={setPage}
           categories={categories}
           accounts={accounts}
@@ -136,6 +119,31 @@ function TransactionsPageContent() {
           setIsAccountOpen={setIsAccountOpen}
           isVisible={isVisible}
         />
+
+        {/* Active Search Banner */}
+        {searchQuery && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-brand-50/70 border border-brand-200/80 px-4 py-3 rounded-2xl text-xs text-brand-900 shadow-xs animate-fadeIn">
+            <div className="flex items-center gap-2 min-w-0">
+              <Search className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="truncate">
+                {language === "en" ? "Showing search result for:" : "Menampilkan hasil pencarian untuk:"}{" "}
+                <span className="font-bold text-slate-900">&ldquo;{searchQuery}&rdquo;</span>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setDateFilter("last_30_days");
+                setPage(1);
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-brand-100/60 text-brand-700 hover:text-brand-900 font-bold rounded-xl border border-brand-200 transition-all text-xs shrink-0 cursor-pointer shadow-xs active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              {language === "en" ? "Show All Transactions" : "Tampilkan Semua Transaksi"}
+            </button>
+          </div>
+        )}
 
         {/* TRANSACTIONS DATA TABLE */}
         <TransactionsTable

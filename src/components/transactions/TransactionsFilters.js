@@ -8,6 +8,8 @@ export default function TransactionsFilters({
   setDateFilter,
   accountIdFilter,
   setAccountIdFilter,
+  accountFilter,
+  setAccountFilter,
   searchQuery,
   setSearchQuery,
   handleExport,
@@ -23,8 +25,11 @@ export default function TransactionsFilters({
 }) {
   const { t } = useLanguage();
 
+  const currentAccountId = accountIdFilter ?? accountFilter ?? "All";
+  const onAccountChange = setAccountIdFilter || setAccountFilter;
+
   const selectedCategory = categories.find(c => String(c.id) === String(categoryIdFilter));
-  const selectedAccount = accounts.find(a => String(a.id) === String(accountIdFilter));
+  const selectedAccount = accounts.find(a => String(a.id) === String(currentAccountId));
 
   return (
     <div className={`bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 transition-all duration-700 delay-400 ease-out transform relative z-20 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
@@ -136,7 +141,7 @@ export default function TransactionsFilters({
             }}
             className="flex items-center justify-between gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all select-none cursor-pointer min-w-[115px] sm:min-w-[160px]"
           >
-            <span className="truncate max-w-[100px]">Acc: {accountIdFilter === 'All' ? (t("transactions.acc_all") || 'All') : selectedAccount?.name}</span>
+            <span className="truncate max-w-[100px]">Acc: {currentAccountId === 'All' ? (t("transactions.acc_all") || 'All') : selectedAccount?.name}</span>
             <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isAccountOpen ? "rotate-180 text-[#00685F]" : ""}`} />
           </button>
           
@@ -147,26 +152,26 @@ export default function TransactionsFilters({
                 <button
                     type="button"
                     onClick={() => {
-                      setAccountIdFilter("All");
+                      onAccountChange?.("All");
                       setIsAccountOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${accountIdFilter === "All" ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
+                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${currentAccountId === "All" ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
                     <span>{t("transactions.all_accounts") || "All Accounts"}</span>
-                    {accountIdFilter === "All" && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                    {currentAccountId === "All" && <Check className="w-3.5 h-3.5 text-brand-600" />}
                 </button>
                 {accounts.map((acc) => (
                   <button
                     key={acc.id}
                     type="button"
                     onClick={() => {
-                      setAccountIdFilter(acc.id);
+                      onAccountChange?.(acc.id);
                       setIsAccountOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${String(accountIdFilter) === String(acc.id) ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
+                    className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors flex items-center justify-between ${String(currentAccountId) === String(acc.id) ? "bg-slate-50 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                   >
                     <span>{acc.name}</span>
-                    {String(accountIdFilter) === String(acc.id) && <Check className="w-3.5 h-3.5 text-brand-600" />}
+                    {String(currentAccountId) === String(acc.id) && <Check className="w-3.5 h-3.5 text-brand-600" />}
                   </button>
                 ))}
               </div>

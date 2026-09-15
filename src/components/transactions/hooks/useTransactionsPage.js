@@ -12,6 +12,8 @@ import {
 import { getCategories } from "../../../services/category.service";
 import { getAccounts } from "../../../services/account.service";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../hooks/useCurrency";
+import { formatDate } from "../../../lib/utils";
 
 function formatDateInput(dateStr) {
   if (!dateStr) return "";
@@ -24,6 +26,7 @@ function formatDateInput(dateStr) {
 export function useTransactionsPage() {
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
+  const { formatCurrency, currencyCode } = useCurrency();
 
   const [categoryIdFilter, setCategoryIdFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("All");
@@ -339,6 +342,150 @@ export function useTransactionsPage() {
     }
   };
 
+  const handleExport = () => {
+    if (!transactions || transactions.length === 0) {
+      toast.error(language === "en" ? "No transaction data to export!" : "Tidak ada data transaksi untuk diekspor!");
+      return;
+    }
+
+    const sep = ";";
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+    transactions.forEach((t) => {
+      const amt = Math.abs(parseFloat(t.amount) || 0);
+      if (t.type === "income") totalIncome += amt;
+      if (t.type === "expense") totalExpense += amt;
+    });
+    const netCashflow = totalIncome - totalExpense;
+
+    const formatCurrencyNum = (num) => {
+      if (!num || num === 0) return formatCurrency(0);
+      return formatCurrency(num);
+    };
+
+    const nowStr = new Date().toLocaleString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " WIB";
+
+    const categoryStats = {};
+    transactions.forEach((t) => {
+      const catName = t.category?.name || "Lainnya";
+      const amt = parseFloat(t.amount) || 0;
+      if (!categoryStats[catName]) {
+        categoryStats[catName] = { income: 0, expense: 0, count: 0 };
+      }
+      categoryStats[catName].count += 1;
+      if (t.type === "income") categoryStats[catName].income += amt;
+      if (t.type === "expense") categoryStats[catName].expense += Math.abs(amt);
+    });
+
+    const categoryStatsRows = [
+      "",
+      `"STATISTIK PER KATEGORI"`,
+      `"Kategori"${sep}"Jml Transaksi"${sep}"Total Pemasukan (${currencyCode})"${sep}"Total Pengeluaran (${currencyCode})"`,
+    ];
+    Object.keys(categoryStats).sort().forEach((cat) => {
+      const catStat = categoryStats[cat];
+      categoryStatsRows.push(
+        `"${cat}"${sep}"${catStat.count}"${sep}"${formatCurrencyNum(catStat.income)}"${sep}"${formatCurrencyNum(catStat.expense)}"`
+      );
+    });
+
+    const reportMetadata = [
+      "sep=" + sep,
+      `"LAPORAN MUTASI DAN RIWAYAT TRANSAKSI - MONEFIN"`,
+      "",
+      `"INFORMASI LAPORAN"`,
+      `"Tanggal Cetak"${sep}"${nowStr}"`,
+      `"Total Record"${sep}"${transactions.length} Transaksi"`,
+      "",
+      `"RINGKASAN KEUANGAN"`,
+      `"Total Pemasukan"${sep}"${formatCurrencyNum(totalIncome)}"`,
+      `"Total Pengeluaran"${sep}"${formatCurrencyNum(totalExpense)}"`,
+      `"Net Cashflow"${sep}"${netCashflow >= 0 ? "+" : "-"}${formatCurrencyNum(Math.abs(netCashflow))}"`,
+    ];
+
+    const headers = [
+      "No.",
+      "Tanggal",
+      "Tipe Transaksi",
+      "Kategori",
+      "Akun / Sumber Dana",
+      "Keterangan / Catatan",
+      "Pemasukan",
+      "Pengeluaran",
+      "Nominal Net",
+    ];
+
+    const dataRows = transactions.map((t, idx) => {
+      const isExpense = t.type === "expense";
+      const amt = Math.abs(parseFloat(t.amount) || 0);
+      const dateFormatted = formatDate(t.transaction_date);
+      const categoryName = t.category?.name || "Lainnya";
+      const accountName = t.account?.name || "Utama";
+      const noteClean = (t.description || "-").replace(/"/g, '""');
+      const typeLabel = isExpense ? "Pengeluaran" : "Pemasukan";
+
+      const incomeVal = !isExpense ? formatCurrencyNum(amt) : "-";
+      const expenseVal = isExpense ? formatCurrencyNum(amt) : "-";
+      const netVal = (isExpense ? "- " : "+ ") + formatCurrencyNum(amt);
+
+      return [
+        idx + 1,
+        `"${dateFormatted}"`,
+        `"${typeLabel}"`,
+        `"${categoryName}"`,
+        `"${accountName}"`,
+        `"${noteClean}"`,
+        `"${incomeVal}"`,
+        `"${expenseVal}"`,
+        `"${netVal}"`,
+      ].join(sep);
+    });
+
+    const summaryRow = [
+      `"TOTAL REKAPITULASI"`,
+      "",
+      "",
+      "",
+      "",
+      "",
+      `"${formatCurrencyNum(totalIncome)}"`,
+      `"${formatCurrencyNum(totalExpense)}"`,
+      `"${netCashflow >= 0 ? "+" : "-"}${formatCurrencyNum(Math.abs(netCashflow))}"`,
+    ].join(sep);
+
+    const fullCsvContent = "\uFEFF" + [
+      ...reportMetadata,
+      ...categoryStatsRows,
+      "",
+      `"RINCIAN TRANSAKSI"`,
+      headers.join(sep),
+      ...dataRows,
+      "",
+      summaryRow,
+    ].join("\n");
+
+    const blob = new Blob([fullCsvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    const todayStr = new Date().toISOString().split("T")[0];
+    link.setAttribute("download", `Laporan_Transaksi_MoneFin_${todayStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Berhasil mengunduh Laporan Transaksi (${transactions.length} data)!`);
+  };
+
   return {
     t,
     language,
@@ -350,6 +497,7 @@ export function useTransactionsPage() {
     setDateFilter,
     searchQuery,
     setSearchQuery,
+    handleExport,
     isVisible,
     page,
     setPage,
