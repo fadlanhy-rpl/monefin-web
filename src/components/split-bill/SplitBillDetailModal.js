@@ -1,20 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   X, 
   Receipt, 
   CheckCircle2, 
   Clock, 
-  Share2, 
-  Copy, 
   Send, 
-  CreditCard, 
   Wallet, 
-  Check, 
-  ExternalLink,
-  Sparkles,
-  Utensils
+  Check 
 } from "lucide-react";
 import { 
   getSplitBillDetail, 
@@ -38,31 +32,49 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
   const [isRecordingExpense, setIsRecordingExpense] = useState(false);
   const [payingParticipantId, setPayingParticipantId] = useState(null);
 
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
     if (!billId) return;
     try {
-      setIsLoading(true);
       const res = await getSplitBillDetail(billId);
       setBill(res.data);
-    } catch (err) {
+    } catch {
       toast.error(language === "en" ? "Failed to load bill details." : "Gagal memuat detail tagihan.");
       onClose();
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [billId, language, onClose]);
 
   useEffect(() => {
+    let ignore = false;
     if (isOpen && billId) {
-      fetchDetail();
-      getAccounts().then(res => {
-        const accs = res.data || res || [];
-        setAccounts(accs);
-      }).catch((err) => {
-        console.warn("Failed to load accounts for split bill detail:", err?.message || err);
-      });
+      async function load() {
+        try {
+          const [billRes, accRes] = await Promise.all([
+            getSplitBillDetail(billId),
+            getAccounts().catch(() => ({ data: [] }))
+          ]);
+          if (!ignore) {
+            setBill(billRes.data);
+            setAccounts(accRes.data || accRes || []);
+          }
+        } catch {
+          if (!ignore) {
+            toast.error(language === "en" ? "Failed to load bill details." : "Gagal memuat detail tagihan.");
+            onClose();
+          }
+        } finally {
+          if (!ignore) {
+            setIsLoading(false);
+          }
+        }
+      }
+      load();
     }
-  }, [isOpen, billId]);
+    return () => {
+      ignore = true;
+    };
+  }, [isOpen, billId, language, onClose]);
 
   const handleTogglePayment = async (participant) => {
     const isCurrentlyPaid = participant.status === "paid";
@@ -80,7 +92,7 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
       );
       fetchDetail();
       if (onUpdated) onUpdated();
-    } catch (err) {
+    } catch {
       toast.error(language === "en" ? "Failed to update payment status." : "Gagal mengupdate status pembayaran.");
     } finally {
       setPayingParticipantId(null);
@@ -121,7 +133,7 @@ export default function SplitBillDetailModal({ billId, isOpen, onClose, onUpdate
 
       // Open WhatsApp link
       window.open(whatsapp_url, "_blank");
-    } catch (err) {
+    } catch {
       toast.error(language === "en" ? "Failed to generate WhatsApp text." : "Gagal membuat teks WhatsApp.");
     }
   };

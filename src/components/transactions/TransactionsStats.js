@@ -3,10 +3,20 @@ import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
 
-export default function TransactionsStats({ totalIncome, totalExpenses, netCashFlow, isVisible }) {
+export default function TransactionsStats({ 
+  totalIncome, 
+  totalExpenses, 
+  netCashFlow, 
+  stats, 
+  isVisible 
+}) {
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const { isBalanceHidden, toggleBalancePrivacy } = useBalancePrivacy();
+
+  const income = totalIncome ?? stats?.income ?? 0;
+  const expenses = totalExpenses ?? stats?.expense ?? 0;
+  const net = netCashFlow ?? stats?.net ?? (income - expenses);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
       {/* Income Card */}
@@ -26,9 +36,9 @@ export default function TransactionsStats({ totalIncome, totalExpenses, netCashF
             </div>
             <h3 
               className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 mt-1.5 sm:mt-2 font-mono sm:font-sans tracking-tight break-normal"
-              title={isBalanceHidden ? undefined : formatCurrency(totalIncome)}
+              title={isBalanceHidden ? undefined : formatCurrency(income)}
             >
-              {isBalanceHidden ? "••••••••" : formatCurrency(totalIncome)}
+              {isBalanceHidden ? "••••••••" : formatCurrency(income)}
             </h3>
             <p className="text-[10px] text-gray-400 mt-0.5 sm:mt-1 truncate">{t("transactions.this_current_month") || "This current month"}</p>
           </div>
@@ -73,9 +83,9 @@ export default function TransactionsStats({ totalIncome, totalExpenses, netCashF
             </div>
             <h3 
               className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 mt-1.5 sm:mt-2 font-mono sm:font-sans tracking-tight break-normal"
-              title={isBalanceHidden ? undefined : formatCurrency(totalExpenses)}
+              title={isBalanceHidden ? undefined : formatCurrency(expenses)}
             >
-              {isBalanceHidden ? "••••••••" : formatCurrency(totalExpenses)}
+              {isBalanceHidden ? "••••••••" : formatCurrency(expenses)}
             </h3>
             <p className="text-[10px] text-gray-400 mt-0.5 sm:mt-1 truncate">{t("transactions.this_current_month") || "This current month"}</p>
           </div>
@@ -120,9 +130,9 @@ export default function TransactionsStats({ totalIncome, totalExpenses, netCashF
             </div>
             <h3 
               className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 mt-1.5 sm:mt-2 font-mono sm:font-sans tracking-tight break-normal"
-              title={isBalanceHidden ? undefined : formatCurrency(netCashFlow)}
+              title={isBalanceHidden ? undefined : formatCurrency(net)}
             >
-              {isBalanceHidden ? "••••••••" : formatCurrency(netCashFlow)}
+              {isBalanceHidden ? "••••••••" : formatCurrency(net)}
             </h3>
             <p className="text-[10px] text-[#00685F]/70 mt-0.5 sm:mt-1 truncate">{t("transactions.estimated_savings") || "Estimated savings potential"}</p>
           </div>
