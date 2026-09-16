@@ -3,7 +3,8 @@ export async function GET(request, { params }) {
   const pathSegments = resolvedParams?.path || [];
   const filePath = Array.isArray(pathSegments) ? pathSegments.join("/") : pathSegments;
   
-  const backendBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") || "http://127.0.0.1:8000";
+  let backendBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  backendBase = backendBase.replace(/(\/index\.php)?\/api\/?$/, "").replace(/\/+$/, "");
   const backendUrl = `${backendBase}/storage/${filePath}`;
 
   try {
@@ -12,7 +13,7 @@ export async function GET(request, { params }) {
       return new Response(null, { status: res.status });
     }
     const arrayBuffer = await res.arrayBuffer();
-    const contentType = res.headers.get("content-type") || "image/png";
+    const contentType = res.headers.get("content-type") || "image/jpeg";
 
     return new Response(arrayBuffer, {
       headers: {

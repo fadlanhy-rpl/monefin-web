@@ -50,7 +50,7 @@ export default function ProfileSection({
   };
 
   return (
-    <div className="bg-white p-5 sm:p-7 md:p-9 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-6 sm:gap-8 lg:gap-12 transition-all duration-300">
+    <div className="bg-white p-4 sm:p-7 md:p-9 lg:p-10 rounded-[1.75rem] sm:rounded-[2.5rem] border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-5 sm:gap-8 lg:gap-12 transition-all duration-300">
       
       {/* Left Avatar Upload Box */}
       <div className="flex flex-col items-center md:items-start shrink-0">
@@ -69,28 +69,38 @@ export default function ProfileSection({
             type="file"
             id="avatarUpload"
             accept="image/jpeg,image/png,image/webp,image/gif"
-            className="hidden"
+            className="sr-only"
             onChange={handleFileInputChange}
           />
-          <button 
-            type="button"
-            onClick={() => document.getElementById('avatarUpload').click()}
+          <label 
+            htmlFor="avatarUpload"
             title={isEn ? "Change profile photo" : "Ubah Foto Profil"}
             aria-label={isEn ? "Change profile photo" : "Ubah Foto Profil"}
-            className="absolute -bottom-2 -right-2 w-10 h-10 sm:w-11 sm:h-11 bg-[#00685F] text-white rounded-2xl flex items-center justify-center border-4 border-white shadow-lg hover:bg-[#004D46] hover:scale-110 active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00685F]"
+            className="absolute -bottom-2 -right-2 w-11 h-11 bg-[#00685F] text-white rounded-2xl flex items-center justify-center border-4 border-white shadow-lg hover:bg-[#004D46] hover:scale-110 active:scale-95 transition-all cursor-pointer focus-within:ring-2 focus-within:ring-[#00685F]"
           >
-            <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
+            <Camera className="w-5 h-5" />
+          </label>
         </div>
 
-        <div className="mt-3.5 text-center md:text-left space-y-1">
+        {/* Mobile touch-friendly button */}
+        <div className="mt-3 text-center md:text-left space-y-1.5">
+          <div className="flex sm:hidden justify-center">
+            <label
+              htmlFor="avatarUpload"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-50 border border-teal-200/80 text-[#00685F] text-xs font-black rounded-xl cursor-pointer active:scale-95 transition shadow-2xs"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>{isEn ? "Choose Photo" : "Pilih Foto Baru"}</span>
+            </label>
+          </div>
+
           <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
             {t("settings.format_jpg_png") || "JPG, PNG ATAU WEBP"}
           </span>
           <p className="text-[11px] text-slate-400 font-medium">
-            {t("settings.max_size") || "Ukuran maksimal 5MB"}
+            {t("settings.max_size") || "Ukuran maksimal 10MB"}
           </p>
-          <div className="pt-1.5 flex justify-center md:justify-start">
+          <div className="pt-1 flex justify-center md:justify-start">
             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-teal-800 bg-teal-50/90 border border-teal-200/70 px-2.5 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3 text-[#00685F]" />
               <span>{isEn ? "Crop tool enabled" : "Crop foto aktif"}</span>
@@ -207,12 +217,12 @@ export default function ProfileSection({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row justify-end items-center gap-3 pt-4 border-t border-slate-100">
+        <div className="flex flex-col-reverse sm:flex-row justify-end items-center gap-2.5 sm:gap-3 pt-4 border-t border-slate-100">
           <button 
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="w-full sm:w-auto min-h-[44px] text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-5 py-2.5 rounded-xl hover:bg-slate-100 select-none text-center flex items-center justify-center gap-1.5 disabled:opacity-50"
+            className="w-full sm:w-auto min-h-[46px] text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-5 py-2.5 rounded-xl hover:bg-slate-100 select-none text-center flex items-center justify-center gap-1.5 disabled:opacity-50"
           >
             <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
             <span>{t("common.cancel")}</span>
@@ -221,7 +231,7 @@ export default function ProfileSection({
             type="button"
             onClick={onSave}
             disabled={isSaving}
-            className="w-full sm:w-auto min-h-[44px] bg-[#00685F] text-white px-7 sm:px-8 py-3 rounded-2xl text-xs sm:text-sm font-extrabold hover:bg-[#004D46] transition-all shadow-md shadow-[#00685F]/20 active:scale-[0.98] cursor-pointer text-center select-none flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full sm:w-auto min-h-[46px] bg-[#00685F] text-white px-7 sm:px-8 py-3 rounded-2xl text-xs sm:text-sm font-extrabold hover:bg-[#004D46] transition-all shadow-md shadow-[#00685F]/20 active:scale-[0.98] cursor-pointer text-center select-none flex items-center justify-center gap-2 disabled:opacity-60"
           >
             <Check className="w-4 h-4 text-emerald-200" />
             <span>{t("common.save")}</span>
