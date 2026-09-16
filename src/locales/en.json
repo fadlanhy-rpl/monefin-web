@@ -478,7 +478,9 @@
     "desc_placeholder": "Short explanation...",
     "type_label": "Category Type",
     "icon_label": "Icon",
-    "color_label": "Color"
+    "color_label": "Color",
+    "delete_title": "Delete Category?",
+    "delete_desc": "Are you sure you want to delete this category? Associated analytics will be adjusted."
   },
   "budgets": {
     "title": "Budgets & Limits",

@@ -478,7 +478,9 @@
     "desc_placeholder": "Penjelasan singkat...",
     "type_label": "Tipe Kategori",
     "icon_label": "Ikon",
-    "color_label": "Warna"
+    "color_label": "Warna",
+    "delete_title": "Hapus Kategori?",
+    "delete_desc": "Apakah Anda yakin ingin menghapus kategori ini? Seluruh statistik terkait kategori ini akan disesuaikan."
   },
   "budgets": {
     "title": "Anggaran & Limits",

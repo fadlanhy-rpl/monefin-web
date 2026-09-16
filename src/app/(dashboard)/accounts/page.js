@@ -50,6 +50,7 @@ function AccountsPageContent() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const deletingAccount = accounts.find(a => a.id === deletingId);
 
   // Form states
   const [formName, setFormName] = useState("");
@@ -285,8 +286,14 @@ function AccountsPageContent() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
-        title={t("accounts.delete_title") || "Hapus Akun ini?"}
-        message={t("accounts.delete_desc") || "Apakah Anda yakin ingin menghapus akun ini? Semua transaksi terkait akun ini tetap tersimpan tetapi sumber dana tidak dapat dipulihkan."}
+        title={t("accounts.delete_title") || (language === 'en' ? "Delete Account?" : "Hapus Akun ini?")}
+        message={
+          deletingAccount 
+            ? (language === 'en' 
+                ? `Are you sure you want to delete account "${deletingAccount.name}"? Associated transactions will be kept.` 
+                : `Apakah Anda yakin ingin menghapus akun "${deletingAccount.name}"? Semua transaksi terkait akun ini tetap tersimpan.`)
+            : (t("accounts.delete_desc") || "Apakah Anda yakin ingin menghapus akun ini? Semua transaksi terkait akun ini tetap tersimpan tetapi sumber dana tidak dapat dipulihkan.")
+        }
         confirmText={language === 'en' ? "Yes, Delete" : "Ya, Hapus"}
         cancelText={language === 'en' ? "Cancel" : "Batal"}
         isLoading={isDeleting}

@@ -151,8 +151,10 @@ function TransactionsPageContent() {
           paginationMeta={paginationMeta}
           page={page}
           setPage={setPage}
+          onPageChange={setPage}
           openAddModal={openAddModal}
           openEditModal={openEditModal}
+          handleDelete={handleDeleteClick}
           handleDeleteClick={handleDeleteClick}
           isVisible={isVisible}
         />
