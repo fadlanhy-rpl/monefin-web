@@ -13,8 +13,12 @@ export function getAvatarUrl(photo, name = "User") {
     return fallback;
   }
 
-  // Already a full HTTP/HTTPS URL (e.g. Google OAuth photo or CDN)
-  if (photo.startsWith("http://") || photo.startsWith("https://")) {
+  if (
+    photo.startsWith("http://") ||
+    photo.startsWith("https://") ||
+    photo.startsWith("data:") ||
+    photo.startsWith("blob:")
+  ) {
     return photo;
   }
 
@@ -22,8 +26,19 @@ export function getAvatarUrl(photo, name = "User") {
   const cleanPath = photo.replace(/^\/+/, "");
 
   // In production or development, point directly to public storage
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://sk0010uoic.skipper.my.id/index.php/api";
-  const domain = apiBase.replace(/(\/index\.php)?\/api\/?$/, "").replace(/\/+$/, "");
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://sk0010uoic.skipper.my.id/index.php/api";
+
+  let domain = "https://sk0010uoic.skipper.my.id";
+  try {
+    const parsed = new URL(apiBase);
+    domain = `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    domain = apiBase
+      .replace(/(\/index\.php)?\/api\/?$/, "")
+      .replace(/\/+$/, "");
+  }
 
   return `${domain}/storage/${cleanPath}`;
 }
