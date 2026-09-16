@@ -90,7 +90,7 @@ function SettingsContent() {
   }
 
   // Modal & Toast State
-  const [toastMessage, setToastMessage] = useState("");
+  const [toastState, setToastState] = useState({ message: "", type: "success" });
   const [isSaving, setIsSaving] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
@@ -124,11 +124,11 @@ function SettingsContent() {
   };
 
 
-  const showToast = (message) => {
-    setToastMessage(message);
+  const showToast = (message, type = "success") => {
+    setToastState({ message, type });
     setTimeout(() => {
-      setToastMessage("");
-    }, 3000);
+      setToastState({ message: "", type: "success" });
+    }, 3500);
   };
 
   const handleAvatarChange = (file) => {
@@ -158,12 +158,12 @@ function SettingsContent() {
           const photoUrl = result.user.photo.startsWith("http") ? result.user.photo : `/api/avatar/${result.user.photo}`;
           setAvatarUrl(photoUrl);
         }
-        showToast(currentGlobalLang === 'en' ? "Profile successfully updated." : "Profil berhasil diperbarui.");
+        showToast(currentGlobalLang === 'en' ? "Profile successfully updated." : "Profil berhasil diperbarui.", "success");
       } else {
-        showToast(result.error || (currentGlobalLang === 'en' ? "Failed to update profile." : "Gagal memperbarui profil."));
+        showToast(result.error || (currentGlobalLang === 'en' ? "Failed to update profile." : "Gagal memperbarui profil."), "error");
       }
-    } catch {
-      showToast(currentGlobalLang === 'en' ? "Failed to update profile." : "Gagal memperbarui profil.");
+    } catch (err) {
+      showToast(err?.message || (currentGlobalLang === 'en' ? "Failed to update profile." : "Gagal memperbarui profil."), "error");
     } finally {
       setIsSaving(false);
     }
@@ -521,10 +521,14 @@ function SettingsContent() {
       )}
 
       {/* Dynamic Toast Popup */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 max-w-sm bg-slate-900/95 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-bottom-5 duration-300 z-50 border border-slate-800">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span className="leading-snug">{toastMessage}</span>
+      {toastState.message && (
+        <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm bg-slate-900/95 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-bottom-5 duration-300 z-50 border border-slate-800">
+          {toastState.type === "error" ? (
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          )}
+          <span className="leading-snug">{toastState.message}</span>
         </div>
       )}
     </DashboardLayout>

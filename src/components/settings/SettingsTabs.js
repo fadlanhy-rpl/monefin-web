@@ -1,10 +1,15 @@
 "use client";
 
-import { User, ShieldCheck, Sliders, AlertTriangle, Bot } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
+import { User, ShieldCheck, Sliders, AlertTriangle, Bot, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 export default function SettingsTabs({ activeTab, setActiveTab }) {
   const { t } = useLanguage();
+  const scrollContainerRef = useRef(null);
+  const activeTabRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const tabs = [
     { id: "profile",     label: t("settings.tab_profile"),      icon: User },
@@ -14,13 +19,52 @@ export default function SettingsTabs({ activeTab, setActiveTab }) {
     { id: "danger",      label: t("settings.tab_delete"),       icon: AlertTriangle, danger: true },
   ];
 
+  const checkScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 10);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, []);
+
+  // Auto-scroll active tab into view on mobile
+  useEffect(() => {
+    if (activeTabRef.current && scrollContainerRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [activeTab]);
+
   return (
-    <div className="w-full select-none">
-      {/* Scrollable container with hidden scrollbar and touch-scroll ergonomics */}
-      <div className="overflow-x-auto no-scrollbar py-1 -my-1">
+    <div className="relative w-full select-none">
+      {/* Left scroll fade indicator for mobile */}
+      {canScrollLeft && (
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#f4f7f6] to-transparent z-10 pointer-events-none sm:hidden" />
+      )}
+
+      {/* Right scroll fade indicator for mobile */}
+      {canScrollRight && (
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#f4f7f6] to-transparent z-10 pointer-events-none sm:hidden" />
+      )}
+
+      {/* Touch-optimized horizontal scroll container */}
+      <div 
+        ref={scrollContainerRef}
+        onScroll={checkScroll}
+        className="overflow-x-auto overscroll-x-contain touch-pan-x scrollbar-none [&::-webkit-scrollbar]:hidden py-1 px-0.5 -my-1"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         <nav 
           aria-label="Settings Tabs"
-          className="inline-flex items-center gap-1 sm:gap-1.5 p-1.5 bg-slate-100/80 border border-slate-200/70 rounded-2xl w-full sm:w-auto min-w-full sm:min-w-0 shadow-xs"
+          className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 bg-slate-100/90 border border-slate-200/80 rounded-2xl w-max sm:w-auto min-w-full sm:min-w-0 shadow-2xs"
         >
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -28,9 +72,10 @@ export default function SettingsTabs({ activeTab, setActiveTab }) {
             return (
               <button
                 key={tab.id}
+                ref={isActive ? activeTabRef : null}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex-1 sm:flex-initial min-h-[44px] px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00685F] ${
+                className={`relative shrink-0 min-h-[42px] sm:min-h-[44px] px-3.5 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00685F] ${
                   isActive
                     ? tab.danger
                       ? "bg-red-500 text-white shadow-sm shadow-red-500/25 border border-red-400/40"

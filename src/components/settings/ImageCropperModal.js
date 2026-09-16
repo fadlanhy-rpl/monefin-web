@@ -76,6 +76,7 @@ export default function ImageCropperModal({
 
   const handleTouchMove = (e) => {
     if (!isDragging || e.touches.length !== 1) return;
+    if (e.cancelable) e.preventDefault();
     setOffset({
       x: e.touches[0].clientX - dragStart.x,
       y: e.touches[0].clientY - dragStart.y
@@ -88,6 +89,50 @@ export default function ImageCropperModal({
 
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360);
+  };
+
+  const handleUseOriginal = () => {
+    if (!imageRef.current) return;
+    const img = imageRef.current;
+    const canvas = document.createElement("canvas");
+    const maxDim = 800;
+    let w = img.naturalWidth || img.width || 400;
+    let h = img.naturalHeight || img.height || 400;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(img, 0, 0, w, h);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          let file;
+          try {
+            file = new File([blob], "profile-avatar.jpg", {
+              type: "image/jpeg",
+              lastModified: Date.now()
+            });
+          } catch {
+            blob.name = "profile-avatar.jpg";
+            blob.lastModifiedDate = new Date();
+            file = blob;
+          }
+          onCropComplete(file);
+          handleClose();
+        }
+      },
+      "image/jpeg",
+      0.88
+    );
   };
 
   const handleApplyCrop = () => {
@@ -116,8 +161,8 @@ export default function ImageCropperModal({
 
     // Hitung posisi draw
     // img rendered dimensions vs natural dimensions
-    const renderedWidth = img.width;
-    const renderedHeight = img.height;
+    const renderedWidth = img.width || 260;
+    const renderedHeight = img.height || 260;
 
     // Geser sesuai offset pan
     const drawX = (offset.x / zoom) - (renderedWidth / 2);
@@ -130,27 +175,34 @@ export default function ImageCropperModal({
     canvas.toBlob(
       (blob) => {
         if (blob) {
-          const croppedFile = new File([blob], "profile-avatar.jpg", {
-            type: "image/jpeg",
-            lastModified: Date.now()
-          });
+          let croppedFile;
+          try {
+            croppedFile = new File([blob], "profile-avatar.jpg", {
+              type: "image/jpeg",
+              lastModified: Date.now()
+            });
+          } catch {
+            blob.name = "profile-avatar.jpg";
+            blob.lastModifiedDate = new Date();
+            croppedFile = blob;
+          }
           onCropComplete(croppedFile);
           handleClose();
         }
       },
       "image/jpeg",
-      0.92
+      0.88
     );
   };
 
   if (!isOpen || !imageSrc || typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
-      <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col my-auto">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
+      <div className="bg-white w-full max-w-md rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col my-auto max-h-[95vh]">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
           <div>
             <h3 className="text-sm font-black text-slate-900 tracking-tight">
               {isEn ? "Crop Profile Photo" : "Sesuaikan Foto Profil"}
@@ -162,6 +214,7 @@ export default function ImageCropperModal({
           <button
             type="button"
             onClick={handleClose}
+            aria-label={isEn ? "Close" : "Tutup"}
             className="w-8 h-8 rounded-xl bg-white border border-slate-200/80 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -170,7 +223,7 @@ export default function ImageCropperModal({
 
         {/* Crop Viewport Canvas Area */}
         <div 
-          className="relative w-full h-80 bg-slate-900 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
+          className="relative w-full h-72 sm:h-80 bg-slate-900 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -194,9 +247,9 @@ export default function ImageCropperModal({
           />
 
           {/* Semi-transparent dark mask with circular/square cutout */}
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            {/* Viewport Boundary 260x260 with rounded shape & rule-of-thirds grid */}
-            <div className="w-[260px] h-[260px] rounded-3xl border-2 border-white/90 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
+            {/* Viewport Boundary 220px on tiny screens, 260px on larger screens */}
+            <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] rounded-3xl border-2 border-white/90 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] relative overflow-hidden">
               {/* Subtle Rule of Thirds Guide Lines */}
               <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none border border-white/20">
                 <div className="border-r border-b border-white/20"></div>
@@ -213,15 +266,15 @@ export default function ImageCropperModal({
           </div>
 
           {/* Hint Overlay */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none bg-slate-900/70 backdrop-blur-xs px-3 py-1 rounded-full text-[10px] font-bold text-white/80 flex items-center gap-1.5 border border-white/10 shadow-xs">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none bg-slate-900/75 backdrop-blur-xs px-3 py-1 rounded-full text-[10px] font-bold text-white/80 flex items-center gap-1.5 border border-white/10 shadow-xs">
             <Move className="w-3 h-3" />
-            <span>{isEn ? "Drag to move" : "Klik & geser foto"}</span>
+            <span>{isEn ? "Drag to move" : "Geser foto di layar"}</span>
           </div>
         </div>
 
         {/* Controls Toolbar: Zoom Slider & Rotate */}
-        <div className="p-5 bg-white space-y-4 border-t border-slate-100">
-          <div className="flex items-center gap-3">
+        <div className="p-4 sm:p-5 bg-white space-y-3 sm:space-y-4 border-t border-slate-100 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <ZoomOut className="w-4 h-4 text-slate-400 shrink-0" />
             <input
               type="range"
@@ -230,6 +283,7 @@ export default function ImageCropperModal({
               step="0.05"
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
+              aria-label="Zoom"
               className="w-full accent-[#00685F] h-1.5 bg-slate-200 rounded-lg cursor-pointer"
             />
             <ZoomIn className="w-4 h-4 text-slate-400 shrink-0" />
@@ -238,29 +292,38 @@ export default function ImageCropperModal({
               type="button"
               onClick={handleRotate}
               title={isEn ? "Rotate 90 degrees" : "Putar 90 derajat"}
-              className="p-2 ml-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-[#00685F] transition cursor-pointer shrink-0"
+              className="p-2 ml-1 sm:ml-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-[#00685F] transition cursor-pointer shrink-0"
             >
               <RotateCw className="w-4 h-4" />
             </button>
           </div>
 
           {/* Footer Action Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-2">
+          <div className="flex items-center justify-between gap-2 pt-1">
             <button
               type="button"
-              onClick={handleClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+              onClick={handleUseOriginal}
+              className="text-[11px] sm:text-xs font-bold text-slate-500 hover:text-slate-800 underline underline-offset-2 transition cursor-pointer py-1.5"
             >
-              {isEn ? "Cancel" : "Batal"}
+              {isEn ? "Skip & use full photo" : "Gunakan foto penuh"}
             </button>
-            <button
-              type="button"
-              onClick={handleApplyCrop}
-              className="px-6 py-2.5 rounded-xl bg-[#00685F] hover:bg-[#004D46] text-white text-xs font-black transition shadow-sm shadow-[#00685F]/20 flex items-center gap-1.5 cursor-pointer active:scale-95"
-            >
-              <Check className="w-4 h-4" />
-              <span>{isEn ? "Apply Crop" : "Terapkan Potongan"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+              >
+                {isEn ? "Cancel" : "Batal"}
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyCrop}
+                className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-[#00685F] hover:bg-[#004D46] text-white text-xs font-black transition shadow-sm shadow-[#00685F]/20 flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <Check className="w-4 h-4" />
+                <span>{isEn ? "Apply" : "Terapkan"}</span>
+              </button>
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { User, LogOut } from "lucide-react";
@@ -12,13 +13,19 @@ export default function HeaderProfileDropdown({
   logout,
 }) {
   const router = useRouter();
+  const [imgError, setImgError] = useState(false);
 
-  const userPhoto = user?.photo
-    ? `/api/avatar/${user.photo}`
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=00685F&color=fff&size=64`;
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.photo]);
 
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
+
+  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=00685F&color=fff&size=64`;
+  const resolvedPhoto = !imgError && user?.photo
+    ? (user.photo.startsWith("http") ? user.photo : `/api/avatar/${user.photo}`)
+    : fallbackAvatar;
 
   const toggleDropdown = () => {
     setProfileOpen(!profileOpen);
@@ -34,11 +41,13 @@ export default function HeaderProfileDropdown({
         aria-expanded={profileOpen}
       >
         <Image
-          src={userPhoto}
+          src={resolvedPhoto}
           alt={`Foto profil ${userName}`}
           width={32}
           height={32}
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0"
+          unoptimized
+          onError={() => setImgError(true)}
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0 border border-slate-200/80"
         />
         <span className="text-xs font-bold text-slate-700 max-w-[90px] lg:max-w-[120px] truncate">{userName}</span>
         <svg className={`w-3 h-3 text-slate-400 transition-transform shrink-0 ${profileOpen ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -53,11 +62,13 @@ export default function HeaderProfileDropdown({
         aria-label="Profil"
       >
         <Image
-          src={userPhoto}
+          src={resolvedPhoto}
           alt={`Foto profil ${userName}`}
           width={28}
           height={28}
-          className="w-7 h-7 rounded-full object-cover"
+          unoptimized
+          onError={() => setImgError(true)}
+          className="w-7 h-7 rounded-full object-cover border border-slate-200/80"
         />
       </button>
 
