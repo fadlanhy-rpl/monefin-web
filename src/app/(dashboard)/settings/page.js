@@ -12,6 +12,7 @@ import { CheckCircle2, AlertCircle, X, Settings, Lock, Eye, EyeOff, Loader2 } fr
 import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useSearchParams } from "next/navigation";
+import { getAvatarUrl } from "../../../lib/avatar";
 
 function SettingsContent() {
   const { user, updatePassword, updateProfile, deleteAccount } = useAuth();
@@ -36,7 +37,7 @@ function SettingsContent() {
   const [occupation, setOccupation] = useState(user?.occupation || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(
-    user?.photo ? (user.photo.startsWith("http") ? user.photo : `/api/avatar/${user.photo}`) : ""
+    user?.photo ? getAvatarUrl(user.photo, user.name) : ""
   );
   const [avatarFile, setAvatarFile] = useState(null);
 
@@ -65,7 +66,7 @@ function SettingsContent() {
       setOccupation(user.occupation || "");
       setBio(user.bio || "");
       const resolvedPhotoUrl = user.photo
-        ? (user.photo.startsWith("http") ? user.photo : `/api/avatar/${user.photo}`)
+        ? getAvatarUrl(user.photo, user.name)
         : "";
       setAvatarUrl(resolvedPhotoUrl);
       
@@ -106,7 +107,7 @@ function SettingsContent() {
       setOccupation(user.occupation || "");
       setBio(user.bio || "");
       const resolvedPhotoUrl = user.photo
-        ? (user.photo.startsWith("http") ? user.photo : `/api/avatar/${user.photo}`)
+        ? getAvatarUrl(user.photo, user.name)
         : "";
       setAvatarUrl(resolvedPhotoUrl);
       
@@ -155,7 +156,7 @@ function SettingsContent() {
       if (result.success) {
         setAvatarFile(null);
         if (result.user?.photo) {
-          const photoUrl = result.user.photo.startsWith("http") ? result.user.photo : `/api/avatar/${result.user.photo}`;
+          const photoUrl = `${getAvatarUrl(result.user.photo, result.user.name)}?t=${Date.now()}`;
           setAvatarUrl(photoUrl);
         }
         showToast(currentGlobalLang === 'en' ? "Profile successfully updated." : "Profil berhasil diperbarui.", "success");

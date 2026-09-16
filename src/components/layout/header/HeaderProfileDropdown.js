@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { User, LogOut } from "lucide-react";
+import { getAvatarUrl } from "../../../lib/avatar";
 
 export default function HeaderProfileDropdown({
   user,
@@ -24,7 +25,7 @@ export default function HeaderProfileDropdown({
 
   const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=00685F&color=fff&size=64`;
   const resolvedPhoto = !imgError && user?.photo
-    ? (user.photo.startsWith("http") ? user.photo : `/api/avatar/${user.photo}`)
+    ? getAvatarUrl(user.photo, userName)
     : fallbackAvatar;
 
   const toggleDropdown = () => {

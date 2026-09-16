@@ -5,23 +5,7 @@ export async function GET(request, { params }) {
   
   let backendBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   backendBase = backendBase.replace(/(\/index\.php)?\/api\/?$/, "").replace(/\/+$/, "");
-  const backendUrl = `${backendBase}/storage/${filePath}`;
+  const directStorageUrl = `${backendBase}/storage/${filePath}`;
 
-  try {
-    const res = await fetch(backendUrl);
-    if (!res.ok) {
-      return new Response(null, { status: res.status });
-    }
-    const arrayBuffer = await res.arrayBuffer();
-    const contentType = res.headers.get("content-type") || "image/jpeg";
-
-    return new Response(arrayBuffer, {
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
-  } catch (error) {
-    return new Response(null, { status: 500 });
-  }
+  return Response.redirect(directStorageUrl, 307);
 }
