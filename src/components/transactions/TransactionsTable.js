@@ -21,10 +21,14 @@ export default function TransactionsTable({
   transactions,
   openEditModal,
   handleDelete,
+  handleDeleteClick,
   isVisible,
   paginationMeta,
-  onPageChange
+  onPageChange,
+  setPage
 }) {
+  const onDelete = handleDelete || handleDeleteClick || (() => {});
+  const onPage = onPageChange || setPage || (() => {});
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const from = paginationMeta?.from || 0;
@@ -57,7 +61,7 @@ export default function TransactionsTable({
       return (
         <button
           key={idx}
-          onClick={() => onPageChange(p)}
+          onClick={() => onPage(p)}
           className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all cursor-pointer ${p === currentPage ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/20" : "text-gray-500 hover:bg-slate-100 hover:text-slate-800"}`}
         >
           {p}
@@ -121,7 +125,7 @@ export default function TransactionsTable({
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(txn.id)}
+                          onClick={() => onDelete(txn.id)}
                           title={language === 'en' ? "Delete Transaction" : "Hapus Transaksi"}
                           className="hover:text-red-500 transition-all p-1 hover:bg-slate-100 rounded-lg active:scale-95 hover:scale-110 duration-200 hover:-rotate-6 cursor-pointer"
                         >
@@ -151,7 +155,7 @@ export default function TransactionsTable({
           </p>
           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
             <button 
-              onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+              onClick={() => currentPage > 1 && onPage(currentPage - 1)}
               disabled={currentPage === 1}
               className={`px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all ${currentPage === 1 ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 cursor-pointer"}`}
             >
@@ -164,7 +168,7 @@ export default function TransactionsTable({
               Page {currentPage} of {lastPage}
             </div>
             <button 
-              onClick={() => currentPage < lastPage && onPageChange(currentPage + 1)}
+              onClick={() => currentPage < lastPage && onPage(currentPage + 1)}
               disabled={currentPage === lastPage}
               className={`px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all ${currentPage === lastPage ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 cursor-pointer"}`}
             >
