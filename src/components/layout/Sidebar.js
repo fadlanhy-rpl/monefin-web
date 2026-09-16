@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
+import { getAvatarUrl } from "../../lib/avatar";
 
 // Header Brand MoneFin (Dideklarasikan di luar render agar tidak memicu reset state)
 function BrandHeader({ isMobile, onMobileClose }) {
@@ -74,11 +75,7 @@ function SidebarBody({ navGroups, pathname, user, t, onLinkClick, onOpenTutorial
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  const userAvatar = user?.photo
-    ? user.photo.startsWith("http")
-      ? user.photo
-      : `/api/avatar/${user.photo}`
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=00685F&color=fff&size=64`;
+  const userAvatar = getAvatarUrl(user?.photo, user?.name);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col justify-between overflow-hidden">
