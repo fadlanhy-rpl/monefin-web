@@ -32,11 +32,15 @@ function AuthCallbackContent() {
       // Simpan token (30 hari — Google login selalu ingat)
       setAuthToken(token, 30);
 
+      // Set login event SEBELUM checkAuth agar DashboardLayout
+      // mendeteksi sesi login baru dan menampilkan guide sesuai preferensi
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("monefin_tutorial_session_shown");
+        sessionStorage.setItem("monefin_login_event", "true");
+      }
+
       // Verifikasi ke backend dan hydrate user state
-      checkAuth().then(() => {
-        if (typeof window !== "undefined") {
-          sessionStorage.removeItem("monefin_tutorial_session_shown");
-        }
+      checkAuth().then((userData) => {
         const activeLang = typeof window !== "undefined" ? (localStorage.getItem("language") || language) : language;
         toast.success(
           activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",

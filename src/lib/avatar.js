@@ -22,10 +22,10 @@ export function getAvatarUrl(photo, name = "User") {
     return photo;
   }
 
-  // Clean relative path (e.g. "profiles/xyz.jpg")
+  // Clean relative path
   const cleanPath = photo.replace(/^\/+/, "");
 
-  // In production or development, point directly to public storage
+  // Point directly to backend domain
   const apiBase =
     process.env.NEXT_PUBLIC_API_URL ||
     "https://sk0010uoic.skipper.my.id/index.php/api";
@@ -40,5 +40,12 @@ export function getAvatarUrl(photo, name = "User") {
       .replace(/\/+$/, "");
   }
 
-  return `${domain}/storage/${cleanPath}`;
+  // New format: uploads/profiles/... → served via img.php proxy
+  // Legacy format: profiles/... → served via img.php proxy (reads from storage/app/public)
+  // img.php bekerja di nginx tanpa symlink
+  const profilePath = cleanPath.startsWith("uploads/")
+    ? cleanPath.replace("uploads/", "") // → profiles/filename.jpg
+    : cleanPath;                         // → profiles/filename.jpg (legacy)
+
+  return `${domain}/img.php?f=${encodeURIComponent(profilePath)}`;
 }
