@@ -155,9 +155,18 @@ function SettingsContent() {
       const result = await updateProfile(formData);
       if (result.success) {
         setAvatarFile(null);
+        // Sync nama dari hasil save agar avatar fallback langsung benar
+        if (result.user?.name) {
+          setFullName(result.user.name);
+        }
         if (result.user?.photo) {
-          const photoUrl = `${getAvatarUrl(result.user.photo, result.user.name)}?t=${Date.now()}`;
-          setAvatarUrl(photoUrl);
+          // Gunakan &t= bukan ?t= karena URL img.php sudah mengandung ?f=
+          const baseUrl = getAvatarUrl(result.user.photo, result.user.name);
+          const sep = baseUrl.includes("?") ? "&" : "?";
+          setAvatarUrl(`${baseUrl}${sep}t=${Date.now()}`);
+        } else {
+          // Tidak ada foto → tampilkan inisial dari nama terbaru
+          setAvatarUrl("");
         }
         showToast(currentGlobalLang === 'en' ? "Profile successfully updated." : "Profil berhasil diperbarui.", "success");
       } else {
