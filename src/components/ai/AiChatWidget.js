@@ -179,6 +179,7 @@ function FormattedContent({ content, isUser }) {
 }
 
 function ChatBubble({ role, content }) {
+  if (!content || !content.trim()) return null;
   const isUser = role === "user";
   return (
     <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
@@ -275,13 +276,14 @@ export default function AiChatWidget() {
     setQuotaError(null);
 
     const userMsg = { role: "user", content: trimmed };
-    const history = messages.map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
+    const history = messages
+      .filter((m) => m.content && m.content.trim() !== "")
+      .map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
 
-    // Add user message and temporary assistant placeholder
+    // Add user message only; the typing indicator will display below while waiting for AI
     setMessages((prev) => [
-      ...prev,
-      userMsg,
-      { role: "assistant", content: "" }
+      ...prev.filter((m) => m.content && m.content.trim() !== ""),
+      userMsg
     ]);
 
     try {
@@ -291,22 +293,26 @@ export default function AiChatWidget() {
         onChunk: (_token, accumulated) => {
           setIsLoading(false);
           setMessages((prev) => {
-            if (prev.length === 0) return prev;
-            const updated = [...prev];
-            updated[updated.length - 1] = { role: "assistant", content: accumulated };
-            return updated;
+            const last = prev[prev.length - 1];
+            if (last && last.role === "assistant") {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role: "assistant", content: accumulated };
+              return updated;
+            }
+            return [...prev, { role: "assistant", content: accumulated }];
           });
         },
         onDone: (finalText) => {
           setIsLoading(false);
-          if (!finalText) {
+          if (finalText) {
             setMessages((prev) => {
-              const updated = [...prev];
-              updated[updated.length - 1] = {
-                role: "assistant",
-                content: language === "id" ? "Jawaban selesai." : "Response completed."
-              };
-              return updated;
+              const last = prev[prev.length - 1];
+              if (last && last.role === "assistant") {
+                const updated = [...prev];
+                updated[updated.length - 1] = { role: "assistant", content: finalText };
+                return updated;
+              }
+              return [...prev, { role: "assistant", content: finalText }];
             });
           }
         },
@@ -316,12 +322,14 @@ export default function AiChatWidget() {
             setQuotaError(errText);
           } else {
             setMessages((prev) => {
-              const updated = [...prev];
-              updated[updated.length - 1] = {
-                role: "assistant",
-                content: errText || (language === "id" ? "Gagal memproses jawaban." : "Failed to process response.")
-              };
-              return updated;
+              const text = errText || (language === "id" ? "Gagal memproses jawaban." : "Failed to process response.");
+              const last = prev[prev.length - 1];
+              if (last && last.role === "assistant") {
+                const updated = [...prev];
+                updated[updated.length - 1] = { role: "assistant", content: text };
+                return updated;
+              }
+              return [...prev, { role: "assistant", content: text }];
             });
           }
         }
@@ -331,6 +339,16 @@ export default function AiChatWidget() {
       const errMsg = err?.message || "Terjadi kesalahan koneksi.";
       if (errMsg.toLowerCase().includes("quota") || errMsg.toLowerCase().includes("saldo")) {
         setQuotaError(errMsg);
+      } else {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.role === "assistant") {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: "assistant", content: errMsg };
+            return updated;
+          }
+          return [...prev, { role: "assistant", content: errMsg }];
+        });
       }
     } finally {
       setIsLoading(false);
