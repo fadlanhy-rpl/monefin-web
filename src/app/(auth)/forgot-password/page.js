@@ -28,6 +28,12 @@ function ForgotPasswordContent() {
 
     if (result.success) {
       setSent(true);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          `otp_expiry_reset_${email}`,
+          (Date.now() + 300 * 1000).toString()
+        );
+      }
       toast.success(
         result.message ||
           (isEn

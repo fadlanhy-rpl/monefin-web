@@ -22,14 +22,43 @@ function ResetPasswordContent() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (typeof window !== "undefined") {
+      const emailParam = new URLSearchParams(window.location.search).get("email") || "";
+      if (emailParam) {
+        const stored = sessionStorage.getItem(`otp_expiry_reset_${emailParam}`);
+        if (stored) {
+          const diff = Math.floor((parseInt(stored, 10) - Date.now()) / 1000);
+          return Math.max(0, diff);
+        }
+      }
+    }
+    return 300;
+  });
   const inputRefs = useRef([]);
 
   useEffect(() => {
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+    if (!email) return;
+    const key = `otp_expiry_reset_${email}`;
+    let expiry = sessionStorage.getItem(key);
+    if (!expiry) {
+      expiry = (Date.now() + 300 * 1000).toString();
+      sessionStorage.setItem(key, expiry);
+    }
+    const expiryTime = parseInt(expiry, 10);
+
+    const checkTime = () => {
+      const remaining = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(timer);
+      }
+    };
+
+    checkTime();
+    const timer = setInterval(checkTime, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [email]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -99,6 +128,9 @@ function ResetPasswordContent() {
     });
 
     if (result.success) {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(`otp_expiry_reset_${email}`);
+      }
       toast.success(language === "en" ? "Password successfully updated! Please sign in again." : "Password berhasil diperbarui! Silakan login kembali.");
       router.push("/login");
     } else {

@@ -18,7 +18,18 @@ function Verify2FAContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (typeof window !== "undefined") {
+      const emailParam = new URLSearchParams(window.location.search).get("email") || "";
+      if (emailParam) {
+        const stored = sessionStorage.getItem(`otp_expiry_2fa_${emailParam}`);
+        if (stored) {
+          return Math.max(0, Math.floor((parseInt(stored, 10) - Date.now()) / 1000));
+        }
+      }
+    }
+    return 300;
+  });
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef([]);
 
@@ -27,13 +38,30 @@ function Verify2FAContent() {
   }, []);
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      setCanResend(true);
-      return;
+    if (!email) return;
+    const key = `otp_expiry_2fa_${email}`;
+    let expiry = sessionStorage.getItem(key);
+    if (!expiry) {
+      expiry = (Date.now() + 300 * 1000).toString();
+      sessionStorage.setItem(key, expiry);
     }
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+    const expiryTime = parseInt(expiry, 10);
+
+    const checkTime = () => {
+      const remaining = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        setCanResend(true);
+        clearInterval(timer);
+      } else {
+        setCanResend(false);
+      }
+    };
+
+    checkTime();
+    const timer = setInterval(checkTime, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [email]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -79,6 +107,9 @@ function Verify2FAContent() {
     setIsSubmitting(true);
     const result = await verify2fa(email, otpString);
     if (result.success) {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(`otp_expiry_2fa_${email}`);
+      }
       toast.success(language === "en" ? "Verification successful! Welcome." : "Verifikasi berhasil! Selamat datang.");
       router.push("/dashboard");
     } else {
@@ -104,6 +135,9 @@ function Verify2FAContent() {
     setIsResending(true);
     const result = await resendOtp(email, "2fa");
     if (result.success) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(`otp_expiry_2fa_${email}`, (Date.now() + 300 * 1000).toString());
+      }
       toast.success(language === "en" ? "New 2FA code sent to your email." : "Kode 2FA baru telah dikirim ke email Anda.");
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
