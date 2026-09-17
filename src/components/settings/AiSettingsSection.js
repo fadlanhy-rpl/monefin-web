@@ -160,6 +160,7 @@ export default function AiSettingsSection({ onShowToast }) {
   const [aiEnabled, setAiEnabled]     = useState(user?.preferences?.ai_enabled ?? false);
   const [provider, setProvider]       = useState(user?.preferences?.ai_config?.provider ?? "");
   const [model, setModel]             = useState(user?.preferences?.ai_config?.model ?? "");
+  const [baseUrl, setBaseUrl]         = useState(user?.preferences?.ai_config?.base_url ?? "");
   const [apiKey, setApiKey]           = useState("");
   const [showApiKey, setShowApiKey]   = useState(false);
   const [maskedKey, setMaskedKey]     = useState(user?.preferences?.ai_config?.api_key_masked ?? "");
@@ -173,6 +174,7 @@ export default function AiSettingsSection({ onShowToast }) {
       const cfg = prefs.ai_config ?? {};
       setProvider(cfg.provider ?? "");
       setModel(cfg.model ?? "");
+      setBaseUrl(cfg.base_url ?? "");
       setMaskedKey(cfg.api_key_masked ?? "");
     }
   }
@@ -211,6 +213,9 @@ export default function AiSettingsSection({ onShowToast }) {
     setProvider(slug);
     const firstModel = providers[slug]?.models?.[0] ?? "";
     setModel(firstModel);
+    if (slug === "custom" && !baseUrl) {
+      setBaseUrl("https://api.b.ai/v1");
+    }
     setProviderOpen(false);
     setTestStatus(null);
   };
@@ -232,15 +237,24 @@ export default function AiSettingsSection({ onShowToast }) {
       return;
     }
 
+    if (provider === "custom" && !baseUrl) {
+      onShowToast(language === "id" ? "Masukkan Base URL untuk provider kustom." : "Please enter a Base URL for the custom provider.");
+      return;
+    }
+
     setTestStatus("loading");
     setTestMessage("");
 
-    // If there's an unsaved new key, temporarily save it first
-    if (apiKey) {
-      try {
-        await saveAiConfig({ ai_enabled: aiEnabled, provider, model, api_key: apiKey });
-      } catch {}
-    }
+    // If there's an unsaved new key or baseUrl, temporarily save it first
+    try {
+      await saveAiConfig({
+        ai_enabled: aiEnabled,
+        provider,
+        model,
+        base_url: baseUrl,
+        ...(apiKey ? { api_key: apiKey } : {})
+      });
+    } catch {}
 
     try {
       const res  = await testAiConnection();
@@ -254,7 +268,7 @@ export default function AiSettingsSection({ onShowToast }) {
       }
     } catch (err) {
       setTestStatus("error");
-      setTestMessage(err?.response?.data?.message ?? (language === "id" ? "Koneksi gagal. Periksa API key." : "Connection failed. Check your API key."));
+      setTestMessage(err?.response?.data?.message ?? (language === "id" ? "Koneksi gagal. Periksa API key dan Base URL." : "Connection failed. Check your API key and Base URL."));
     }
   };
 
@@ -264,12 +278,18 @@ export default function AiSettingsSection({ onShowToast }) {
       return;
     }
 
+    if (aiEnabled && provider === "custom" && !baseUrl) {
+      onShowToast(language === "id" ? "Masukkan Base URL untuk provider kustom (misal: https://api.b.ai/v1)." : "Please enter a Base URL for the custom provider.");
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = {
         ai_enabled: aiEnabled,
         provider,
         model,
+        base_url: baseUrl,
         ...(apiKey ? { api_key: apiKey } : {}),
       };
 
@@ -368,6 +388,32 @@ export default function AiSettingsSection({ onShowToast }) {
             {language === "id" ? "Provider & Model" : "Provider & Model"}
           </h4>
 
+          {/* Custom Provider Base URL Input */}
+          {provider === "custom" && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50/70 to-emerald-50/40 border border-teal-200/90 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-wider block">
+                  Base URL (OpenAI-Compatible Endpoint)
+                </label>
+                <span className="text-[10px] font-extrabold text-[#00685F] bg-white px-2.5 py-0.5 rounded-full border border-teal-200 shadow-2xs">
+                  b.ai / OpenRouter / Ollama / Together / Any
+                </span>
+              </div>
+              <input
+                type="url"
+                value={baseUrl}
+                onChange={(e) => setBaseUrl(e.target.value)}
+                placeholder="https://api.b.ai/v1"
+                className="w-full min-h-[48px] border border-slate-200/90 rounded-xl px-4 py-3 text-xs sm:text-sm bg-white text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition font-mono"
+              />
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                {language === "id"
+                  ? "Masukkan endpoint URL API Anda (misal: https://api.b.ai/v1 atau https://openrouter.ai/api/v1)"
+                  : "Enter your custom API base URL (e.g. https://api.b.ai/v1 or https://openrouter.ai/api/v1)"}
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* Provider Dropdown */}
             <div ref={providerRef} className="relative space-y-1.5">
@@ -385,14 +431,21 @@ export default function AiSettingsSection({ onShowToast }) {
               </button>
 
               {providerOpen && Object.keys(providers).length > 0 && (
-                <div className="absolute z-30 mt-1.5 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute z-30 mt-1.5 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150 max-h-72 overflow-y-auto">
                   {Object.entries(providers).map(([slug, info]) => (
                     <button
                       key={slug}
                       onClick={() => handleProviderSelect(slug)}
                       className={`w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${provider === slug ? "text-[#00685F] bg-teal-50 font-extrabold" : "text-slate-600 hover:bg-slate-50"}`}
                     >
-                      <span>{info.label}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{info.label}</span>
+                        {info.is_custom && (
+                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                            Custom
+                          </span>
+                        )}
+                      </div>
                       {provider === slug && <Check className="w-4 h-4 text-[#00685F]" />}
                     </button>
                   ))}
@@ -400,35 +453,66 @@ export default function AiSettingsSection({ onShowToast }) {
               )}
             </div>
 
-            {/* Model Dropdown */}
-            <div ref={modelRef} className="relative space-y-1.5">
-              <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider block">Model</label>
-              <button
-                onClick={() => provider && setModelOpen(!modelOpen)}
-                disabled={!provider}
-                className="w-full min-h-[48px] flex items-center justify-between gap-2 border border-slate-200/80 rounded-2xl px-4 py-3 sm:px-4.5 sm:py-3.5 text-xs sm:text-sm bg-slate-50/80 hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                <span className={model ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium"}>
-                  {model || (language === "id" ? "Pilih Model..." : "Select Model...")}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${modelOpen ? "rotate-180 text-[#00685F]" : ""}`} />
-              </button>
-
-              {modelOpen && currentModels.length > 0 && (
-                <div className="absolute z-30 mt-1.5 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150">
-                  {currentModels.map((m) => (
+            {/* Model Field */}
+            {provider === "custom" ? (
+              <div ref={modelRef} className="space-y-1.5">
+                <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider block">
+                  {language === "id" ? "Nama Model (Bisa Ketik Model Apapun)" : "Model Name (Type Any Model)"}
+                </label>
+                <input
+                  type="text"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="e.g. qwen-2.5-72b-instruct"
+                  className="w-full min-h-[48px] border border-slate-200/80 rounded-2xl px-4 py-3 sm:px-4.5 sm:py-3.5 text-xs sm:text-sm bg-white text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition font-mono font-bold"
+                />
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {["qwen-2.5-72b-instruct", "qwen-2.5-32b-instruct", "deepseek-r1", "llama-3.3-70b-instruct"].map((m) => (
                     <button
                       key={m}
-                      onClick={() => { setModel(m); setModelOpen(false); }}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${model === m ? "text-[#00685F] bg-teal-50 font-extrabold" : "text-slate-600 hover:bg-slate-50"}`}
+                      type="button"
+                      onClick={() => setModel(m)}
+                      className={`text-[10px] px-2 py-0.5 rounded-lg font-bold border transition cursor-pointer ${
+                        model === m
+                          ? "bg-[#00685F] text-white border-[#00685F]"
+                          : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+                      }`}
                     >
-                      <span>{m}</span>
-                      {model === m && <Check className="w-4 h-4 text-[#00685F]" />}
+                      {m}
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div ref={modelRef} className="relative space-y-1.5">
+                <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider block">Model</label>
+                <button
+                  onClick={() => provider && setModelOpen(!modelOpen)}
+                  disabled={!provider}
+                  className="w-full min-h-[48px] flex items-center justify-between gap-2 border border-slate-200/80 rounded-2xl px-4 py-3 sm:px-4.5 sm:py-3.5 text-xs sm:text-sm bg-slate-50/80 hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <span className={model ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium"}>
+                    {model || (language === "id" ? "Pilih Model..." : "Select Model...")}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${modelOpen ? "rotate-180 text-[#00685F]" : ""}`} />
+                </button>
+
+                {modelOpen && currentModels.length > 0 && (
+                  <div className="absolute z-30 mt-1.5 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150 max-h-60 overflow-y-auto">
+                    {currentModels.map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => { setModel(m); setModelOpen(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${model === m ? "text-[#00685F] bg-teal-50 font-extrabold" : "text-slate-600 hover:bg-slate-50"}`}
+                      >
+                        <span>{m}</span>
+                        {model === m && <Check className="w-4 h-4 text-[#00685F]" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
