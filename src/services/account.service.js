@@ -1,7 +1,10 @@
 import { fetchAPI } from "../lib/api";
 
-export const getAccounts = async () => {
-  const data = await fetchAPI("/accounts");
+export const getAccounts = async (force = false) => {
+  const data = await fetchAPI("/accounts", {
+    cacheTtl: 30000,
+    forceRefresh: force,
+  });
   return data;
 };
 
