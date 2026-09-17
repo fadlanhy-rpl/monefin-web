@@ -13,6 +13,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata = {
   title: "MoneFin",
   description: "Personal Finance & Wealth Management Platform",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
