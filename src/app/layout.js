@@ -26,8 +26,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="http://localhost:8000" />
-        <link rel="dns-prefetch" href="http://localhost:8000" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg?v=monefin2" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico?v=monefin2" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico?v=monefin2" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=monefin2" />
       </head>
       <body className={`${plusJakartaSans.variable} font-sans bg-[#f4f7f6] text-slate-800 min-h-screen antialiased`}>
 
