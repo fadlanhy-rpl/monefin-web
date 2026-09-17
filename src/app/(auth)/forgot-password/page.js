@@ -28,10 +28,15 @@ function ForgotPasswordContent() {
 
     if (result.success) {
       setSent(true);
-      toast.success(isEn ? "OTP code has been sent to your email!" : "Kode OTP telah dikirim ke email Anda!");
+      toast.success(
+        result.message ||
+          (isEn
+            ? "If your email is registered, an OTP code has been sent!"
+            : "Jika email terdaftar, kode OTP telah dikirimkan ke email Anda!")
+      );
       setTimeout(() => {
         router.push(`/reset-password?email=${encodeURIComponent(email)}`);
-      }, 1500);
+      }, 1800);
     } else {
       toast.error(
         result.error ||
@@ -118,8 +123,8 @@ function ForgotPasswordContent() {
               <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto">
                 <ArrowRight className="w-6 h-6 text-green-500" />
               </div>
-              <p className="text-sm text-gray-600 font-medium">
-                {isEn ? "OTP sent to" : "OTP dikirim ke"}{" "}
+              <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                {isEn ? "If your email is registered, the OTP code will be sent to" : "Jika email terdaftar, kode OTP akan dikirim ke"}{" "}
                 <span className="font-bold text-[#00685F]">{email}</span>
               </p>
               <p className="text-xs text-gray-400">

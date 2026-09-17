@@ -126,7 +126,10 @@ function ResetPasswordContent() {
           <div className="text-center mb-8">
             <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Reset Password</h1>
             <p className="text-gray-500 text-sm mt-2">
-              Kode OTP dikirim ke <span className="font-bold text-[#00685F]">{email}</span>
+              {language === "en"
+                ? "Enter the OTP code sent to "
+                : "Masukkan kode OTP yang dikirimkan ke "}
+              <span className="font-bold text-[#00685F]">{email}</span>
             </p>
             {step === 1 && timeLeft > 0 && (
               <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-50 border border-orange-100">
