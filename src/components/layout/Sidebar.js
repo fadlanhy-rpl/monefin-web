@@ -35,7 +35,7 @@ function BrandHeader({ isMobile, onMobileClose }) {
       >
         <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-[#00685F] to-[#004D46] flex items-center justify-center shadow-md shadow-[#00685F]/20 group-hover:scale-105 transition-transform shrink-0">
           <Image
-            src="/images/LogoMonefinWhite.svg"
+            src="/images/logo-monefin-white.svg"
             alt="MoneFin"
             width={20}
             height={20}

@@ -9,7 +9,7 @@ export const Footer = ({ isLoggedIn }) => {
         
         <div className="flex items-center justify-center gap-2.5">
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-600 p-0.5 flex items-center justify-center shadow-sm shrink-0">
-            <img src="/images/LogoMonefinWhite.svg" alt="MoneFin Logo" className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <img src="/images/logo-monefin-white.svg" alt="MoneFin Logo" className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           </div>
           <span className="font-black text-slate-900 text-sm sm:text-base tracking-tight">MoneFin</span>
           <span className="text-slate-500 font-medium ml-1">© 2026 MoneFin. All rights reserved.</span>

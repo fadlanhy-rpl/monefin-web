@@ -241,7 +241,7 @@ export default function LoginForm() {
           <div className="flex items-center gap-2 lg:hidden mb-3">
             <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center">
               <img
-                src="/images/LogoMonefinWhite.svg"
+                src="/images/logo-monefin-white.svg"
                 alt="MoneFin Logo"
                 className="w-4 h-4"
               />

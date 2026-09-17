@@ -223,7 +223,7 @@ export default function LegalPageLayout({
           {/* Brand Logo & Title */}
           <Link href="/" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center p-1 shadow-md shadow-brand-600/20 group-hover:scale-105 transition-transform duration-200">
-                <Image src="/images/LogoMonefinWhite.svg" alt="MoneFin Logo" width={16} height={16} className="w-4 h-4" />
+                <Image src="/images/logo-monefin-white.svg" alt="MoneFin Logo" width={16} height={16} className="w-4 h-4" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
@@ -976,7 +976,7 @@ export default function LegalPageLayout({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-md bg-brand-600 flex items-center justify-center p-0.5">
-              <Image src="/images/LogoMonefinWhite.svg" alt="MoneFin" width={10} height={10} className="w-2.5 h-2.5" />
+              <Image src="/images/logo-monefin-white.svg" alt="MoneFin" width={10} height={10} className="w-2.5 h-2.5" />
             </div>
             <span>
               &copy; {new Date().getFullYear()} MoneFin Financial Services. {isId ? "Hak cipta dilindungi undang-undang." : "All rights reserved."}

@@ -32,7 +32,7 @@ export const Navbar = ({ isLoggedIn }) => {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
           <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-brand-600 p-0.5 shadow-md shadow-brand-600/30 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-            <img src="/images/LogoMonefinWhite.svg" alt="MoneFin Logo" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <img src="/images/logo-monefin-white.svg" alt="MoneFin Logo" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <span className="font-black text-base sm:text-xl tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">
             MoneFin
