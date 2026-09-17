@@ -301,14 +301,14 @@ export default function AiSettingsSection({ onShowToast }) {
       // Clear the raw key from state after saving
       setApiKey("");
       setShowApiKey(false);
-
-      // Refresh global user state so AiChatWidget and smart insights react
-      await checkAuth();
+      setSaving(false);
 
       onShowToast(language === "id" ? "Konfigurasi AI berhasil disimpan!" : "AI configuration saved successfully!");
+
+      // Refresh global user state asynchronously in background so AiChatWidget updates
+      checkAuth().catch(() => {});
     } catch (err) {
       onShowToast(err?.response?.data?.message ?? (language === "id" ? "Gagal menyimpan konfigurasi AI." : "Failed to save AI configuration."));
-    } finally {
       setSaving(false);
     }
   };

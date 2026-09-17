@@ -41,6 +41,29 @@ export function useAiStream() {
       });
 
       if (!response.ok) {
+        // Automatically fallback to standard JSON POST /ai/chat if stream fails
+        try {
+          const fallbackRes = await fetch(`${apiUrl}/ai/chat`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ message, history }),
+            signal: abortController.signal,
+          });
+          if (fallbackRes.ok) {
+            const data = await fallbackRes.json();
+            const reply = data?.data?.reply || data?.reply;
+            if (reply) {
+              setOutput(reply);
+              if (onChunk) onChunk(reply, reply);
+              if (onDone) onDone(reply);
+              return reply;
+            }
+          }
+        } catch {}
+
         const errJson = await response.json().catch(() => ({}));
         throw new Error(errJson.message || `HTTP error ${response.status}`);
       }
