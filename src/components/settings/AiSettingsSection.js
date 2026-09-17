@@ -453,66 +453,49 @@ export default function AiSettingsSection({ onShowToast }) {
               )}
             </div>
 
-            {/* Model Field */}
-            {provider === "custom" ? (
-              <div ref={modelRef} className="space-y-1.5">
+            {/* Model Field (Flexible for all providers) */}
+            <div ref={modelRef} className="space-y-1.5">
+              <div className="flex items-center justify-between">
                 <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider block">
-                  {language === "id" ? "Nama Model (Bisa Ketik Model Apapun)" : "Model Name (Type Any Model)"}
+                  {language === "id" ? "Model AI" : "AI Model"}
                 </label>
-                <input
-                  type="text"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder="e.g. qwen-2.5-72b-instruct"
-                  className="w-full min-h-[48px] border border-slate-200/80 rounded-2xl px-4 py-3 sm:px-4.5 sm:py-3.5 text-xs sm:text-sm bg-white text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition font-mono font-bold"
-                />
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {["qwen-2.5-72b-instruct", "qwen-2.5-32b-instruct", "deepseek-r1", "llama-3.3-70b-instruct"].map((m) => (
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {language === "id" ? "Bebas ketik model apa saja" : "Free to enter any model"}
+                </span>
+              </div>
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder={
+                  provider === "custom"
+                    ? "e.g. qwen-2.5-72b-instruct, qwen, deepseek-r1..."
+                    : (currentModels[0] ? `e.g. ${currentModels[0]}` : "Nama model...")
+                }
+                className="w-full min-h-[48px] border border-slate-200/80 rounded-2xl px-4 py-3 sm:px-4.5 sm:py-3.5 text-xs sm:text-sm bg-white text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition font-mono font-bold"
+              />
+              {currentModels.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] font-bold text-slate-400 mr-0.5">
+                    {language === "id" ? "Rekomendasi:" : "Suggestions:"}
+                  </span>
+                  {currentModels.map((m) => (
                     <button
                       key={m}
                       type="button"
                       onClick={() => setModel(m)}
-                      className={`text-[10px] px-2 py-0.5 rounded-lg font-bold border transition cursor-pointer ${
+                      className={`text-[10px] px-2.5 py-1 rounded-xl font-bold border transition cursor-pointer ${
                         model === m
-                          ? "bg-[#00685F] text-white border-[#00685F]"
-                          : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+                          ? "bg-[#00685F] text-white border-[#00685F] shadow-xs"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
                       }`}
                     >
                       {m}
                     </button>
                   ))}
                 </div>
-              </div>
-            ) : (
-              <div ref={modelRef} className="relative space-y-1.5">
-                <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider block">Model</label>
-                <button
-                  onClick={() => provider && setModelOpen(!modelOpen)}
-                  disabled={!provider}
-                  className="w-full min-h-[48px] flex items-center justify-between gap-2 border border-slate-200/80 rounded-2xl px-4 py-3 sm:px-4.5 sm:py-3.5 text-xs sm:text-sm bg-slate-50/80 hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <span className={model ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium"}>
-                    {model || (language === "id" ? "Pilih Model..." : "Select Model...")}
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${modelOpen ? "rotate-180 text-[#00685F]" : ""}`} />
-                </button>
-
-                {modelOpen && currentModels.length > 0 && (
-                  <div className="absolute z-30 mt-1.5 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150 max-h-60 overflow-y-auto">
-                    {currentModels.map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => { setModel(m); setModelOpen(false); }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${model === m ? "text-[#00685F] bg-teal-50 font-extrabold" : "text-slate-600 hover:bg-slate-50"}`}
-                      >
-                        <span>{m}</span>
-                        {model === m && <Check className="w-4 h-4 text-[#00685F]" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
