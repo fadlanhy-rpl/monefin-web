@@ -159,6 +159,7 @@ export default function AiSettingsSection({ onShowToast }) {
   const [prevUser, setPrevUser]       = useState(user);
   const [aiEnabled, setAiEnabled]     = useState(user?.preferences?.ai_enabled ?? false);
   const [provider, setProvider]       = useState(user?.preferences?.ai_config?.provider ?? "");
+  const [customName, setCustomName]   = useState(user?.preferences?.ai_config?.custom_name ?? "");
   const [model, setModel]             = useState(user?.preferences?.ai_config?.model ?? "");
   const [baseUrl, setBaseUrl]         = useState(user?.preferences?.ai_config?.base_url ?? "");
   const [apiKey, setApiKey]           = useState("");
@@ -173,6 +174,7 @@ export default function AiSettingsSection({ onShowToast }) {
       setAiEnabled(prefs.ai_enabled ?? false);
       const cfg = prefs.ai_config ?? {};
       setProvider(cfg.provider ?? "");
+      setCustomName(cfg.custom_name ?? "");
       setModel(cfg.model ?? "");
       setBaseUrl(cfg.base_url ?? "");
       setMaskedKey(cfg.api_key_masked ?? "");
@@ -213,9 +215,6 @@ export default function AiSettingsSection({ onShowToast }) {
     setProvider(slug);
     const firstModel = providers[slug]?.models?.[0] ?? "";
     setModel(firstModel);
-    if (slug === "custom" && !baseUrl) {
-      setBaseUrl("https://api.b.ai/v1");
-    }
     setProviderOpen(false);
     setTestStatus(null);
   };
@@ -245,19 +244,15 @@ export default function AiSettingsSection({ onShowToast }) {
     setTestStatus("loading");
     setTestMessage("");
 
-    // If there's an unsaved new key or baseUrl, temporarily save it first
     try {
-      await saveAiConfig({
-        ai_enabled: aiEnabled,
+      // Test directly with current input values (no need to rely on prior save or active toggle)
+      const res = await testAiConnection({
         provider,
+        custom_name: customName,
         model,
         base_url: baseUrl,
-        ...(apiKey ? { api_key: apiKey } : {})
+        ...(apiKey ? { api_key: apiKey } : {}),
       });
-    } catch {}
-
-    try {
-      const res  = await testAiConnection();
       const data = res?.data ?? res;
       if (data?.ok) {
         setTestStatus("ok");
@@ -268,7 +263,8 @@ export default function AiSettingsSection({ onShowToast }) {
       }
     } catch (err) {
       setTestStatus("error");
-      setTestMessage(err?.response?.data?.message ?? (language === "id" ? "Koneksi gagal. Periksa API key dan Base URL." : "Connection failed. Check your API key and Base URL."));
+      const serverMsg = err?.response?.data?.message || err?.message;
+      setTestMessage(serverMsg || (language === "id" ? "Koneksi gagal. Periksa API key dan Base URL." : "Connection failed. Check your API key and Base URL."));
     }
   };
 
@@ -279,7 +275,7 @@ export default function AiSettingsSection({ onShowToast }) {
     }
 
     if (aiEnabled && provider === "custom" && !baseUrl) {
-      onShowToast(language === "id" ? "Masukkan Base URL untuk provider kustom (misal: https://api.b.ai/v1)." : "Please enter a Base URL for the custom provider.");
+      onShowToast(language === "id" ? "Masukkan Base URL untuk provider kustom." : "Please enter a Base URL for the custom provider.");
       return;
     }
 
@@ -288,6 +284,7 @@ export default function AiSettingsSection({ onShowToast }) {
       const payload = {
         ai_enabled: aiEnabled,
         provider,
+        custom_name: customName,
         model,
         base_url: baseUrl,
         ...(apiKey ? { api_key: apiKey } : {}),
@@ -388,29 +385,81 @@ export default function AiSettingsSection({ onShowToast }) {
             {language === "id" ? "Provider & Model" : "Provider & Model"}
           </h4>
 
-          {/* Custom Provider Base URL Input */}
+          {/* Custom Provider Configuration (OpenCode-style) */}
           {provider === "custom" && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50/70 to-emerald-50/40 border border-teal-200/90 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50/70 to-emerald-50/40 border border-teal-200/90 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-200">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-wider block">
-                  Base URL (OpenAI-Compatible Endpoint)
-                </label>
+                <span className="text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-wider block">
+                  {language === "id" ? "Pengaturan Provider Kustom (OpenAI-Compatible)" : "Custom Provider Settings (OpenAI-Compatible)"}
+                </span>
                 <span className="text-[10px] font-extrabold text-[#00685F] bg-white px-2.5 py-0.5 rounded-full border border-teal-200 shadow-2xs">
-                  b.ai / OpenRouter / Ollama / Together / Any
+                  B.AI / OpenRouter / Ollama / Any
                 </span>
               </div>
-              <input
-                type="url"
-                value={baseUrl}
-                onChange={(e) => setBaseUrl(e.target.value)}
-                placeholder="https://api.b.ai/v1"
-                className="w-full min-h-[48px] border border-slate-200/90 rounded-xl px-4 py-3 text-xs sm:text-sm bg-white text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition font-mono"
-              />
-              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                {language === "id"
-                  ? "Masukkan endpoint URL API Anda (misal: https://api.b.ai/v1 atau https://openrouter.ai/api/v1)"
-                  : "Enter your custom API base URL (e.g. https://api.b.ai/v1 or https://openrouter.ai/api/v1)"}
-              </p>
+
+              {/* Custom Name */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  {language === "id" ? "Nama Provider (Bisa Apa Saja)" : "Provider Name (Any Name)"}
+                </label>
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="e.g. B.AI, OpenRouter, Ollama, Together AI"
+                  className="w-full min-h-[44px] border border-slate-200/90 rounded-xl px-4 py-2.5 text-xs sm:text-sm bg-white text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition font-medium"
+                />
+              </div>
+
+              {/* Base URL */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  Base URL (OpenAI-Compatible Endpoint)
+                </label>
+                <input
+                  type="url"
+                  value={baseUrl}
+                  onChange={(e) => setBaseUrl(e.target.value)}
+                  placeholder="https://api.your-provider.com/v1"
+                  className="w-full min-h-[44px] border border-slate-200/90 rounded-xl px-4 py-2.5 text-xs sm:text-sm bg-white text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition font-mono"
+                />
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] font-bold text-slate-400">
+                    {language === "id" ? "Contoh Endpoint:" : "Quick Fill:"}
+                  </span>
+                  {[
+                    { label: "B.AI", url: "https://api.b.ai/v1" },
+                    { label: "OpenRouter", url: "https://openrouter.ai/api/v1" },
+                    { label: "Ollama (Local)", url: "http://localhost:11434/v1" },
+                    { label: "Together AI", url: "https://api.together.xyz/v1" },
+                  ].map((ep) => (
+                    <button
+                      key={ep.url}
+                      type="button"
+                      onClick={() => {
+                        setBaseUrl(ep.url);
+                        if (!customName) setCustomName(ep.label);
+                      }}
+                      className={`text-[10px] px-2 py-0.5 rounded-lg font-bold border transition cursor-pointer ${
+                        baseUrl === ep.url
+                          ? "bg-[#00685F] text-white border-[#00685F]"
+                          : "bg-white/80 text-slate-600 border-slate-200 hover:bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      {ep.label}
+                    </button>
+                  ))}
+                  {baseUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setBaseUrl("")}
+                      className="text-[10px] px-2 py-0.5 rounded-lg font-bold text-rose-600 hover:bg-rose-50 border border-transparent transition cursor-pointer"
+                    >
+                      {language === "id" ? "Kosongkan" : "Clear"}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
