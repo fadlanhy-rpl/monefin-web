@@ -19,7 +19,11 @@ import {
   ArrowRight,
   Info,
   ShieldCheck,
-  Check
+  Check,
+  Key,
+  Zap,
+  MessageSquare,
+  Lock
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -43,7 +47,7 @@ export default function OnboardingTutorialModal({
       if (e.key === "Escape") {
         onClose();
       } else if (e.key === "ArrowRight") {
-        setCurrentStep((prev) => Math.min(prev + 1, 4));
+        setCurrentStep((prev) => Math.min(prev + 1, 5));
       } else if (e.key === "ArrowLeft") {
         setCurrentStep((prev) => Math.max(prev - 1, 0));
       }
@@ -335,16 +339,122 @@ export default function OnboardingTutorialModal({
       )
     },
     {
-      id: "smart-suite",
+      id: "ai-advisor",
       stepNum: "05",
+      navTitle: isEn ? "MoneFin AI Advisor" : "Konsultan AI Pribadi",
+      navSubtitle: isEn ? "BYOK — Your key, your privacy" : "Bawa kunci API sendiri, privasi terjaga",
+      icon: Bot,
+      badge: isEn ? "Step Five" : "Langkah Kelima",
+      title: isEn ? "Activate Your Personal AI Financial Advisor" : "Aktifkan Konsultan Keuangan AI Pribadi Anda",
+      description: isEn
+        ? "MoneFin AI uses a Bring Your Own Key (BYOK) model — you connect your own API key from any supported AI provider. Your data stays private, and you only pay for what you use (most providers offer free tiers)."
+        : "MoneFin AI menggunakan model Bring Your Own Key (BYOK) — Anda menghubungkan kunci API dari provider AI pilihan sendiri. Data tetap privat, biaya hanya sesuai pemakaian Anda (sebagian besar provider tersedia gratis).",
+      actionText: isEn ? "Go to AI Chatbot Settings" : "Buka Pengaturan AI Chatbot",
+      actionPath: "/settings?tab=ai",
+      renderCanvas: () => (
+        <div className="space-y-3">
+          {/* Step-by-step activation */}
+          <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+            <div className="px-3.5 py-2.5 bg-slate-50 border-b border-slate-100">
+              <p className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
+                {isEn ? "How to Activate (3 Simple Steps)" : "Cara Mengaktifkan (3 Langkah Mudah)"}
+              </p>
+            </div>
+            <div className="divide-y divide-slate-100">
+              <div className="flex items-start gap-3 px-3.5 py-2.5">
+                <div className="w-5 h-5 rounded-full bg-[#00685F] text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">1</div>
+                <div>
+                  <p className="text-xs font-bold text-slate-800">
+                    {isEn ? "Choose a Provider" : "Pilih Provider AI"}
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                    {isEn
+                      ? "OpenAI, Google Gemini, Anthropic Claude, DeepSeek, Groq, Grok, Kimi, or any OpenAI-compatible API."
+                      : "OpenAI, Google Gemini, Anthropic Claude, DeepSeek, Groq, Grok, Kimi, atau API kompatibel OpenAI lainnya."}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 px-3.5 py-2.5">
+                <div className="w-5 h-5 rounded-full bg-[#00685F] text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">2</div>
+                <div>
+                  <p className="text-xs font-bold text-slate-800">
+                    {isEn ? "Get Your API Key" : "Ambil API Key Anda"}
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                    {isEn
+                      ? "Register at the provider's platform and copy the API key from their dashboard."
+                      : "Daftar di platform provider pilihan Anda, lalu salin API key dari dashboard mereka."}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 px-3.5 py-2.5">
+                <div className="w-5 h-5 rounded-full bg-[#00685F] text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">3</div>
+                <div>
+                  <p className="text-xs font-bold text-slate-800">
+                    {isEn ? "Paste Key & Enable AI" : "Tempelkan Key & Aktifkan AI"}
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                    {isEn
+                      ? 'Go to Settings → AI Chatbot tab, paste your key, pick a model, toggle "Enable AI", then hit Test Connection.'
+                      : 'Buka Pengaturan → tab AI Chatbot, tempel key, pilih model, aktifkan toggle "Aktifkan AI", lalu klik Tes Koneksi.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* What AI can answer */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2.5 bg-indigo-50/70 rounded-xl border border-indigo-100 flex items-start gap-2">
+              <MessageSquare className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-indigo-800 leading-snug font-medium">
+                {isEn ? "Ask about your cash flow, savings rate & financial health" : "Tanya kondisi cashflow, saving rate & kesehatan finansial Anda"}
+              </p>
+            </div>
+            <div className="p-2.5 bg-teal-50/70 rounded-xl border border-teal-100 flex items-start gap-2">
+              <Zap className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-teal-800 leading-snug font-medium">
+                {isEn ? "Get spending tips & budget optimization advice" : "Dapatkan tips hemat & saran optimasi anggaran"}
+              </p>
+            </div>
+            <div className="p-2.5 bg-amber-50/70 rounded-xl border border-amber-100 flex items-start gap-2">
+              <Target className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-amber-800 leading-snug font-medium">
+                {isEn ? "Analyze progress toward your financial goals" : "Analisis progres menuju target finansial Anda"}
+              </p>
+            </div>
+            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-2">
+              <Lock className="w-3.5 h-3.5 text-slate-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-slate-700 leading-snug font-medium">
+                {isEn ? "Your API key is encrypted — never shared or stored in plain text" : "API key Anda dienkripsi — tidak pernah disimpan atau dibagikan dalam teks biasa"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 text-teal-900 text-xs">
+            <Key className="w-4 h-4 text-[#00685F] shrink-0 mt-0.5" />
+            <p className="leading-snug">
+              <strong>{isEn ? "Recommended free option:" : "Rekomendasi gratis:"}</strong>{" "}
+              {isEn
+                ? "Groq (groq.com) offers fast Llama & Mixtral models at no cost. Sign up, grab your key, and start chatting in under 2 minutes."
+                : "Groq (groq.com) menawarkan model Llama & Mixtral yang sangat cepat tanpa biaya. Daftar, salin key Anda, dan langsung chat dalam 2 menit."}
+            </p>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "smart-suite",
+      stepNum: "06",
+
       navTitle: isEn ? "Smart Powerhouse Tools" : "Fitur Cerdas Unggulan",
       navSubtitle: isEn ? "Explore the full suite" : "Eksplorasi ekosistem lengkap",
       icon: Sparkles,
-      badge: isEn ? "Step Five" : "Langkah Kelima",
+      badge: isEn ? "Step Six" : "Langkah Keenam",
       title: isEn ? "Explore MoneFin's Smart Ecosystem" : "Jelajahi Ekosistem Pintar MoneFin",
       description: isEn
-        ? "MoneFin goes beyond basic bookkeeping. Benefit from smart receipt split billing, AI advisory, healthy financial quests, and report exports."
-        : "MoneFin bukan sekadar buku kas biasa. Nikmati fitur modern untuk memudahkan gaya hidup Anda: split bill cerdas dengan pajak, konsultasi AI, gamifikasi finansial, hingga ekspor laporan.",
+        ? "MoneFin goes beyond basic bookkeeping. Benefit from smart receipt split billing, gamified financial quests, recurring auto-transactions, and full PDF/Excel report exports."
+        : "MoneFin bukan sekadar buku kas biasa. Nikmati split bill cerdas, gamifikasi finansial, transaksi berulang otomatis, dan ekspor laporan PDF/Excel lengkap.",
       actionText: isEn ? "Explore Full Dashboard" : "Jelajahi Dashboard Lengkap",
       actionPath: "/dashboard",
       renderCanvas: () => (
@@ -499,7 +609,7 @@ export default function OnboardingTutorialModal({
 
             <div className="hidden md:block mt-auto pt-3 border-t border-slate-200/60">
               <div className="p-2.5 rounded-xl bg-white border border-slate-100 text-[11px] text-slate-500 font-medium leading-relaxed">
-                💡 <strong className="text-slate-700">{isEn ? "~2 min read." : "Waktu baca ~2 menit."}</strong>{" "}
+                💡 <strong className="text-slate-700">{isEn ? "~3 min read." : "Waktu baca ~3 menit."}</strong>{" "}
                 {isEn
                   ? "These foundations ensure all MoneFin features work at their best."
                   : "Fondasi ini memastikan seluruh fitur MoneFin bekerja maksimal."}
@@ -512,7 +622,7 @@ export default function OnboardingTutorialModal({
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-[#00685F] border border-teal-100 text-[11px] font-black uppercase tracking-wider mb-2">
                 <span>
-                  {isEn ? `Step ${currentStepData.stepNum} / 05` : `Langkah ${currentStepData.stepNum} / 05`}
+                  {isEn ? `Step ${currentStepData.stepNum} / 06` : `Langkah ${currentStepData.stepNum} / 06`}
                 </span>
                 <span>•</span>
                 <span>{currentStepData.badge}</span>
@@ -603,7 +713,7 @@ export default function OnboardingTutorialModal({
                 onClick={() => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1))}
                 className="px-5 py-2 rounded-xl bg-[#00685F] text-white hover:bg-[#004D46] text-xs font-black transition shadow-sm shadow-[#00685F]/20 flex items-center gap-1.5 cursor-pointer active:scale-95"
               >
-                <span>{isEn ? `Next (0${currentStep + 2}/05)` : `Lanjut (0${currentStep + 2}/05)`}</span>
+                <span>{isEn ? `Next (0${currentStep + 2}/06)` : `Lanjut (0${currentStep + 2}/06)`}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             ) : (
