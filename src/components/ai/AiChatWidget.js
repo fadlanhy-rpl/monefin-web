@@ -784,8 +784,12 @@ export default function AiChatWidget() {
             setQuotaError(errText);
           } else {
             setMessages((prev) => {
-              const text = errText || (language === "id" ? "Gagal memproses jawaban." : "Failed to process response.");
               const last = prev[prev.length - 1];
+              // If the assistant has already produced a response, preserve it!
+              if (last && last.role === "assistant" && last.content && last.content.trim()) {
+                return prev;
+              }
+              const text = errText || (language === "id" ? "Gagal memproses jawaban." : "Failed to process response.");
               if (last && last.role === "assistant") {
                 const updated = [...prev];
                 updated[updated.length - 1] = { role: "assistant", content: text };
@@ -804,6 +808,10 @@ export default function AiChatWidget() {
       } else {
         setMessages((prev) => {
           const last = prev[prev.length - 1];
+          // If the assistant has already produced a response, preserve it!
+          if (last && last.role === "assistant" && last.content && last.content.trim()) {
+            return prev;
+          }
           if (last && last.role === "assistant") {
             const updated = [...prev];
             updated[updated.length - 1] = { role: "assistant", content: errMsg };
