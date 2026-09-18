@@ -509,12 +509,19 @@ function ChatBubble({ role, content }) {
   if (!content || !content.trim()) return null;
   const isUser = role === "user";
 
+  let displayContent = content;
   if (!isUser) {
-    const withoutThink = content
+    // Remove fully-closed <think>...</think> blocks
+    const withoutClosedThink = content
       .replace(/<think>[\s\S]*?<\/think>/gi, "")
+      .trim();
+    // Remove still-open <think> block (model still reasoning)
+    const withoutAnyThink = withoutClosedThink
       .replace(/<think>[\s\S]*/gi, "")
       .trim();
-    if (!withoutThink) return null;
+    // If nothing visible yet (model is still in thinking phase), don't render this bubble
+    if (!withoutAnyThink) return null;
+    displayContent = withoutAnyThink;
   }
   return (
     <div className={`flex items-end gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}>
@@ -530,7 +537,7 @@ function ChatBubble({ role, content }) {
             : "max-w-[94%] bg-white border border-slate-100 text-slate-700 rounded-bl-sm"
         }`}
       >
-        <FormattedContent content={content} isUser={isUser} />
+        <FormattedContent content={displayContent} isUser={isUser} />
       </div>
     </div>
   );
@@ -753,28 +760,39 @@ export default function AiChatWidget() {
         message: trimmed,
         history,
         onChunk: (_token, accumulated) => {
-          setIsLoading(false);
+          // Strip any <think>...</think> blocks from the accumulated text before storing
+          const cleanAccumulated = accumulated
+            .replace(/<think>[\s\S]*?<\/think>/gi, "")
+            .replace(/<think>[\s\S]*/gi, "")
+            .trim();
+          // Only dismiss loading indicator once we have visible content
+          if (cleanAccumulated) setIsLoading(false);
           setMessages((prev) => {
             const last = prev[prev.length - 1];
             if (last && last.role === "assistant") {
               const updated = [...prev];
-              updated[updated.length - 1] = { role: "assistant", content: accumulated };
+              updated[updated.length - 1] = { role: "assistant", content: cleanAccumulated || accumulated };
               return updated;
             }
-            return [...prev, { role: "assistant", content: accumulated }];
+            return [...prev, { role: "assistant", content: cleanAccumulated || accumulated }];
           });
         },
         onDone: (finalText) => {
           setIsLoading(false);
           if (finalText) {
+            const cleanFinal = finalText
+              .replace(/<think>[\s\S]*?<\/think>/gi, "")
+              .replace(/<think>[\s\S]*/gi, "")
+              .trim();
+            const content = cleanFinal || finalText;
             setMessages((prev) => {
               const last = prev[prev.length - 1];
               if (last && last.role === "assistant") {
                 const updated = [...prev];
-                updated[updated.length - 1] = { role: "assistant", content: finalText };
+                updated[updated.length - 1] = { role: "assistant", content };
                 return updated;
               }
-              return [...prev, { role: "assistant", content: finalText }];
+              return [...prev, { role: "assistant", content }];
             });
           }
         },
