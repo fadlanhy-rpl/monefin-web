@@ -301,7 +301,7 @@ function FormattedContent({ content, isUser }) {
   const blocks = parseMarkdownBlocks(content);
 
   return (
-    <div className="space-y-1.5 text-xs sm:text-[13px] leading-relaxed">
+    <div className="space-y-1.5 text-xs sm:text-[13px] leading-relaxed min-w-0 break-words overflow-hidden">
       {blocks.map((block, i) => {
         if (block.type === "heading") {
           return (
@@ -524,17 +524,18 @@ function ChatBubble({ role, content }) {
     displayContent = withoutAnyThink;
   }
   return (
-    <div className={`flex items-end gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}>
+    <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : ""} w-full`}>
       {!isUser && (
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs">
           AI
         </div>
       )}
+      {/* overflow-hidden + min-w-0 prevent bubble from ever overflowing the card edge */}
       <div
-        className={`rounded-2xl px-4 py-3 shadow-xs ${
+        className={`rounded-2xl px-3.5 py-2.5 shadow-xs min-w-0 overflow-hidden ${
           isUser
-            ? "max-w-[85%] bg-gradient-to-br from-brand-600 to-brand-700 text-white rounded-br-sm font-medium"
-            : "max-w-[94%] bg-white border border-slate-100 text-slate-700 rounded-bl-sm"
+            ? "max-w-[82%] bg-gradient-to-br from-brand-600 to-brand-700 text-white rounded-br-sm font-medium"
+            : "max-w-[90%] bg-white border border-slate-100 text-slate-700 rounded-bl-sm"
         }`}
       >
         <FormattedContent content={displayContent} isUser={isUser} />
@@ -671,10 +672,13 @@ export default function AiChatWidget() {
       const deltaX = startX - moveEvent.clientX; // Drag left -> expand width
       const deltaY = startY - moveEvent.clientY; // Drag up -> expand height
 
-      const maxW = Math.min(880, window.innerWidth - 24);
-      const minW = Math.min(340, window.innerWidth - 24);
+      // right: 24px is the card offset, so card occupies [right-side - width, right-side]
+      // max width = viewport - 24px (right gap) - 16px (safe left gap) = viewport - 40px
+      const maxW = Math.min(880, window.innerWidth - 40);
+      // min width: never less than 280px, but also never wider than available space
+      const minW = Math.min(280, window.innerWidth - 40);
       const maxH = Math.min(860, window.innerHeight - 110);
-      const minH = 420;
+      const minH = 380;
 
       let newW = startW;
       let newH = startH;
@@ -894,11 +898,15 @@ export default function AiChatWidget() {
             : "opacity-0 scale-90 translate-y-4 pointer-events-none"
         }`}
         style={{
-          width: `min(${size.width}px, calc(100vw - 1.5rem))`,
+          // right: 24px (1.5rem) is the card's right offset.
+          // Width is capped to (viewport - right offset - 16px safe left gap) so the card can NEVER overflow the left viewport edge.
+          width: `min(${size.width}px, calc(100vw - 2.5rem))`,
           height: `min(${size.height}px, calc(100vh - 7rem))`,
+          maxWidth: "calc(100vw - 2.5rem)",
           maxHeight: "calc(100vh - 6.5rem)",
-          minHeight: "420px",
-          minWidth: "min(340px, calc(100vw - 1.5rem))",
+          minHeight: "380px",
+          // Min width: 280px, but respect viewport if smaller
+          minWidth: "min(280px, calc(100vw - 2.5rem))",
         }}
       >
         {/* Resize Handles (interactive when panel is open) */}
@@ -990,7 +998,8 @@ export default function AiChatWidget() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 min-h-0">
+        {/* min-w-0 is critical: prevents the flex child from growing beyond the card width */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 min-h-0 min-w-0">
           {/* Intro / Welcome */}
           {showIntro && (
             <div className="space-y-4">
