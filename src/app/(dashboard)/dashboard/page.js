@@ -8,7 +8,6 @@ import RecentTransactions from "../../../components/dashboard/RecentTransactions
 import SmartInsight from "../../../components/dashboard/SmartInsight";
 import DashboardGamificationBanner from "../../../components/dashboard/DashboardGamificationBanner";
 import AiInsightsCard from "../../../components/ai/AiInsightsCard";
-import AiChatWidget from "../../../components/ai/AiChatWidget";
 import { getDashboardSummary } from "../../../services/dashboard.service";
 import { Calendar, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
@@ -152,7 +151,6 @@ export default function DashboardPage() {
           {language === "en" ? "Failed to load dashboard data." : "Gagal memuat data dashboard."}
         </div>
       )}
-      <AiChatWidget />
     </DashboardLayout>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import OnboardingTutorialModal from "../onboarding/OnboardingTutorialModal";
+import AiChatWidget from "../ai/AiChatWidget";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function DashboardLayout({ children }) {
@@ -125,6 +126,9 @@ export default function DashboardLayout({ children }) {
         showTutorialOnLogin={tutorialShowOnLogin}
         onToggleShowTutorialOnLogin={handleToggleTutorialFromModal}
       />
+
+      {/* Global AI Financial Advisor Widget */}
+      <AiChatWidget />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useAiStream } from "../../hooks/useAiStream";
-import { AlertTriangle, Settings, ExternalLink } from "lucide-react";
+import { AlertTriangle, Settings, ExternalLink, Maximize2, Minimize2, RotateCcw } from "lucide-react";
 
 const QUICK_QUESTIONS = [
   "Kenapa pengeluaranku bulan ini naik?",
@@ -91,54 +91,335 @@ function parseInline(text, isUser) {
   return parts.length > 0 ? parts : text;
 }
 
+function parseMarkdownBlocks(rawText) {
+  if (!rawText) return [];
+
+  const normalized = rawText.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  const blocks = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
+
+    // 1. Spacers (empty line)
+    if (trimmed === "") {
+      if (blocks.length > 0 && blocks[blocks.length - 1].type !== "spacer") {
+        blocks.push({ type: "spacer" });
+      }
+      i++;
+      continue;
+    }
+
+    // 2. Headings (#, ##, ###, ####)
+    const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
+    if (headingMatch) {
+      blocks.push({
+        type: "heading",
+        level: headingMatch[1].length,
+        text: headingMatch[2].trim(),
+      });
+      i++;
+      continue;
+    }
+
+    // 3. Markdown Tables (| Col 1 | Col 2 |)
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      const tableLines = [];
+      while (i < lines.length) {
+        const tLine = lines[i].trim();
+        if (tLine.startsWith("|") && tLine.endsWith("|")) {
+          tableLines.push(tLine);
+          i++;
+        } else if (tLine === "") {
+          let lookAhead = i + 1;
+          while (lookAhead < lines.length && lines[lookAhead].trim() === "") {
+            lookAhead++;
+          }
+          if (
+            lookAhead < lines.length &&
+            lines[lookAhead].trim().startsWith("|") &&
+            lines[lookAhead].trim().endsWith("|")
+          ) {
+            i = lookAhead;
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+
+      const cleanRows = tableLines.map((line) =>
+        line
+          .split("|")
+          .slice(1, -1)
+          .map((cell) => cell.trim())
+      );
+
+      if (cleanRows.length > 0) {
+        const headers = cleanRows[0];
+        let dataRows = cleanRows.slice(1);
+        // Filter out divider line like |---|---|
+        if (dataRows.length > 0 && dataRows[0].every((c) => /^:?-+:?$/.test(c))) {
+          dataRows = dataRows.slice(1);
+        }
+        blocks.push({
+          type: "table",
+          headers,
+          rows: dataRows,
+        });
+      }
+      continue;
+    }
+
+    // 4. Numbered list items (e.g. "1. Item" or "1.\nItem")
+    const numberMatch = trimmed.match(/^(\d+)[\.\)]\s*(.*)$/);
+    if (numberMatch) {
+      const num = numberMatch[1];
+      let itemText = numberMatch[2].trim();
+
+      if (!itemText && i + 1 < lines.length) {
+        let nextIndex = i + 1;
+        while (nextIndex < lines.length && lines[nextIndex].trim() === "") {
+          nextIndex++;
+        }
+        if (nextIndex < lines.length && !lines[nextIndex].trim().match(/^(\d+)[\.\)]/)) {
+          itemText = lines[nextIndex].trim();
+          i = nextIndex;
+        }
+      }
+
+      const items = [{ num, text: itemText }];
+      i++;
+
+      while (i < lines.length) {
+        const nextTrimmed = lines[i].trim();
+        if (nextTrimmed === "") {
+          let lookAhead = i + 1;
+          while (lookAhead < lines.length && lines[lookAhead].trim() === "") {
+            lookAhead++;
+          }
+          if (lookAhead < lines.length && lines[lookAhead].trim().match(/^(\d+)[\.\)]/)) {
+            i = lookAhead;
+            continue;
+          } else {
+            break;
+          }
+        }
+
+        const nextNumMatch = nextTrimmed.match(/^(\d+)[\.\)]\s*(.*)$/);
+        if (nextNumMatch) {
+          const nextNum = nextNumMatch[1];
+          let nextText = nextNumMatch[2].trim();
+          if (!nextText && i + 1 < lines.length) {
+            let nextIndex = i + 1;
+            while (nextIndex < lines.length && lines[nextIndex].trim() === "") {
+              nextIndex++;
+            }
+            if (nextIndex < lines.length && !lines[nextIndex].trim().match(/^(\d+)[\.\)]/)) {
+              nextText = lines[nextIndex].trim();
+              i = nextIndex;
+            }
+          }
+          items.push({ num: nextNum, text: nextText });
+          i++;
+        } else {
+          break;
+        }
+      }
+
+      blocks.push({ type: "number_list", items });
+      continue;
+    }
+
+    // 5. Standard bullet items (* Item or - Item or • Item)
+    const bulletMatch = trimmed.match(/^[\*\-•]\s+(.*)$/);
+    if (bulletMatch) {
+      const items = [bulletMatch[1].trim()];
+      i++;
+      while (i < lines.length) {
+        const nextTrimmed = lines[i].trim();
+        const nextBullet = nextTrimmed.match(/^[\*\-•]\s+(.*)$/);
+        if (nextBullet) {
+          items.push(nextBullet[1].trim());
+          i++;
+        } else {
+          break;
+        }
+      }
+      blocks.push({ type: "bullet_list", items });
+      continue;
+    }
+
+    // 6. Callouts / Notes (Note:, Catatan:, Tips:, Tip:, Penting:, Warning:)
+    const calloutMatch = trimmed.match(/^(Note|Catatan|Tips?|Penting|Warning|Perhatian):\s*(.*)$/i);
+    if (calloutMatch) {
+      blocks.push({
+        type: "callout",
+        tag: calloutMatch[1],
+        text: calloutMatch[2],
+      });
+      i++;
+      continue;
+    }
+
+    // 7. Key: Value lines (e.g. "Total balance: Rp 112.5 M across all accounts")
+    const kvMatch = trimmed.match(/^([A-Za-z0-9\s\/&]{2,35}):\s+(.+)$/);
+    if (kvMatch && !trimmed.startsWith("http:") && !trimmed.startsWith("https:")) {
+      blocks.push({
+        type: "key_value",
+        key: kvMatch[1].trim(),
+        value: kvMatch[2].trim(),
+      });
+      i++;
+      continue;
+    }
+
+    // 8. Normal paragraph
+    blocks.push({
+      type: "paragraph",
+      text: rawLine,
+    });
+    i++;
+  }
+
+  return blocks;
+}
+
 function FormattedContent({ content, isUser }) {
   if (!content) return null;
 
-  const lines = content.split("\n");
-  const elements = [];
-  let currentList = null;
-
-  lines.forEach((line) => {
-    const trimmed = line.trim();
-    const bulletMatch = trimmed.match(/^[\*\-]\s+(.*)$/);
-    const numberMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
-
-    if (bulletMatch) {
-      if (!currentList || currentList.type !== "bullet") {
-        currentList = { type: "bullet", items: [] };
-        elements.push(currentList);
-      }
-      currentList.items.push(bulletMatch[1]);
-    } else if (numberMatch) {
-      if (!currentList || currentList.type !== "number") {
-        currentList = { type: "number", items: [] };
-        elements.push(currentList);
-      }
-      currentList.items.push({ num: numberMatch[1], text: numberMatch[2] });
-    } else {
-      currentList = null;
-      if (trimmed === "") {
-        elements.push({ type: "spacer" });
-      } else {
-        elements.push({ type: "p", text: line });
-      }
-    }
-  });
+  const blocks = parseMarkdownBlocks(content);
 
   return (
-    <div className="space-y-1.5">
-      {elements.map((el, i) => {
-        if (el.type === "bullet") {
+    <div className="space-y-1.5 text-xs sm:text-[13px] leading-relaxed">
+      {blocks.map((block, i) => {
+        if (block.type === "heading") {
+          return (
+            <div
+              key={i}
+              className={`pt-2 pb-0.5 mt-2 border-t first:mt-0 first:border-0 first:pt-0 ${
+                isUser ? "border-white/20" : "border-slate-100"
+              }`}
+            >
+              <h4
+                className={`font-bold tracking-tight text-xs sm:text-[13.5px] ${
+                  isUser ? "text-white" : "text-slate-900"
+                }`}
+              >
+                {parseInline(block.text, isUser)}
+              </h4>
+            </div>
+          );
+        }
+
+        if (block.type === "table") {
+          return (
+            <div
+              key={i}
+              className={`overflow-x-auto my-2 rounded-xl border shadow-xs ${
+                isUser
+                  ? "border-white/30 bg-white/10"
+                  : "border-slate-200/90 bg-white"
+              }`}
+            >
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr
+                    className={`border-b ${
+                      isUser
+                        ? "bg-white/20 border-white/20 text-white"
+                        : "bg-slate-50 border-slate-200/80 text-slate-800"
+                    }`}
+                  >
+                    {block.headers.map((h, idx) => (
+                      <th
+                        key={idx}
+                        className="px-3 py-2 font-bold whitespace-nowrap"
+                      >
+                        {parseInline(h, isUser)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody
+                  className={`divide-y ${
+                    isUser ? "divide-white/10" : "divide-slate-100"
+                  }`}
+                >
+                  {block.rows.map((row, rIdx) => (
+                    <tr
+                      key={rIdx}
+                      className={
+                        rIdx % 2 === 1
+                          ? isUser
+                            ? "bg-white/5"
+                            : "bg-slate-50/60"
+                          : ""
+                      }
+                    >
+                      {row.map((cell, cIdx) => (
+                        <td
+                          key={cIdx}
+                          className={`px-3 py-2 whitespace-nowrap ${
+                            isUser ? "text-white/90" : "text-slate-700"
+                          }`}
+                        >
+                          {parseInline(cell, isUser)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        if (block.type === "number_list") {
+          return (
+            <div key={i} className="space-y-2 my-2">
+              {block.items.map((item, idx) => (
+                <div key={idx} className="flex items-start gap-2.5">
+                  <span
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 shadow-xs ${
+                      isUser
+                        ? "bg-white/30 text-white"
+                        : "bg-[#00685F] text-white"
+                    }`}
+                  >
+                    {item.num}
+                  </span>
+                  <div
+                    className={`flex-1 leading-relaxed ${
+                      isUser ? "text-white" : "text-slate-700"
+                    }`}
+                  >
+                    {parseInline(item.text, isUser)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        if (block.type === "bullet_list") {
           return (
             <ul key={i} className="space-y-1.5 my-1.5 pl-0.5">
-              {el.items.map((item, j) => (
-                <li key={j} className="flex items-start gap-2">
+              {block.items.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
                   <span
                     className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${
                       isUser ? "bg-white" : "bg-[#00685F]"
                     }`}
                   />
-                  <span className="flex-1 leading-relaxed">
+                  <span
+                    className={`flex-1 leading-relaxed ${
+                      isUser ? "text-white" : "text-slate-700"
+                    }`}
+                  >
                     {parseInline(item, isUser)}
                   </span>
                 </li>
@@ -147,34 +428,69 @@ function FormattedContent({ content, isUser }) {
           );
         }
 
-        if (el.type === "number") {
+        if (block.type === "callout") {
           return (
-            <ol key={i} className="space-y-1.5 my-1.5 pl-0.5">
-              {el.items.map((item, j) => (
-                <li key={j} className="flex items-start gap-2">
-                  <span
-                    className={`text-xs font-bold shrink-0 mt-0.5 ${
-                      isUser ? "text-white/80" : "text-[#00685F]"
-                    }`}
-                  >
-                    {item.num}.
-                  </span>
-                  <span className="flex-1 leading-relaxed">
-                    {parseInline(item.text, isUser)}
-                  </span>
-                </li>
-              ))}
-            </ol>
+            <div
+              key={i}
+              className={`my-2 p-3 rounded-xl border leading-relaxed flex items-start gap-2.5 ${
+                isUser
+                  ? "bg-white/15 border-white/30 text-white"
+                  : "bg-amber-50/90 border-amber-200/90 text-amber-950 shadow-xs"
+              }`}
+            >
+              <span className="text-sm shrink-0">💡</span>
+              <div className="flex-1">
+                <strong
+                  className={`font-bold mr-1 ${
+                    isUser ? "text-white" : "text-amber-900"
+                  }`}
+                >
+                  {block.tag}:
+                </strong>
+                <span className={isUser ? "text-white/95" : "text-slate-700"}>
+                  {parseInline(block.text, isUser)}
+                </span>
+              </div>
+            </div>
           );
         }
 
-        if (el.type === "spacer") {
+        if (block.type === "key_value") {
+          return (
+            <div
+              key={i}
+              className={`flex items-start gap-2 py-0.5 leading-relaxed ${
+                isUser ? "text-white" : "text-slate-700"
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${
+                  isUser ? "bg-white/70" : "bg-[#00685F]/60"
+                }`}
+              />
+              <div className="flex-1">
+                <strong
+                  className={`font-semibold mr-1.5 ${
+                    isUser ? "text-white" : "text-slate-900"
+                  }`}
+                >
+                  {parseInline(block.key, isUser)}:
+                </strong>
+                <span className={isUser ? "text-white/90" : "text-slate-700"}>
+                  {parseInline(block.value, isUser)}
+                </span>
+              </div>
+            </div>
+          );
+        }
+
+        if (block.type === "spacer") {
           return <div key={i} className="h-1.5" />;
         }
 
         return (
           <p key={i} className="leading-relaxed">
-            {parseInline(el.text, isUser)}
+            {parseInline(block.text, isUser)}
           </p>
         );
       })}
@@ -186,17 +502,17 @@ function ChatBubble({ role, content }) {
   if (!content || !content.trim()) return null;
   const isUser = role === "user";
   return (
-    <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
+    <div className={`flex items-end gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs">
           AI
         </div>
       )}
       <div
-        className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+        className={`rounded-2xl px-4 py-3 shadow-xs ${
           isUser
-            ? "bg-gradient-to-br from-brand-600 to-brand-700 text-white rounded-br-sm font-medium"
-            : "bg-white border border-slate-100 text-slate-700 rounded-bl-sm"
+            ? "max-w-[85%] bg-gradient-to-br from-brand-600 to-brand-700 text-white rounded-br-sm font-medium"
+            : "max-w-[94%] bg-white border border-slate-100 text-slate-700 rounded-bl-sm"
         }`}
       >
         <FormattedContent content={content} isUser={isUser} />
@@ -239,6 +555,133 @@ export default function AiChatWidget() {
   const [quotaError, setQuotaError] = useState(null); // string | null
   const messagesEndRef = useRef(null);
   const inputRef       = useRef(null);
+
+  // Resizing state
+  const DEFAULT_SIZE = { width: 380, height: 560 };
+  const [size, setSize] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("monefin_ai_chat_size");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.width && parsed.height) {
+            const clampedW = Math.max(340, Math.min(parsed.width, window.innerWidth - 24));
+            const clampedH = Math.max(420, Math.min(parsed.height, window.innerHeight - 110));
+            return { width: clampedW, height: clampedH };
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return DEFAULT_SIZE;
+  });
+
+  const [isMaximized, setIsMaximized] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("monefin_ai_chat_size");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (typeof parsed.isMaximized === "boolean") {
+            return parsed.isMaximized;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return false;
+  });
+
+  const [isDragging, setIsDragging] = useState(false);
+  const prevSizeRef = useRef(size);
+
+  const saveSize = (newSize, maximized = false) => {
+    try {
+      localStorage.setItem(
+        "monefin_ai_chat_size",
+        JSON.stringify({ ...newSize, isMaximized: maximized })
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  const toggleMaximize = () => {
+    if (isMaximized) {
+      const restored = prevSizeRef.current || DEFAULT_SIZE;
+      setSize(restored);
+      setIsMaximized(false);
+      saveSize(restored, false);
+    } else {
+      prevSizeRef.current = size;
+      const maxW = Math.min(760, window.innerWidth - 24);
+      const maxH = Math.min(760, window.innerHeight - 110);
+      const newSize = { width: maxW, height: maxH };
+      setSize(newSize);
+      setIsMaximized(true);
+      saveSize(newSize, true);
+    }
+  };
+
+  const resetSize = () => {
+    setSize(DEFAULT_SIZE);
+    prevSizeRef.current = DEFAULT_SIZE;
+    setIsMaximized(false);
+    saveSize(DEFAULT_SIZE, false);
+  };
+
+  // Freeform pointer drag resizing (anchored at bottom-right)
+  const handlePointerDown = (e, direction) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsDragging(true);
+    setIsMaximized(false);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = size.width;
+    const startH = size.height;
+
+    const onPointerMove = (moveEvent) => {
+      const deltaX = startX - moveEvent.clientX; // Drag left -> expand width
+      const deltaY = startY - moveEvent.clientY; // Drag up -> expand height
+
+      const maxW = Math.min(880, window.innerWidth - 24);
+      const minW = Math.min(340, window.innerWidth - 24);
+      const maxH = Math.min(860, window.innerHeight - 110);
+      const minH = 420;
+
+      let newW = startW;
+      let newH = startH;
+
+      if (direction === "both" || direction === "width") {
+        newW = Math.max(minW, Math.min(maxW, startW + deltaX));
+      }
+      if (direction === "both" || direction === "height") {
+        newH = Math.max(minH, Math.min(maxH, startH + deltaY));
+      }
+
+      setSize({ width: newW, height: newH });
+    };
+
+    const onPointerUp = () => {
+      setIsDragging(false);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+
+      setSize((curr) => {
+        saveSize(curr, false);
+        prevSizeRef.current = curr;
+        return curr;
+      });
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  };
 
   // Derive from user preferences
   const aiEnabled  = user?.preferences?.ai_enabled ?? false;
@@ -400,15 +843,53 @@ export default function AiChatWidget() {
         )}
       </button>
 
-      {/* Chat Panel */}
+      {/* Adjustable Chat Panel */}
       <div
-        className={`fixed bottom-24 right-6 z-50 w-[350px] max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col transition-all duration-300 origin-bottom-right overflow-hidden ${
-          isOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4 pointer-events-none"
+        className={`fixed bottom-24 right-6 z-50 bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col origin-bottom-right overflow-hidden ${
+          isDragging ? "select-none" : "transition-all duration-300"
+        } ${
+          isOpen
+            ? "opacity-100 scale-100 translate-y-0"
+            : "opacity-0 scale-90 translate-y-4 pointer-events-none"
         }`}
-        style={{ maxHeight: "calc(100vh - 8rem)", minHeight: "420px" }}
+        style={{
+          width: `min(${size.width}px, calc(100vw - 1.5rem))`,
+          height: `min(${size.height}px, calc(100vh - 7rem))`,
+          maxHeight: "calc(100vh - 6.5rem)",
+          minHeight: "420px",
+          minWidth: "min(340px, calc(100vw - 1.5rem))",
+        }}
       >
+        {/* Resize Handles (interactive when panel is open) */}
+        {isOpen && (
+          <>
+            {/* Top-Left Corner Drag Handle (resizes width & height) */}
+            <div
+              onPointerDown={(e) => handlePointerDown(e, "both")}
+              className="absolute top-0 left-0 w-6 h-6 cursor-nwse-resize z-20 flex items-start justify-start p-1.5 group touch-none"
+              title={language === "id" ? "Tarik untuk ubah ukuran (lebar & tinggi)" : "Drag to resize (width & height)"}
+            >
+              <div className="w-2 h-2 border-t-2 border-l-2 border-white/60 group-hover:border-white rounded-tl-xs transition-colors" />
+            </div>
+
+            {/* Left Edge Handle (resizes width) */}
+            <div
+              onPointerDown={(e) => handlePointerDown(e, "width")}
+              className="absolute top-6 bottom-0 left-0 w-2 cursor-ew-resize hover:bg-brand-500/20 z-20 touch-none transition-colors"
+              title={language === "id" ? "Tarik untuk ubah lebar" : "Drag to resize width"}
+            />
+
+            {/* Top Edge Handle (resizes height) */}
+            <div
+              onPointerDown={(e) => handlePointerDown(e, "height")}
+              className="absolute top-0 left-6 right-24 h-2 cursor-ns-resize hover:bg-brand-500/20 z-20 touch-none transition-colors"
+              title={language === "id" ? "Tarik untuk ubah tinggi" : "Drag to resize height"}
+            />
+          </>
+        )}
+
         {/* Header */}
-        <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-5 py-4 flex items-center justify-between shrink-0">
+        <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-5 py-3.5 flex items-center justify-between shrink-0 select-none relative">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -425,11 +906,46 @@ export default function AiChatWidget() {
               </p>
             </div>
           </div>
-          {messages.length > 0 && (
-            <button onClick={clearChat} className="text-white/60 hover:text-white transition-colors text-xs">
-              {language === "id" ? "Hapus" : "Clear"}
+
+          <div className="flex items-center gap-1">
+            {/* Reset size button if modified */}
+            {(size.width !== DEFAULT_SIZE.width || size.height !== DEFAULT_SIZE.height || isMaximized) && (
+              <button
+                onClick={resetSize}
+                title={language === "id" ? "Kembalikan ke ukuran standar" : "Reset default size"}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Maximize / Restore Toggle */}
+            <button
+              onClick={toggleMaximize}
+              title={
+                isMaximized
+                  ? (language === "id" ? "Kecilkan tampilan" : "Restore size")
+                  : (language === "id" ? "Perbesar tampilan" : "Maximize panel")
+              }
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              {isMaximized ? (
+                <Minimize2 className="w-3.5 h-3.5" />
+              ) : (
+                <Maximize2 className="w-3.5 h-3.5" />
+              )}
             </button>
-          )}
+
+            {/* Clear history */}
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                className="text-white/70 hover:text-white hover:bg-white/10 px-2 py-1 rounded-lg transition-colors text-xs ml-1"
+              >
+                {language === "id" ? "Hapus" : "Clear"}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Messages */}
@@ -437,11 +953,11 @@ export default function AiChatWidget() {
           {/* Intro / Welcome */}
           {showIntro && (
             <div className="space-y-4">
-              <div className="flex items-end gap-2">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+              <div className="flex items-end gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs">
                   AI
                 </div>
-                <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm text-sm text-slate-700">
+                <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-xs text-xs sm:text-[13px] text-slate-700 leading-relaxed max-w-[94%]">
                   {language === "id"
                     ? "Halo! Saya MoneFin AI, advisor keuangan pribadi Anda. Saya memiliki akses ke data keuangan Anda dan siap membantu menganalisis kondisi finansial Anda secara komprehensif."
                     : "Hello! I'm MoneFin AI, your personal finance advisor. I have access to your financial data and I'm ready to help analyze your financial condition comprehensively."}
