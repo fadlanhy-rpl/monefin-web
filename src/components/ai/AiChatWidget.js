@@ -41,7 +41,8 @@ function TypingIndicator() {
 function parseInline(text, isUser) {
   if (!text) return null;
   const parts = [];
-  const regex = /(\*\*(?:[^*]+|\*(?!\*))+\*\*|\*[^*]+\*|`[^`]+`)/g;
+  // Safe non-backtracking regex for markdown tokens: **bold**, *italic*, and `code`
+  const regex = /(\*\*[^\n*]+?\*\*|\*[^\n*]+?\*|`[^\n`]+?`)/g;
   let lastIndex = 0;
   let match;
 
@@ -50,7 +51,7 @@ function parseInline(text, isUser) {
       parts.push(text.slice(lastIndex, match.index));
     }
     const token = match[0];
-    if (token.startsWith("**") && token.endsWith("**")) {
+    if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
       parts.push(
         <strong
           key={match.index}
@@ -59,13 +60,13 @@ function parseInline(text, isUser) {
           {token.slice(2, -2)}
         </strong>
       );
-    } else if (token.startsWith("*") && token.endsWith("*")) {
+    } else if (token.startsWith("*") && token.endsWith("*") && token.length >= 2) {
       parts.push(
         <em key={match.index} className="italic">
           {token.slice(1, -1)}
         </em>
       );
-    } else if (token.startsWith("`") && token.endsWith("`")) {
+    } else if (token.startsWith("`") && token.endsWith("`") && token.length >= 2) {
       parts.push(
         <code
           key={match.index}
@@ -78,6 +79,9 @@ function parseInline(text, isUser) {
       );
     }
     lastIndex = regex.lastIndex;
+    if (match.index === regex.lastIndex) {
+      regex.lastIndex++;
+    }
   }
 
   if (lastIndex < text.length) {

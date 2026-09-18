@@ -32,18 +32,66 @@ export default function SmartInsightCard({ page, className = "", onActionClick }
     let cancelled = false;
     setLoading(true);
 
+    const timer = setTimeout(() => {
+      if (!cancelled) {
+        // Safe timeout: don't leave user waiting forever if backend AI is slow
+        setInsight((prev) => prev || (language === "en" ? {
+          title: "Set Monthly Budgets",
+          body: "Keep your expenses well-planned by setting category limits and tracking your habits.",
+          action_label: "Create Budget",
+          action_url: "/budgets",
+          type: "budget",
+          source_label: "MoneFin Engine",
+          source: "engine"
+        } : {
+          title: "Buat Anggaran Bulanan",
+          body: "Kendalikan pengeluaran bulanan Anda dengan menetapkan batas anggaran per kategori.",
+          action_label: "Buat Budget",
+          action_url: "/budgets",
+          type: "budget",
+          source_label: "MoneFin Engine",
+          source: "engine"
+        }));
+        setLoading(false);
+      }
+    }, 4500);
+
     getSmartInsight(page)
       .then((res) => {
+        clearTimeout(timer);
         if (!cancelled) {
           setInsight(res?.data ?? null);
           setLoading(false);
         }
       })
       .catch(() => {
-        if (!cancelled) setLoading(false);
+        clearTimeout(timer);
+        if (!cancelled) {
+          setInsight((prev) => prev || (language === "en" ? {
+            title: "Set Monthly Budgets",
+            body: "Keep your expenses well-planned by setting category limits and tracking your habits.",
+            action_label: "Create Budget",
+            action_url: "/budgets",
+            type: "budget",
+            source_label: "MoneFin Engine",
+            source: "engine"
+          } : {
+            title: "Buat Anggaran Bulanan",
+            body: "Kendalikan pengeluaran bulanan Anda dengan menetapkan batas anggaran per kategori.",
+            action_label: "Buat Budget",
+            action_url: "/budgets",
+            type: "budget",
+            source_label: "MoneFin Engine",
+            source: "engine"
+          }));
+          setLoading(false);
+        }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [page, language]);
 
   const cfg = TYPE_CONFIG[insight?.type] ?? TYPE_CONFIG.default;
