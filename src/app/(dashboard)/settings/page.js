@@ -149,7 +149,16 @@ function SettingsContent() {
         formData.append("photo", avatarFile);
       }
       // Also include preferences so they are not lost
-      const prefs = { currency, language, emailNotif, txAlert, budgetAlert, showTutorialOnLogin, theme };
+      const prefs = {
+        ...(user?.preferences || {}),
+        currency,
+        language,
+        emailNotif,
+        txAlert,
+        budgetAlert,
+        showTutorialOnLogin,
+        theme,
+      };
       formData.append("preferences", JSON.stringify(prefs));
 
       const result = await updateProfile(formData);
@@ -236,8 +245,17 @@ function SettingsContent() {
       formData.append("phone", phone);
       formData.append("occupation", occupation);
       formData.append("bio", bio);
-      // Send updated preferences
-      const prefs = { currency, language, txAlert, budgetAlert, showTutorialOnLogin, emailNotif, theme };
+      // Send updated preferences preserving existing AI configurations
+      const prefs = {
+        ...(user?.preferences || {}),
+        currency,
+        language,
+        txAlert,
+        budgetAlert,
+        showTutorialOnLogin,
+        emailNotif,
+        theme,
+      };
       formData.append("preferences", JSON.stringify(prefs));
 
       const result = await updateProfile(formData);

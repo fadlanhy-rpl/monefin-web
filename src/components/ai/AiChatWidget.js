@@ -94,7 +94,14 @@ function parseInline(text, isUser) {
 function parseMarkdownBlocks(rawText) {
   if (!rawText) return [];
 
-  const normalized = rawText.replace(/\r\n/g, "\n");
+  // Strip any reasoning / think tokens completely
+  const sanitized = rawText
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/<think>[\s\S]*/gi, "");
+
+  if (!sanitized.trim()) return [];
+
+  const normalized = sanitized.replace(/\r\n/g, "\n");
   const lines = normalized.split("\n");
   const blocks = [];
 
@@ -501,6 +508,14 @@ function FormattedContent({ content, isUser }) {
 function ChatBubble({ role, content }) {
   if (!content || !content.trim()) return null;
   const isUser = role === "user";
+
+  if (!isUser) {
+    const withoutThink = content
+      .replace(/<think>[\s\S]*?<\/think>/gi, "")
+      .replace(/<think>[\s\S]*/gi, "")
+      .trim();
+    if (!withoutThink) return null;
+  }
   return (
     <div className={`flex items-end gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}>
       {!isUser && (
