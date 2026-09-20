@@ -78,10 +78,11 @@ export const metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
     ],
     apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
   },
 };
 
@@ -123,10 +124,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/svg+xml" href="/icon.svg?v=monefin2" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico?v=monefin2" sizes="any" />
-        <link rel="shortcut icon" href="/favicon.ico?v=monefin2" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=monefin2" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
