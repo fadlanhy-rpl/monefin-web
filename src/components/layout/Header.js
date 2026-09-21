@@ -119,7 +119,7 @@ export default function Header({ setMobileOpen }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Keyboard shortcuts (Escape to close, "/" to focus search)
+  // Keyboard shortcuts (Escape to close, Shift + "/" to focus search)
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === "Escape") {
@@ -128,8 +128,18 @@ export default function Header({ setMobileOpen }) {
         setSearchOpen(false);
         setIsFocused(false);
       }
-      if (e.key === "/" && document.activeElement !== searchInputRef.current) {
+
+      const isShiftSlash = e.shiftKey && (e.key === "/" || e.key === "?" || e.code === "Slash");
+      const isInputActive =
+        document.activeElement &&
+        (document.activeElement.tagName === "INPUT" ||
+          document.activeElement.tagName === "TEXTAREA" ||
+          document.activeElement.tagName === "SELECT" ||
+          document.activeElement.isContentEditable);
+
+      if (isShiftSlash && !isInputActive) {
         e.preventDefault();
+        setIsFocused(true);
         searchInputRef.current?.focus();
       }
     }
