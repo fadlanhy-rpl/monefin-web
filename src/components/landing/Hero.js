@@ -166,7 +166,7 @@ export const Hero = ({ isLoggedIn }) => {
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="relative z-10 min-h-[calc(100vh-1rem)] flex flex-col justify-between overflow-hidden border-b border-brand-200/50 bg-[#f8faf9] pt-24 sm:pt-28 lg:pt-28 pb-10 sm:pb-14"
+      className="relative z-10 min-h-[calc(100vh-1rem)] flex flex-col justify-between overflow-hidden border-b border-brand-200/50 bg-[#f8faf9] pt-20 sm:pt-24 lg:pt-24 pb-8 sm:pb-12"
     >
       {/* 1. DYNAMIC LIVING FLUID CONTOUR STREAMLINES (CANVAS 60FPS) */}
       <HeroInteractiveCanvas />
@@ -200,10 +200,10 @@ export const Hero = ({ isLoggedIn }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 my-auto">
         
         {/* Top Centered Header & Headline */}
-        <div className="text-center max-w-4xl mx-auto space-y-3 sm:space-y-4 pt-1 pb-4 sm:pb-6">
+        <div className="text-center max-w-4xl mx-auto space-y-2.5 sm:space-y-3.5 pt-1 pb-3 sm:pb-5">
           
           {/* Confident, Solid Monolithic Headline (No AI Slop Split Gradients) */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight text-slate-950 leading-[1.08] max-w-4xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[3.5rem] 2xl:text-7xl font-black tracking-tight text-slate-950 leading-[1.08] max-w-4xl mx-auto">
             {t("hero.title")}
           </h1>
 
@@ -212,7 +212,7 @@ export const Hero = ({ isLoggedIn }) => {
           </p>
 
           {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-1.5">
             <CatalisButton
               href={isLoggedIn ? "/dashboard" : "/register"}
               variant="primary"
@@ -231,7 +231,7 @@ export const Hero = ({ isLoggedIn }) => {
           </div>
 
           {/* Clean Integrated Trust Line (No Clunky AI Pill Badges) */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-y-1.5 gap-x-5 text-xs text-slate-500 font-medium">
+          <div className="pt-1.5 flex flex-wrap items-center justify-center gap-y-1.5 gap-x-5 text-xs text-slate-500 font-medium">
             <span className="flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-brand-600 shrink-0" />
               <span>{t("hero.badge_privacy")}</span>
@@ -250,7 +250,7 @@ export const Hero = ({ isLoggedIn }) => {
         </div>
 
         {/* 3. CENTERPIECE INTERACTIVE FINTECH COCKPIT (Finmax + Finova Inspired) */}
-        <div className="relative max-w-4xl mx-auto pt-2 sm:pt-4 pb-6 sm:pb-8">
+        <div className="relative max-w-4xl mx-auto pt-1 sm:pt-3 pb-4 sm:pb-6">
           
           {/* Ambient Device Backdrop Halo */}
           <div className="absolute inset-x-12 inset-y-6 bg-gradient-to-r from-emerald-500/15 via-teal-500/20 to-brand-500/15 blur-3xl rounded-[3rem] pointer-events-none -z-10" />

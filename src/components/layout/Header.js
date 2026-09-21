@@ -169,84 +169,86 @@ export default function Header({ setMobileOpen }) {
   };
 
   return (
-    <header ref={headerRef} className="sticky top-0 z-[35] bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-5 pb-3 flex items-center justify-between gap-3">
-      {/* LEFT GROUP: menu + search */}
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="md:hidden p-1.5 sm:p-2 -ml-1 sm:-ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shrink-0 cursor-pointer"
-          aria-label="Buka menu"
-        >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+    <header ref={headerRef} className="sticky top-0 z-[35] bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 xl:px-8 pt-5 pb-3">
+      <div className="w-full max-w-[1600px] 2xl:max-w-[1680px] mx-auto flex items-center justify-between gap-3">
+        {/* LEFT GROUP: menu + search */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="md:hidden p-1.5 sm:p-2 -ml-1 sm:-ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shrink-0 cursor-pointer"
+            aria-label="Buka menu"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
-        {/* Responsive Expandable Search Bar */}
-        <HeaderGlobalSearch
-          searchQuery={searchQuery}
-          handleSearchChange={handleSearchChange}
-          searchOpen={searchOpen}
-          setSearchOpen={setSearchOpen}
-          isFocused={isFocused}
-          setIsFocused={setIsFocused}
-          isExpanded={isExpanded}
-          closeSearch={closeSearch}
-          results={results}
-          isLoading={isLoading}
-          error={error}
-          totalResults={totalResults}
-          hasSearch={hasSearch}
-          searchInputRef={searchInputRef}
-          onFocusInput={() => {
-            setNotifOpen(false);
-            setProfileOpen(false);
-          }}
-        />
-      </div>
+          {/* Responsive Expandable Search Bar */}
+          <HeaderGlobalSearch
+            searchQuery={searchQuery}
+            handleSearchChange={handleSearchChange}
+            searchOpen={searchOpen}
+            setSearchOpen={setSearchOpen}
+            isFocused={isFocused}
+            setIsFocused={setIsFocused}
+            isExpanded={isExpanded}
+            closeSearch={closeSearch}
+            results={results}
+            isLoading={isLoading}
+            error={error}
+            totalResults={totalResults}
+            hasSearch={hasSearch}
+            searchInputRef={searchInputRef}
+            onFocusInput={() => {
+              setNotifOpen(false);
+              setProfileOpen(false);
+            }}
+          />
+        </div>
 
-      {/* RIGHT GROUP: notification + profile */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-        {/* Gamification Pill */}
-        <HeaderGamificationPill gamification={gamification} />
+        {/* RIGHT GROUP: notification + profile */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Gamification Pill */}
+          <HeaderGamificationPill gamification={gamification} />
 
-        {/* Balance Privacy Toggle */}
-        <button
-          type="button"
-          onClick={toggleBalancePrivacy}
-          className="p-2 sm:p-2.5 text-slate-600 hover:text-[#00685F] hover:bg-white rounded-xl transition-colors border border-transparent hover:border-slate-100 shadow-sm shadow-slate-100/50 cursor-pointer shrink-0"
-          aria-label={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
-          title={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
-        >
-          {isBalanceHidden ? <EyeOff className="w-4 h-4 text-slate-500" /> : <Eye className="w-4 h-4 text-slate-600" />}
-        </button>
+          {/* Balance Privacy Toggle */}
+          <button
+            type="button"
+            onClick={toggleBalancePrivacy}
+            className="p-2 sm:p-2.5 text-slate-600 hover:text-[#00685F] hover:bg-white rounded-xl transition-colors border border-transparent hover:border-slate-100 shadow-sm shadow-slate-100/50 cursor-pointer shrink-0"
+            aria-label={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
+            title={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
+          >
+            {isBalanceHidden ? <EyeOff className="w-4 h-4 text-slate-500" /> : <Eye className="w-4 h-4 text-slate-600" />}
+          </button>
 
-        {/* Notification */}
-        <HeaderNotificationsDropdown
-          notifications={notifications}
-          isNotifLoading={isNotifLoading}
-          unreadCount={unreadCount}
-          notifOpen={notifOpen}
-          setNotifOpen={setNotifOpen}
-          onCloseOthers={() => {
-            setProfileOpen(false);
-            setSearchOpen(false);
-          }}
-          onMarkAllRead={markAllRead}
-          onToggleRead={toggleNotifRead}
-        />
+          {/* Notification */}
+          <HeaderNotificationsDropdown
+            notifications={notifications}
+            isNotifLoading={isNotifLoading}
+            unreadCount={unreadCount}
+            notifOpen={notifOpen}
+            setNotifOpen={setNotifOpen}
+            onCloseOthers={() => {
+              setProfileOpen(false);
+              setSearchOpen(false);
+            }}
+            onMarkAllRead={markAllRead}
+            onToggleRead={toggleNotifRead}
+          />
 
-        {/* Profile */}
-        <HeaderProfileDropdown
-          user={user}
-          profileOpen={profileOpen}
-          setProfileOpen={setProfileOpen}
-          onCloseOthers={() => {
-            setNotifOpen(false);
-            setSearchOpen(false);
-          }}
-          logout={logout}
-        />
+          {/* Profile */}
+          <HeaderProfileDropdown
+            user={user}
+            profileOpen={profileOpen}
+            setProfileOpen={setProfileOpen}
+            onCloseOthers={() => {
+              setNotifOpen(false);
+              setSearchOpen(false);
+            }}
+            logout={logout}
+          />
+        </div>
       </div>
     </header>
   );
