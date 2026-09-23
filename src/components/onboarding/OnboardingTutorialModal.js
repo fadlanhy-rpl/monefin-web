@@ -23,7 +23,8 @@ import {
   Key,
   Zap,
   MessageSquare,
-  Lock
+  Lock,
+  Camera
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -219,6 +220,16 @@ export default function OnboardingTutorialModal({
               {isEn
                 ? "Whenever you record an expense, the selected account balance is deducted in real-time and your dashboard cash flow chart updates immediately."
                 : "Setiap kali Anda mencatat pengeluaran, saldo rekening yang dipilih akan otomatis terpotong secara riil dan grafik cashflow dashboard langsung terbarui."}
+            </p>
+          </div>
+
+          <div className="flex items-start gap-2 p-2.5 rounded-xl bg-teal-50/70 border border-teal-100 text-teal-900 text-xs">
+            <Camera className="w-4 h-4 text-[#00685F] shrink-0 mt-0.5" />
+            <p className="leading-snug">
+              <strong>{isEn ? "New: Scan Paper Receipts!" : "Baru: Pindai Struk Belanja!"}</strong>{" "}
+              {isEn
+                ? "Click 'Pindai Struk' to take a photo of your receipt. Vision AI extracts the merchant, items, and total automatically with review confirmation."
+                : "Cukup klik 'Pindai Struk' di menu Transaksi untuk memfoto struk kasir Anda. Vision AI mengekstrak nama toko, rincian barang, dan total pengeluaran otomatis!"}
             </p>
           </div>
         </div>

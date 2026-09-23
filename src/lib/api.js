@@ -92,7 +92,7 @@ export function clearApiCache() {
  */
 function autoInvalidateOnMutation(endpoint) {
   const ep = endpoint.toLowerCase();
-  if (ep.includes("/transactions")) {
+  if (ep.includes("/transactions") || ep.includes("/receipts")) {
     invalidateApiCache("transactions");
     invalidateApiCache("dashboard");
     invalidateApiCache("reports");

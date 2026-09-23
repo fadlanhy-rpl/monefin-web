@@ -1,9 +1,11 @@
 "use client";
 
-import { Pencil, Trash2, Banknote, Utensils, Car, ShoppingBag, TrendingUp, HelpCircle } from "lucide-react";
+import { useState } from "react";
+import { Pencil, Trash2, Banknote, Utensils, Car, ShoppingBag, TrendingUp, HelpCircle, Receipt } from "lucide-react";
 import { formatDate } from "../../lib/utils";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useLanguage } from "../../context/LanguageContext";
+import ReceiptDetailModal from "../receipts/ReceiptDetailModal";
 
 const getCategoryIcon = (iconName, colorCode) => {
   const style = colorCode ? { color: colorCode } : {};
@@ -31,6 +33,7 @@ export default function TransactionsTable({
   const onPage = onPageChange || setPage || (() => {});
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
+  const [selectedReceiptTxn, setSelectedReceiptTxn] = useState(null);
   const from = paginationMeta?.from || 0;
   const to = paginationMeta?.to || 0;
   const total = paginationMeta?.total || 0;
@@ -109,8 +112,21 @@ export default function TransactionsTable({
                       </span>
                     </td>
                     <td className="px-6 py-4 font-bold text-slate-800 text-xs whitespace-nowrap">{txn.account?.name || "Unknown"}</td>
-                    <td className="px-6 py-4 text-gray-400 text-xs max-w-xs truncate font-medium" title={txn.description || "-"}>
-                      {txn.description || "-"}
+                    <td className="px-6 py-4 text-gray-500 text-xs max-w-xs font-medium">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="truncate" title={txn.description || "-"}>{txn.description || "-"}</span>
+                        {Boolean(txn.receipt_data || txn.receipt_image_path) && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedReceiptTxn(txn)}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-teal-50 text-[#00685F] text-[10px] font-bold hover:bg-teal-100 transition cursor-pointer shrink-0"
+                            title="Lihat Struk Belanja"
+                          >
+                            <Receipt className="w-3 h-3" />
+                            <span>Struk</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap font-mono tracking-tight">
                       <span className={amountClass}>{amountText}</span>
@@ -177,6 +193,13 @@ export default function TransactionsTable({
           </div>
         </div>
       )}
+
+      {/* Receipt Detail Modal */}
+      <ReceiptDetailModal
+        isOpen={Boolean(selectedReceiptTxn)}
+        onClose={() => setSelectedReceiptTxn(null)}
+        transaction={selectedReceiptTxn}
+      />
     </div>
   );
 }

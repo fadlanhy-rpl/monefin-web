@@ -1,13 +1,16 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import TransactionsStats from "../../../components/transactions/TransactionsStats";
 import TransactionsFilters from "../../../components/transactions/TransactionsFilters";
 import TransactionsTable from "../../../components/transactions/TransactionsTable";
 import TransactionModal from "../../../components/transactions/TransactionModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
-import { Plus, Search, X } from "lucide-react";
+import ReceiptScannerModal from "../../../components/receipts/ReceiptScannerModal";
+import ReceiptReviewModal from "../../../components/receipts/ReceiptReviewModal";
+import { Plus, Search, X, Camera } from "lucide-react";
+import toast from "react-hot-toast";
 import { useTransactionsPage } from "../../../components/transactions/hooks/useTransactionsPage";
 
 function TransactionsPageContent() {
@@ -61,7 +64,14 @@ function TransactionsPageContent() {
     setFormNote,
     handleFormSubmit,
     handleExport,
+    fetchTransactionsData,
   } = useTransactionsPage();
+
+  const [isReceiptScannerOpen, setIsReceiptScannerOpen] = useState(false);
+  const [isReceiptReviewOpen, setIsReceiptReviewOpen] = useState(false);
+  const [extractedReceiptData, setExtractedReceiptData] = useState(null);
+  const [receiptImageFile, setReceiptImageFile] = useState(null);
+  const [receiptPreviewUrl, setReceiptPreviewUrl] = useState(null);
 
   return (
     <DashboardLayout>
@@ -77,13 +87,24 @@ function TransactionsPageContent() {
             </p>
           </div>
 
-          <button
-            onClick={openAddModal}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#00685F] text-white font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 text-xs sm:text-sm shadow-sm cursor-pointer whitespace-nowrap self-start sm:self-auto"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{t("transactions.add_btn", "Tambah Transaksi")}</span>
-          </button>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+            <button
+              onClick={() => setIsReceiptScannerOpen(true)}
+              type="button"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-50 text-[#00685F] border border-teal-200/80 font-bold rounded-xl hover:bg-teal-100 hover:border-[#00685F]/40 transition-all active:scale-95 text-xs sm:text-sm shadow-xs cursor-pointer whitespace-nowrap"
+            >
+              <Camera className="w-4 h-4 text-[#00685F]" />
+              <span>{t("transactions.scan_receipt", "Pindai Struk")}</span>
+            </button>
+
+            <button
+              onClick={openAddModal}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#00685F] text-white font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 text-xs sm:text-sm shadow-sm cursor-pointer whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{t("transactions.add_btn", "Tambah Transaksi")}</span>
+            </button>
+          </div>
         </div>
 
         {/* STATS OVERVIEW CARDS */}
@@ -192,6 +213,44 @@ function TransactionsPageContent() {
           confirmText={language === "en" ? "Delete" : "Hapus"}
           cancelText={language === "en" ? "Cancel" : "Batal"}
           isLoading={isDeleting}
+        />
+
+        {/* RECEIPT SCANNER MODAL */}
+        <ReceiptScannerModal
+          isOpen={isReceiptScannerOpen}
+          onClose={() => setIsReceiptScannerOpen(false)}
+          onScanSuccess={(data, file, previewUrl) => {
+            setExtractedReceiptData(data);
+            setReceiptImageFile(file);
+            setReceiptPreviewUrl(previewUrl);
+            setIsReceiptReviewOpen(true);
+          }}
+        />
+
+        {/* RECEIPT REVIEW & CONFIRM MODAL */}
+        <ReceiptReviewModal
+          isOpen={isReceiptReviewOpen}
+          onClose={() => {
+            setIsReceiptReviewOpen(false);
+            setExtractedReceiptData(null);
+            setReceiptImageFile(null);
+            setReceiptPreviewUrl(null);
+          }}
+          extractedData={extractedReceiptData}
+          imageFile={receiptImageFile}
+          previewUrl={receiptPreviewUrl}
+          accounts={accounts}
+          categories={categories}
+          onSuccess={() => {
+            toast.success(
+              language === "en"
+                ? "Receipt transaction successfully saved!"
+                : "Transaksi dari struk berhasil disimpan!"
+            );
+            setDateFilter("all_time");
+            setPage(1);
+            if (fetchTransactionsData) fetchTransactionsData(true);
+          }}
         />
       </div>
     </DashboardLayout>

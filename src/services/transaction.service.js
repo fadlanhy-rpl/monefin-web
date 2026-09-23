@@ -10,8 +10,8 @@ export const getTransactions = async (params = {}, force = false) => {
   if (params.search) searchParams.append("search", params.search);
   if (params.page) searchParams.append("page", params.page);
   
-  // Optionally support fetching a larger page size
-  searchParams.append("per_page", 100); 
+  // Set default per_page to 10
+  searchParams.append("per_page", params.per_page || 10); 
 
   const url = "/transactions?" + searchParams.toString();
   const data = await fetchAPI(url, {
