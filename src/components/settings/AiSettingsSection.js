@@ -147,13 +147,49 @@ function RevealKeyModal({ onClose, onRevealed, language = "id" }) {
   );
 }
 
+const DEFAULT_PROVIDERS = {
+  gemini: {
+    label: "Google Gemini",
+    models: ["gemini-flash-latest", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.8-flash"],
+  },
+  openai: {
+    label: "OpenAI",
+    models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
+  },
+  deepseek: {
+    label: "DeepSeek",
+    models: ["deepseek-chat", "deepseek-reasoner"],
+  },
+  kimi: {
+    label: "Kimi (Moonshot)",
+    models: ["kimi-k2.6", "kimi-k2.7-code"],
+  },
+  claude: {
+    label: "Anthropic Claude",
+    models: ["claude-sonnet-4-5", "claude-opus-4-5", "claude-haiku-4-5"],
+  },
+  grok: {
+    label: "xAI (Grok)",
+    models: ["grok-2-latest", "grok-2-vision-1212", "grok-beta"],
+  },
+  groq: {
+    label: "Groq (LPU Cloud)",
+    models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
+  },
+  custom: {
+    label: "Custom (OpenAI-Compatible)",
+    models: ["inclusionai/ling-3.0-flash-vl:free", "qwen", "deepseek-r1", "llama-3.3-70b-instruct"],
+    is_custom: true,
+  },
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function AiSettingsSection({ onShowToast }) {
   const { user, checkAuth }     = useAuth();
   const { language }            = useLanguage();
 
-  // Data from API
-  const [providers, setProviders]     = useState({});
+  // Data from API with robust fallback defaults
+  const [providers, setProviders]     = useState(DEFAULT_PROVIDERS);
 
   // Form state
   const [prevUser, setPrevUser]       = useState(user);
@@ -193,10 +229,14 @@ export default function AiSettingsSection({ onShowToast }) {
 
   // Load providers from API
   useEffect(() => {
-    getAiProviders().then((res) => {
-      const data = res?.data ?? res ?? {};
-      setProviders(data);
-    }).catch(() => {});
+    getAiProviders()
+      .then((res) => {
+        const data = res?.data ?? res;
+        if (data && typeof data === "object" && Object.keys(data).length > 0) {
+          setProviders((prev) => ({ ...prev, ...data }));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Close dropdowns on outside click
@@ -470,6 +510,7 @@ export default function AiSettingsSection({ onShowToast }) {
                 {language === "id" ? "Provider AI" : "AI Provider"}
               </label>
               <button
+                type="button"
                 onClick={() => setProviderOpen(!providerOpen)}
                 className="w-full min-h-[48px] flex items-center justify-between gap-2 border border-slate-200/80 rounded-2xl px-4 py-3 sm:px-4.5 sm:py-3.5 text-xs sm:text-sm text-slate-800 bg-slate-50/80 hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition cursor-pointer"
               >
@@ -479,11 +520,12 @@ export default function AiSettingsSection({ onShowToast }) {
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${providerOpen ? "rotate-180 text-[#00685F]" : ""}`} />
               </button>
 
-              {providerOpen && Object.keys(providers).length > 0 && (
-                <div className="absolute z-30 mt-1.5 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150 max-h-72 overflow-y-auto">
+              {providerOpen && (
+                <div className="absolute z-50 mt-1.5 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150 max-h-72 overflow-y-auto">
                   {Object.entries(providers).map(([slug, info]) => (
                     <button
                       key={slug}
+                      type="button"
                       onClick={() => handleProviderSelect(slug)}
                       className={`w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${provider === slug ? "text-[#00685F] bg-teal-50 font-extrabold" : "text-slate-600 hover:bg-slate-50"}`}
                     >
