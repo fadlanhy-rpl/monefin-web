@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useSyncExternalStore } from "react";
+import { useState, useRef, useEffect, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -12,7 +12,11 @@ import {
   AlertTriangle,
   Key,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  CameraOff,
+  SwitchCamera,
+  ZapOff,
+  Circle,
 } from "lucide-react";
 import { scanReceipt } from "../../services/receipt.service";
 import ReceiptGuideModal from "./ReceiptGuideModal";
@@ -22,7 +26,6 @@ import { useLanguage } from "../../context/LanguageContext";
 /**
  * Client-side Canvas Image Compression
  * Resizes image to max 1600px width/height and compresses to JPEG ~80% quality.
- * Shrinks 5MB phone photos to ~200-300KB in milliseconds.
  */
 function compressImage(file, maxDimension = 1600, quality = 0.8) {
   return new Promise((resolve, reject) => {
@@ -60,7 +63,7 @@ function compressImage(file, maxDimension = 1600, quality = 0.8) {
               });
               resolve(compressedFile);
             } else {
-              resolve(file); // fallback
+              resolve(file);
             }
           },
           "image/jpeg",
@@ -73,10 +76,255 @@ function compressImage(file, maxDimension = 1600, quality = 0.8) {
   });
 }
 
+/**
+ * Capture a JPEG File from a <video> element via canvas.
+ */
+function captureFrameFromVideo(videoEl, quality = 0.85) {
+  const canvas = document.createElement("canvas");
+  canvas.width = videoEl.videoWidth;
+  canvas.height = videoEl.videoHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(videoEl, 0, 0);
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(new File([blob], "receipt_camera.jpg", { type: "image/jpeg", lastModified: Date.now() }));
+        } else {
+          resolve(null);
+        }
+      },
+      "image/jpeg",
+      quality
+    );
+  });
+}
+
 const emptySubscribe = () => () => {};
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
 
+// ─── Camera View Sub-component ────────────────────────────────────────────────
+function CameraView({ onCapture, onClose, isEn, t }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [cameraError, setCameraError] = useState(null);
+  const [isReady, setIsReady] = useState(false);
+  const [facingMode, setFacingMode] = useState("environment"); // environment = back, user = front
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+
+  const startStream = useCallback(async (facing) => {
+    // Stop previous stream first
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setIsReady(false);
+    setCameraError(null);
+
+    try {
+      const constraints = {
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(() => {});
+          setIsReady(true);
+        };
+      }
+
+      // Check if device has multiple cameras (for flip button)
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((d) => d.kind === "videoinput");
+      setHasMultipleCameras(videoInputs.length > 1);
+    } catch (err) {
+      console.warn("Camera error:", err);
+      let msg = "";
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        msg = isEn
+          ? "Camera access was denied. Please allow camera permission in your browser settings and try again."
+          : "Akses kamera ditolak. Izinkan akses kamera di pengaturan browser Anda dan coba lagi.";
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        msg = isEn
+          ? "No camera found on this device. Please use the 'Choose Image File' option instead."
+          : "Tidak ada kamera yang ditemukan pada perangkat ini. Gunakan opsi 'Pilih Galeri' sebagai gantinya.";
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        msg = isEn
+          ? "Camera is in use by another application. Close other apps using the camera and try again."
+          : "Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi lain yang menggunakan kamera dan coba lagi.";
+      } else if (err.name === "OverconstrainedError") {
+        // Retry with simpler constraints
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.onloadedmetadata = () => {
+              videoRef.current?.play().catch(() => {});
+              setIsReady(true);
+            };
+          }
+          return;
+        } catch {
+          msg = isEn ? "Could not start the camera." : "Tidak dapat memulai kamera.";
+        }
+      } else {
+        msg = isEn
+          ? `Could not access camera: ${err.message || err.name}`
+          : `Tidak dapat mengakses kamera: ${err.message || err.name}`;
+      }
+      setCameraError(msg);
+    }
+  }, [isEn]);
+
+  useEffect(() => {
+    startStream(facingMode);
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFlip = () => {
+    const next = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(next);
+    startStream(next);
+  };
+
+  const handleCapture = async () => {
+    if (!videoRef.current || !isReady || isCapturing) return;
+    setIsCapturing(true);
+    try {
+      const file = await captureFrameFromVideo(videoRef.current);
+      if (file) {
+        // Stop stream before passing to parent
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((t) => t.stop());
+          streamRef.current = null;
+        }
+        onCapture(file);
+      }
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Camera viewport */}
+      <div className="relative w-full bg-slate-950 rounded-2xl overflow-hidden aspect-[4/3] flex items-center justify-center">
+        {cameraError ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-rose-900/40 flex items-center justify-center">
+              <CameraOff className="w-6 h-6 text-rose-400" />
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-xs">{cameraError}</p>
+            <button
+              type="button"
+              onClick={() => startStream(facingMode)}
+              className="mt-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl transition"
+            >
+              {isEn ? "Try Again" : "Coba Lagi"}
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              className={`w-full h-full object-cover transition-opacity duration-300 ${isReady ? "opacity-100" : "opacity-0"}`}
+              style={{ transform: facingMode === "user" ? "scaleX(-1)" : "none" }}
+            />
+            {/* Loading spinner while camera warms up */}
+            {!isReady && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                <p className="text-xs text-slate-400">
+                  {isEn ? "Starting camera..." : "Memulai kamera..."}
+                </p>
+              </div>
+            )}
+            {/* Viewfinder corners */}
+            {isReady && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-white/60 rounded-tl-lg" />
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-white/60 rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-white/60 rounded-bl-lg" />
+                <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-white/60 rounded-br-lg" />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Camera controls */}
+      <div className="flex items-center justify-between gap-2 px-1">
+        {/* Back button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition active:scale-95"
+        >
+          <X className="w-3.5 h-3.5" />
+          {isEn ? "Cancel" : "Batal"}
+        </button>
+
+        {/* Capture button */}
+        <button
+          type="button"
+          onClick={handleCapture}
+          disabled={!isReady || !!cameraError || isCapturing}
+          className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+        >
+          <Circle className="w-3.5 h-3.5 fill-white" />
+          {isCapturing
+            ? (isEn ? "Capturing..." : "Mengambil...")
+            : (isEn ? "Capture" : "Ambil Foto")}
+        </button>
+
+        {/* Flip camera button (only shown if multiple cameras available) */}
+        {hasMultipleCameras ? (
+          <button
+            type="button"
+            onClick={handleFlip}
+            disabled={!isReady || !!cameraError}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition active:scale-95 disabled:opacity-40"
+            title={isEn ? "Flip Camera" : "Balik Kamera"}
+          >
+            <SwitchCamera className="w-3.5 h-3.5" />
+            {isEn ? "Flip" : "Balik"}
+          </button>
+        ) : (
+          <div className="w-[70px]" /> /* spacer to keep capture button centered */
+        )}
+      </div>
+
+      <p className="text-center text-[11px] text-slate-400">
+        {isEn
+          ? "Point camera at receipt, then tap Capture"
+          : "Arahkan kamera ke struk, lalu ketuk Ambil Foto"}
+      </p>
+    </div>
+  );
+}
+
+// ─── Main Scanner Modal ────────────────────────────────────────────────────────
 export default function ReceiptScannerModal({
   isOpen,
   onClose,
@@ -90,12 +338,18 @@ export default function ReceiptScannerModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
   const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
 
   const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
 
-  if (!isOpen) return null;
+  // Reset camera view when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowCamera(false);
+      setErrorMsg("");
+    }
+  }, [isOpen]);
 
   const handleFileProcess = async (file) => {
     if (!file) return;
@@ -105,18 +359,17 @@ export default function ReceiptScannerModal({
       return;
     }
 
+    setShowCamera(false);
     setErrorMsg("");
     setIsProcessing(true);
     setProcessingStatus(isEn ? "Compressing image for speed..." : "Mengompresi gambar untuk kecepatan...");
 
     try {
-      // 1. Compress client-side
       const compressedFile = await compressImage(file);
       const previewUrl = URL.createObjectURL(compressedFile);
 
       setProcessingStatus(isEn ? "Reading receipt with Vision AI..." : "Membaca struk dengan Vision AI...");
 
-      // 2. Send to backend
       const response = await scanReceipt(compressedFile);
 
       if (response?.success && response?.data) {
@@ -140,11 +393,24 @@ export default function ReceiptScannerModal({
     }
   };
 
+  const handleOpenCamera = () => {
+    // Check if getUserMedia is supported at all
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setErrorMsg(
+        isEn
+          ? "Camera is not supported on this browser. Please use 'Choose Image File' instead, or try a modern browser (Chrome, Firefox, Safari)."
+          : "Kamera tidak didukung di browser ini. Gunakan 'Pilih Galeri' sebagai gantinya, atau coba browser modern (Chrome, Firefox, Safari)."
+      );
+      return;
+    }
+    setErrorMsg("");
+    setShowCamera(true);
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     if (isProcessing) return;
-
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       handleFileProcess(files[0]);
@@ -166,7 +432,7 @@ export default function ReceiptScannerModal({
     <>
       <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         {/* Click outside backdrop */}
-        <div className="fixed inset-0 -z-10" onClick={onClose} aria-hidden="true" />
+        <div className="fixed inset-0 -z-10" onClick={!isProcessing && !showCamera ? onClose : undefined} aria-hidden="true" />
         <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col overflow-hidden relative z-10">
           {/* Header */}
           <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
@@ -176,26 +442,38 @@ export default function ReceiptScannerModal({
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                  {t("receipts.scan_title", isEn ? "Scan Shopping Receipt" : "Pindai Struk Belanja")}
+                  {showCamera
+                    ? (isEn ? "Point Camera at Receipt" : "Arahkan Kamera ke Struk")
+                    : t("receipts.scan_title", isEn ? "Scan Shopping Receipt" : "Pindai Struk Belanja")}
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  {t("receipts.scan_subtitle", isEn ? "Instant expense logging via physical receipt photo" : "Catat pengeluaran instan lewat foto struk fisik")}
+                  {showCamera
+                    ? (isEn ? "Tap 'Capture' when the receipt is in frame" : "Ketuk 'Ambil Foto' saat struk terlihat jelas")
+                    : t("receipts.scan_subtitle", isEn ? "Instant expense logging via physical receipt photo" : "Catat pengeluaran instan lewat foto struk fisik")}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
+              {!showCamera && (
+                <button
+                  type="button"
+                  onClick={() => setIsGuideOpen(true)}
+                  className="text-slate-400 hover:text-[#00685F] p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                  title={t("receipts.view_guide", isEn ? "View Guide" : "Lihat Panduan")}
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setIsGuideOpen(true)}
-                className="text-slate-400 hover:text-[#00685F] p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
-                title={t("receipts.view_guide", isEn ? "View Guide" : "Lihat Panduan")}
-              >
-                <HelpCircle className="w-5 h-5" />
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
+                onClick={() => {
+                  if (showCamera) {
+                    setShowCamera(false);
+                  } else {
+                    onClose();
+                  }
+                }}
                 disabled={isProcessing}
                 className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer disabled:opacity-50"
               >
@@ -206,8 +484,8 @@ export default function ReceiptScannerModal({
 
           {/* Modal Body */}
           <div className="p-6 space-y-4">
-            {/* BYOK Warning if user has no AI key configured */}
-            {!hasAiConfig && (
+            {/* BYOK Warning */}
+            {!hasAiConfig && !showCamera && (
               <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-amber-950 text-xs space-y-2">
                 <div className="flex items-center gap-2 font-bold text-amber-900">
                   <Key className="w-4 h-4 text-amber-600 shrink-0" />
@@ -232,7 +510,7 @@ export default function ReceiptScannerModal({
             )}
 
             {/* Error Message */}
-            {errorMsg && (
+            {errorMsg && !showCamera && (
               <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <div className="leading-snug flex-1">
@@ -263,8 +541,16 @@ export default function ReceiptScannerModal({
               </div>
             )}
 
-            {/* Processing State */}
-            {isProcessing ? (
+            {/* ── Camera View ── */}
+            {showCamera ? (
+              <CameraView
+                isEn={isEn}
+                t={t}
+                onCapture={handleFileProcess}
+                onClose={() => setShowCamera(false)}
+              />
+            ) : isProcessing ? (
+              /* Processing State */
               <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-4 rounded-2xl border border-dashed border-[#00685F]/40 bg-teal-50/20">
                 <div className="relative">
                   <div className="w-16 h-16 rounded-2xl bg-[#00685F]/10 flex items-center justify-center text-[#00685F]">
@@ -299,6 +585,7 @@ export default function ReceiptScannerModal({
                 }`}
                 onClick={() => fileInputRef.current?.click()}
               >
+                {/* Hidden file input (gallery / file picker only) */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -307,19 +594,8 @@ export default function ReceiptScannerModal({
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
                       handleFileProcess(e.target.files[0]);
-                    }
-                  }}
-                />
-
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileProcess(e.target.files[0]);
+                      // Reset so same file can be re-selected
+                      e.target.value = "";
                     }
                   }}
                 />
@@ -336,11 +612,12 @@ export default function ReceiptScannerModal({
                 </p>
 
                 <div className="flex items-center gap-2 mt-5">
+                  {/* Camera button — uses getUserMedia, works on all devices */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      cameraInputRef.current?.click();
+                      handleOpenCamera();
                     }}
                     className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition active:scale-95 shadow-sm"
                   >
@@ -348,6 +625,7 @@ export default function ReceiptScannerModal({
                     <span>{t("receipts.take_photo", isEn ? "Take Photo via Camera" : "Ambil Foto Langsung")}</span>
                   </button>
 
+                  {/* Gallery / file picker button */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -364,19 +642,21 @@ export default function ReceiptScannerModal({
             )}
 
             {/* Quick Tips Footer */}
-            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 px-1">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#00685F]" />
-                {t("receipts.compressed_safe", isEn ? "Images automatically compressed & secure" : "Foto otomatis dikompresi & aman")}
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsGuideOpen(true)}
-                className="text-[#00685F] font-bold hover:underline"
-              >
-                {t("receipts.view_photo_tips", isEn ? "View tips for clear photo" : "Lihat tips foto jelas")}
-              </button>
-            </div>
+            {!showCamera && (
+              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 px-1">
+                <span className="flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#00685F]" />
+                  {t("receipts.compressed_safe", isEn ? "Images automatically compressed & secure" : "Foto otomatis dikompresi & aman")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsGuideOpen(true)}
+                  className="text-[#00685F] font-bold hover:underline"
+                >
+                  {t("receipts.view_photo_tips", isEn ? "View tips for clear photo" : "Lihat tips foto jelas")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
