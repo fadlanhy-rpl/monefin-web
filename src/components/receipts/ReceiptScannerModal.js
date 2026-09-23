@@ -17,6 +17,7 @@ import {
 import { scanReceipt } from "../../services/receipt.service";
 import ReceiptGuideModal from "./ReceiptGuideModal";
 import Link from "next/link";
+import { useLanguage } from "../../context/LanguageContext";
 
 /**
  * Client-side Canvas Image Compression
@@ -82,6 +83,8 @@ export default function ReceiptScannerModal({
   onScanSuccess,
   hasAiConfig = true,
 }) {
+  const { t, language } = useLanguage();
+  const isEn = language === "en";
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -98,20 +101,20 @@ export default function ReceiptScannerModal({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setErrorMsg("Mohon unggah file gambar (JPG, PNG, atau WebP).");
+      setErrorMsg(isEn ? "Please upload an image file (JPG, PNG, or WebP)." : "Mohon unggah file gambar (JPG, PNG, atau WebP).");
       return;
     }
 
     setErrorMsg("");
     setIsProcessing(true);
-    setProcessingStatus("Mengompresi gambar untuk kecepatan...");
+    setProcessingStatus(isEn ? "Compressing image for speed..." : "Mengompresi gambar untuk kecepatan...");
 
     try {
       // 1. Compress client-side
       const compressedFile = await compressImage(file);
       const previewUrl = URL.createObjectURL(compressedFile);
 
-      setProcessingStatus("Membaca struk dengan Vision AI...");
+      setProcessingStatus(isEn ? "Reading receipt with Vision AI..." : "Membaca struk dengan Vision AI...");
 
       // 2. Send to backend
       const response = await scanReceipt(compressedFile);
@@ -120,14 +123,16 @@ export default function ReceiptScannerModal({
         onScanSuccess(response.data, compressedFile, previewUrl);
         onClose();
       } else {
-        throw new Error(response?.message || "Gagal memproses struk.");
+        throw new Error(response?.message || (isEn ? "Failed to process receipt." : "Gagal memproses struk."));
       }
     } catch (err) {
       console.warn("Receipt scan error:", err);
       const msg =
         err?.data?.message ||
         err?.message ||
-        "Gagal memindai struk. Pastikan kunci API sudah terkonfigurasi dan foto struk terbaca jelas.";
+        (isEn
+          ? "Failed to scan receipt. Ensure API key is configured and receipt photo is clear."
+          : "Gagal memindai struk. Pastikan kunci API sudah terkonfigurasi dan foto struk terbaca jelas.");
       setErrorMsg(msg);
     } finally {
       setIsProcessing(false);
@@ -171,10 +176,10 @@ export default function ReceiptScannerModal({
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                  Pindai Struk Belanja
+                  {t("receipts.scan_title", isEn ? "Scan Shopping Receipt" : "Pindai Struk Belanja")}
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Catat pengeluaran instan lewat foto struk fisik
+                  {t("receipts.scan_subtitle", isEn ? "Instant expense logging via physical receipt photo" : "Catat pengeluaran instan lewat foto struk fisik")}
                 </p>
               </div>
             </div>
@@ -184,7 +189,7 @@ export default function ReceiptScannerModal({
                 type="button"
                 onClick={() => setIsGuideOpen(true)}
                 className="text-slate-400 hover:text-[#00685F] p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
-                title="Lihat Panduan"
+                title={t("receipts.view_guide", isEn ? "View Guide" : "Lihat Panduan")}
               >
                 <HelpCircle className="w-5 h-5" />
               </button>
@@ -206,10 +211,12 @@ export default function ReceiptScannerModal({
               <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-amber-950 text-xs space-y-2">
                 <div className="flex items-center gap-2 font-bold text-amber-900">
                   <Key className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Kunci API (BYOK) Belum Dikonfigurasi</span>
+                  <span>{t("receipts.byok_unconfigured_title", isEn ? "API Key (BYOK) Not Configured" : "Kunci API (BYOK) Belum Dikonfigurasi")}</span>
                 </div>
                 <p className="text-amber-800 leading-relaxed">
-                  Fitur Pindai Struk membaca gambar menggunakan AI. Hubungkan API key Anda (seperti Google Gemini yang <strong>100% gratis</strong>) di menu Pengaturan.
+                  {t("receipts.byok_unconfigured_desc", isEn
+                    ? "Receipt scanning reads images using AI. Connect your own API key (e.g. Google Gemini which is 100% free) in Settings."
+                    : "Fitur Pindai Struk membaca gambar menggunakan AI. Hubungkan API key Anda (seperti Google Gemini yang 100% gratis) di menu Pengaturan.")}
                 </p>
                 <div className="pt-1">
                   <Link
@@ -217,7 +224,7 @@ export default function ReceiptScannerModal({
                     onClick={onClose}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition"
                   >
-                    <span>Buka Pengaturan AI</span>
+                    <span>{t("receipts.open_ai_settings", isEn ? "Open AI Settings" : "Buka Pengaturan AI")}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -229,7 +236,7 @@ export default function ReceiptScannerModal({
               <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <div className="leading-snug flex-1">
-                  <p className="font-bold">Gagal Memindai Struk</p>
+                  <p className="font-bold">{t("receipts.scan_failed", isEn ? "Failed to Scan Receipt" : "Gagal Memindai Struk")}</p>
                   <p className="text-rose-700 mt-0.5">{errorMsg}</p>
                   {(errorMsg.toLowerCase().includes("kuota") ||
                     errorMsg.toLowerCase().includes("saldo") ||
@@ -238,7 +245,9 @@ export default function ReceiptScannerModal({
                     errorMsg.toLowerCase().includes("tidak mendukung") ||
                     errorMsg.toLowerCase().includes("ganti model") ||
                     errorMsg.toLowerCase().includes("bukan vision") ||
-                    errorMsg.toLowerCase().includes("pengaturan")) && (
+                    errorMsg.toLowerCase().includes("pengaturan") ||
+                    errorMsg.toLowerCase().includes("quota") ||
+                    errorMsg.toLowerCase().includes("vision")) && (
                     <div className="mt-2.5 pt-2 border-t border-rose-200/60 flex items-center gap-2">
                       <Link
                         href="/settings?tab=ai"
@@ -246,11 +255,10 @@ export default function ReceiptScannerModal({
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-[11px] transition shadow-xs"
                       >
                         <Key className="w-3.5 h-3.5" />
-                        <span>Buka Pengaturan AI (Ganti Provider / Model)</span>
+                        <span>{t("receipts.open_ai_settings_change", isEn ? "Open AI Settings (Change Provider / Model)" : "Buka Pengaturan AI (Ganti Provider / Model)")}</span>
                       </Link>
                     </div>
                   )}
-
                 </div>
               </div>
             )}
@@ -266,14 +274,16 @@ export default function ReceiptScannerModal({
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-black text-slate-800">
-                    Memproses Struk Belanja...
+                    {t("receipts.processing_title", isEn ? "Processing Shopping Receipt..." : "Memproses Struk Belanja...")}
                   </p>
                   <p className="text-xs text-[#00685F] font-bold animate-pulse">
                     {processingStatus}
                   </p>
                 </div>
                 <p className="text-[11px] text-slate-400 max-w-xs">
-                  Proses ini memerlukan waktu beberapa detik tergantung koneksi dan resolusi struk.
+                  {t("receipts.processing_time_notice", isEn
+                    ? "This process takes a few seconds depending on connection and receipt resolution."
+                    : "Proses ini memerlukan waktu beberapa detik tergantung koneksi dan resolusi struk.")}
                 </p>
               </div>
             ) : (
@@ -319,10 +329,10 @@ export default function ReceiptScannerModal({
                 </div>
 
                 <p className="text-sm font-bold text-slate-800">
-                  Tarik & Lepas Foto Struk di Sini
+                  {t("receipts.drag_drop_title", isEn ? "Drag & Drop Receipt Photo Here" : "Tarik & Lepas Foto Struk di Sini")}
                 </p>
                 <p className="text-xs text-slate-400 mt-1 max-w-xs">
-                  atau klik untuk memilih file dari komputer / galeri HP Anda
+                  {t("receipts.drag_drop_sub", isEn ? "or click to browse files from your computer / gallery" : "atau klik untuk memilih file dari komputer / galeri HP Anda")}
                 </p>
 
                 <div className="flex items-center gap-2 mt-5">
@@ -335,7 +345,7 @@ export default function ReceiptScannerModal({
                     className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition active:scale-95 shadow-sm"
                   >
                     <Camera className="w-3.5 h-3.5" />
-                    <span>Ambil Foto Langsung</span>
+                    <span>{t("receipts.take_photo", isEn ? "Take Photo via Camera" : "Ambil Foto Langsung")}</span>
                   </button>
 
                   <button
@@ -347,7 +357,7 @@ export default function ReceiptScannerModal({
                     className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition active:scale-95"
                   >
                     <ImageIcon className="w-3.5 h-3.5" />
-                    <span>Pilih Galeri</span>
+                    <span>{t("receipts.choose_gallery", isEn ? "Choose Image File" : "Pilih Galeri")}</span>
                   </button>
                 </div>
               </div>
@@ -357,14 +367,14 @@ export default function ReceiptScannerModal({
             <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 px-1">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#00685F]" />
-                Foto otomatis dikompresi & aman
+                {t("receipts.compressed_safe", isEn ? "Images automatically compressed & secure" : "Foto otomatis dikompresi & aman")}
               </span>
               <button
                 type="button"
                 onClick={() => setIsGuideOpen(true)}
                 className="text-[#00685F] font-bold hover:underline"
               >
-                Lihat tips foto jelas
+                {t("receipts.view_photo_tips", isEn ? "View tips for clear photo" : "Lihat tips foto jelas")}
               </button>
             </div>
           </div>

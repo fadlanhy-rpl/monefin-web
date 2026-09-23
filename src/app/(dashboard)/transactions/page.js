@@ -94,7 +94,7 @@ function TransactionsPageContent() {
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-50 text-[#00685F] border border-teal-200/80 font-bold rounded-xl hover:bg-teal-100 hover:border-[#00685F]/40 transition-all active:scale-95 text-xs sm:text-sm shadow-xs cursor-pointer whitespace-nowrap"
             >
               <Camera className="w-4 h-4 text-[#00685F]" />
-              <span>{t("transactions.scan_receipt", "Pindai Struk")}</span>
+              <span>{t("transactions.scan_receipt") || (language === "en" ? "Scan Receipt" : "Pindai Struk")}</span>
             </button>
 
             <button
@@ -102,7 +102,7 @@ function TransactionsPageContent() {
               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#00685F] text-white font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 text-xs sm:text-sm shadow-sm cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
-              <span>{t("transactions.add_btn", "Tambah Transaksi")}</span>
+              <span>{t("transactions.add_btn") || (language === "en" ? "Add Transaction" : "Tambah Transaksi")}</span>
             </button>
           </div>
         </div>

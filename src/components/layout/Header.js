@@ -8,6 +8,8 @@ import { useGlobalSearch } from "../../hooks/useGlobalSearch";
 import { getNotifications, markAsRead, markAllAsRead } from "../../services/notification.service";
 import { getGamificationSummary } from "../../services/gamification.service";
 import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
+import { useLanguage } from "../../context/LanguageContext";
+import { LanguageSwitcherDropdown } from "../ui/LanguageSwitcher";
 
 import HeaderGlobalSearch from "./header/HeaderGlobalSearch";
 import HeaderNotificationsDropdown from "./header/HeaderNotificationsDropdown";
@@ -16,6 +18,8 @@ import HeaderGamificationPill from "./header/HeaderGamificationPill";
 
 export default function Header({ setMobileOpen }) {
   const { user, logout } = useAuth();
+  const { language } = useLanguage();
+  const isEn = language === "en";
   const { isBalanceHidden, toggleBalancePrivacy } = useBalancePrivacy();
 
   const [notifOpen, setNotifOpen] = useState(false);
@@ -206,18 +210,21 @@ export default function Header({ setMobileOpen }) {
           />
         </div>
 
-        {/* RIGHT GROUP: notification + profile */}
+        {/* RIGHT GROUP: language + balance toggle + notification + profile */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Gamification Pill */}
           <HeaderGamificationPill gamification={gamification} />
+
+          {/* Quick Language Switcher Dropdown */}
+          <LanguageSwitcherDropdown />
 
           {/* Balance Privacy Toggle */}
           <button
             type="button"
             onClick={toggleBalancePrivacy}
             className="p-2 sm:p-2.5 text-slate-600 hover:text-[#00685F] hover:bg-white rounded-xl transition-colors border border-transparent hover:border-slate-100 shadow-sm shadow-slate-100/50 cursor-pointer shrink-0"
-            aria-label={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
-            title={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo"}
+            aria-label={isBalanceHidden ? (isEn ? "Show Balance" : "Tampilkan Saldo") : (isEn ? "Hide Balance" : "Sembunyikan Saldo")}
+            title={isBalanceHidden ? (isEn ? "Show Balance" : "Tampilkan Saldo") : (isEn ? "Hide Balance" : "Sembunyikan Saldo")}
           >
             {isBalanceHidden ? <EyeOff className="w-4 h-4 text-slate-500" /> : <Eye className="w-4 h-4 text-slate-600" />}
           </button>

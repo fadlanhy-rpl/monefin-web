@@ -228,7 +228,7 @@ export default function OnboardingTutorialModal({
             <p className="leading-snug">
               <strong>{isEn ? "New: Scan Paper Receipts!" : "Baru: Pindai Struk Belanja!"}</strong>{" "}
               {isEn
-                ? "Click 'Pindai Struk' to take a photo of your receipt. Vision AI extracts the merchant, items, and total automatically with review confirmation."
+                ? "Click 'Scan Receipt' to take a photo of your receipt. Vision AI extracts the merchant, items, and total automatically with review confirmation."
                 : "Cukup klik 'Pindai Struk' di menu Transaksi untuk memfoto struk kasir Anda. Vision AI mengekstrak nama toko, rincian barang, dan total pengeluaran otomatis!"}
             </p>
           </div>

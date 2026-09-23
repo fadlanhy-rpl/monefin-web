@@ -15,10 +15,13 @@ const MONTH_NAMES_EN = [
 const DAY_NAMES_ID = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const DAY_NAMES_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export default function DatePicker({ value, onChange, placeholder = "Pilih Tanggal" }) {
+export default function DatePicker({ value, onChange, placeholder }) {
   const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+
+  const defaultPlaceholder = language === 'en' ? "Select Date" : "Pilih Tanggal";
+  const displayPlaceholder = placeholder || defaultPlaceholder;
 
   const MONTH_NAMES = language === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_ID;
   const DAY_NAMES = language === 'en' ? DAY_NAMES_EN : DAY_NAMES_ID;
@@ -127,7 +130,7 @@ export default function DatePicker({ value, onChange, placeholder = "Pilih Tangg
   }
 
   const formatDisplayDate = (dateStr) => {
-    if (!dateStr) return placeholder;
+    if (!dateStr) return displayPlaceholder;
     const d = parseDateStr(dateStr);
     const day = d.getDate();
     const mName = MONTH_NAMES[d.getMonth()];

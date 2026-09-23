@@ -120,10 +120,10 @@ export default function TransactionsTable({
                             type="button"
                             onClick={() => setSelectedReceiptTxn(txn)}
                             className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-teal-50 text-[#00685F] text-[10px] font-bold hover:bg-teal-100 transition cursor-pointer shrink-0"
-                            title="Lihat Struk Belanja"
+                            title={language === "en" ? "View Receipt" : "Lihat Struk Belanja"}
                           >
                             <Receipt className="w-3 h-3" />
-                            <span>Struk</span>
+                            <span>{language === "en" ? "Receipt" : "Struk"}</span>
                           </button>
                         )}
                       </div>
@@ -155,7 +155,7 @@ export default function TransactionsTable({
             ) : (
               <tr>
                 <td colSpan="6" className="py-14 text-center text-sm font-bold text-slate-400">
-                  Tidak ada transaksi yang cocok dengan pencarian / filter.
+                  {t("transactions.no_matching") || (language === "en" ? "No transactions match your search / filter." : "Tidak ada transaksi yang cocok dengan pencarian / filter.")}
                 </td>
               </tr>
             )}
@@ -175,20 +175,20 @@ export default function TransactionsTable({
               disabled={currentPage === 1}
               className={`px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all ${currentPage === 1 ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 cursor-pointer"}`}
             >
-              &lt; <span className="hidden sm:inline">Previous</span>
+              &lt; <span className="hidden sm:inline">{t("transactions.prev") || (language === "en" ? "Previous" : "Sebelumnya")}</span>
             </button>
             <div className="hidden sm:flex items-center gap-1">
               {renderPaginationButtons()}
             </div>
             <div className="sm:hidden text-xs font-bold text-slate-700">
-              Page {currentPage} of {lastPage}
+              {language === "en" ? "Page" : "Halaman"} {currentPage} {t("transactions.of") || (language === "en" ? "of" : "dari")} {lastPage}
             </div>
             <button 
               onClick={() => currentPage < lastPage && onPage(currentPage + 1)}
               disabled={currentPage === lastPage}
               className={`px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all ${currentPage === lastPage ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 cursor-pointer"}`}
             >
-              <span className="hidden sm:inline">Next</span> &gt;
+              <span className="hidden sm:inline">{t("transactions.next") || (language === "en" ? "Next" : "Berikutnya")}</span> &gt;
             </button>
           </div>
         </div>

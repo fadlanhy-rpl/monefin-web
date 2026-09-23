@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { X, ExternalLink, HardDrive, Layers } from "lucide-react";
 import { formatDate } from "../../lib/utils";
 import { useCurrency } from "../../hooks/useCurrency";
+import { useLanguage } from "../../context/LanguageContext";
 
 const emptySubscribe = () => () => {};
 const getSnapshot = () => true;
@@ -12,6 +13,8 @@ const getServerSnapshot = () => false;
 
 export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
   const { formatCurrency } = useCurrency();
+  const { t, language } = useLanguage();
+  const isEn = language === "en";
   const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
@@ -39,16 +42,17 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
           <div>
             <h3 className="text-base font-black text-slate-900">
-              Rincian Struk & Bukti Belanja
+              {t("receipts.detail_title", isEn ? "Receipt Details & Proof of Purchase" : "Rincian Struk & Bukti Belanja")}
             </h3>
             <p className="text-xs text-slate-500 font-medium">
-              {transaction.description || receiptData.merchant || "Transaksi"}
+              {transaction.description || receiptData.merchant || (isEn ? "Transaction" : "Transaksi")}
             </p>
           </div>
 
           <button
             onClick={onClose}
             type="button"
+            aria-label={t("common.close", isEn ? "Close" : "Tutup")}
             className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -60,22 +64,30 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
           {/* Metadata Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase">Tanggal</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase">
+                {t("receipts.detail_date", isEn ? "Date" : "Tanggal")}
+              </span>
               <p className="font-black text-slate-800">{formatDate(transaction.transaction_date)}</p>
             </div>
 
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase">Rekening</span>
-              <p className="font-black text-slate-800">{transaction.account?.name || "Utama"}</p>
+              <span className="text-[10px] text-slate-400 font-bold uppercase">
+                {t("receipts.detail_account", isEn ? "Account" : "Rekening")}
+              </span>
+              <p className="font-black text-slate-800">{transaction.account?.name || (isEn ? "Primary" : "Utama")}</p>
             </div>
 
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase">Kategori</span>
-              <p className="font-black text-slate-800">{transaction.category?.name || "Umum"}</p>
+              <span className="text-[10px] text-slate-400 font-bold uppercase">
+                {t("receipts.detail_category", isEn ? "Category" : "Kategori")}
+              </span>
+              <p className="font-black text-slate-800">{transaction.category?.name || (isEn ? "General" : "Umum")}</p>
             </div>
 
             <div className="p-3 bg-teal-50/70 rounded-2xl border border-teal-100 space-y-1">
-              <span className="text-[10px] text-[#00685F] font-bold uppercase">Total Akhir</span>
+              <span className="text-[10px] text-[#00685F] font-bold uppercase">
+                {t("receipts.detail_total", isEn ? "Total Amount" : "Total Akhir")}
+              </span>
               <p className="font-black text-[#00685F]">{formatCurrency(-Math.abs(transaction.amount))}</p>
             </div>
           </div>
@@ -86,7 +98,7 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-700 flex items-center gap-1.5">
                   <HardDrive className="w-3.5 h-3.5 text-[#00685F]" />
-                  Lampiran Foto Struk
+                  {t("receipts.detail_attachment", isEn ? "Receipt Photo Attachment" : "Lampiran Foto Struk")}
                 </span>
                 <a
                   href={imageUrl}
@@ -94,7 +106,7 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
                   rel="noopener noreferrer"
                   className="text-[11px] font-bold text-[#00685F] hover:underline flex items-center gap-1"
                 >
-                  <span>Buka Ukuran Penuh</span>
+                  <span>{t("receipts.open_full_size", isEn ? "Open Full Size" : "Buka Ukuran Penuh")}</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -102,7 +114,7 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imageUrl}
-                  alt="Struk Belanja"
+                  alt={isEn ? "Shopping Receipt" : "Struk Belanja"}
                   className="max-h-72 object-contain rounded-xl"
                 />
               </div>
@@ -110,7 +122,11 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
           ) : (
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 flex items-center gap-2">
               <HardDrive className="w-4 h-4 text-slate-400 shrink-0" />
-              <span>Foto struk tidak disimpan di server (sesuai pilihan pengguna untuk menghemat penyimpanan & menjaga privasi).</span>
+              <span>
+                {t("receipts.detail_no_photo", isEn
+                  ? "Receipt photo was not stored on server (per user preference to save storage & preserve privacy)."
+                  : "Foto struk tidak disimpan di server (sesuai pilihan pengguna untuk menghemat penyimpanan & menjaga privasi).")}
+              </span>
             </div>
           )}
 
@@ -119,7 +135,9 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                 <Layers className="w-3.5 h-3.5 text-[#00685F]" />
-                <span>Rincian Barang Belanja ({items.length} Item)</span>
+                <span>
+                  {t("receipts.detail_items_breakdown", isEn ? "Purchased Items Breakdown" : "Rincian Barang Belanja")} ({items.length} {isEn ? "Items" : "Item"})
+                </span>
               </div>
               <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200/80 bg-slate-50/40 overflow-hidden text-xs">
                 {items.map((it, idx) => (
@@ -140,13 +158,13 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
                   <div className="p-3 bg-slate-50 space-y-1 text-[11px] text-slate-500">
                     {receiptData.tax > 0 && (
                       <div className="flex justify-between">
-                        <span>Pajak (PPN):</span>
+                        <span>{isEn ? "Tax / VAT:" : "Pajak (PPN):"}</span>
                         <span>{formatCurrency(receiptData.tax)}</span>
                       </div>
                     )}
                     {receiptData.discount > 0 && (
                       <div className="flex justify-between text-rose-600">
-                        <span>Diskon:</span>
+                        <span>{isEn ? "Discount:" : "Diskon:"}</span>
                         <span>-{formatCurrency(receiptData.discount)}</span>
                       </div>
                     )}
@@ -164,7 +182,7 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
             onClick={onClose}
             className="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-300 transition cursor-pointer"
           >
-            Tutup
+            {t("common.close", isEn ? "Close" : "Tutup")}
           </button>
         </div>
       </div>

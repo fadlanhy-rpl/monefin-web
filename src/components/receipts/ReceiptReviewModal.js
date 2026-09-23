@@ -24,6 +24,8 @@ import {
   Image as ImageIcon
 } from "lucide-react";
 import { confirmReceiptTransaction } from "../../services/receipt.service";
+import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const emptySubscribe = () => () => {};
 const getSnapshot = () => true;
@@ -39,6 +41,10 @@ export default function ReceiptReviewModal({
   categories = [],
   onSuccess,
 }) {
+  const { t, language } = useLanguage();
+  const isEn = language === "en";
+  const { formatCurrency } = useCurrency();
+
   // Mode: "summary" (Ringkasan) vs "itemized" (Terperinci)
   const [mode, setMode] = useState("summary");
 
@@ -68,7 +74,7 @@ export default function ReceiptReviewModal({
   useEffect(() => {
     if (extractedData) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMerchant(extractedData.merchant || "Toko Belanja");
+      setMerchant(extractedData.merchant || (isEn ? "Store / Merchant" : "Toko Belanja"));
       let initialDate = extractedData.date || new Date().toISOString().split("T")[0];
       if (initialDate && initialDate.includes("-")) {
         const parts = initialDate.split("-");
@@ -182,15 +188,15 @@ export default function ReceiptReviewModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!accountId) {
-      setErrorMsg("Mohon pilih rekening sumber dana.");
+      setErrorMsg(isEn ? "Please select a funding account." : "Mohon pilih rekening sumber dana.");
       return;
     }
     if (!categoryId) {
-      setErrorMsg("Mohon pilih kategori transaksi.");
+      setErrorMsg(isEn ? "Please select a transaction category." : "Mohon pilih kategori transaksi.");
       return;
     }
     if (!amount || Number(amount) <= 0) {
-      setErrorMsg("Nominal transaksi harus lebih dari 0.");
+      setErrorMsg(isEn ? "Transaction amount must be greater than 0." : "Nominal transaksi harus lebih dari 0.");
       return;
     }
 
@@ -203,7 +209,7 @@ export default function ReceiptReviewModal({
         category_id: Number(categoryId),
         type: "expense",
         amount: Number(amount),
-        description: merchant.trim() || "Belanja Struk",
+        description: merchant.trim() || (isEn ? "Receipt Expense" : "Belanja Struk"),
         transaction_date: transactionDate,
         save_receipt_image: saveReceiptImage,
         save_mode: mode,
@@ -224,12 +230,12 @@ export default function ReceiptReviewModal({
         if (onSuccess) onSuccess(res.data);
         onClose();
       } else {
-        throw new Error(res?.message || "Gagal mencatat transaksi.");
+        throw new Error(res?.message || (isEn ? "Failed to save transaction." : "Gagal mencatat transaksi."));
       }
     } catch (err) {
       console.error("Confirm receipt transaction error:", err);
       setErrorMsg(
-        err?.data?.message || err?.message || "Terjadi kesalahan saat menyimpan transaksi."
+        err?.data?.message || err?.message || (isEn ? "An error occurred while saving the transaction." : "Terjadi kesalahan saat menyimpan transaksi.")
       );
     } finally {
       setIsSubmitting(false);
@@ -247,11 +253,11 @@ export default function ReceiptReviewModal({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00685F] animate-pulse" />
               <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                Konfirmasi & Review Struk Belanja
+                {t("receipts.review_title", isEn ? "Confirm & Review Shopping Receipt" : "Konfirmasi & Review Struk Belanja")}
               </h3>
             </div>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Periksa data hasil pembacaan sebelum disimpan ke riwayat transaksi
+              {t("receipts.review_subtitle", isEn ? "Verify scanned data before saving to transaction history" : "Periksa data hasil pembacaan sebelum disimpan ke riwayat transaksi")}
             </p>
           </div>
 
@@ -276,7 +282,7 @@ export default function ReceiptReviewModal({
                 : "border-transparent text-slate-500"
             }`}
           >
-            Form Transaksi
+            {t("receipts.tab_form", isEn ? "Transaction Form" : "Form Transaksi")}
           </button>
           <button
             type="button"
@@ -287,7 +293,7 @@ export default function ReceiptReviewModal({
                 : "border-transparent text-slate-500"
             }`}
           >
-            Foto Struk ({Math.round(zoomLevel * 100)}%)
+            {t("receipts.tab_preview", isEn ? "Receipt Photo" : "Foto Struk")} ({Math.round(zoomLevel * 100)}%)
           </button>
         </div>
 
@@ -303,7 +309,7 @@ export default function ReceiptReviewModal({
             <div className="p-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-slate-300 text-xs shrink-0">
               <span className="font-bold flex items-center gap-1.5 text-slate-400">
                 <ImageIcon className="w-4 h-4 text-[#00685F]" />
-                Bukti Struk
+                {t("receipts.proof_label", isEn ? "Receipt Proof" : "Bukti Struk")}
               </span>
 
               <div className="flex items-center gap-1">
@@ -311,7 +317,7 @@ export default function ReceiptReviewModal({
                   type="button"
                   onClick={() => setZoomLevel((z) => Math.max(0.6, z - 0.2))}
                   className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 transition"
-                  title="Perkecil"
+                  title={t("receipts.zoom_out", isEn ? "Zoom Out" : "Perkecil")}
                 >
                   <ZoomOut className="w-4 h-4" />
                 </button>
@@ -322,7 +328,7 @@ export default function ReceiptReviewModal({
                   type="button"
                   onClick={() => setZoomLevel((z) => Math.min(3, z + 0.2))}
                   className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 transition"
-                  title="Perbesar"
+                  title={t("receipts.zoom_in", isEn ? "Zoom In" : "Perbesar")}
                 >
                   <ZoomIn className="w-4 h-4" />
                 </button>
@@ -330,7 +336,7 @@ export default function ReceiptReviewModal({
                   type="button"
                   onClick={() => setRotation((r) => (r + 90) % 360)}
                   className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 transition ml-1"
-                  title="Putar 90°"
+                  title={t("receipts.rotate", isEn ? "Rotate 90°" : "Putar 90°")}
                 >
                   <RotateCw className="w-4 h-4" />
                 </button>
@@ -341,9 +347,9 @@ export default function ReceiptReviewModal({
                     setRotation(0);
                   }}
                   className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 transition text-[11px] font-bold"
-                  title="Reset"
+                  title={t("receipts.reset", isEn ? "Reset" : "Reset")}
                 >
-                  Reset
+                  {t("receipts.reset", isEn ? "Reset" : "Reset")}
                 </button>
               </div>
             </div>
@@ -360,13 +366,13 @@ export default function ReceiptReviewModal({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={previewUrl}
-                    alt="Foto Struk"
+                    alt={isEn ? "Receipt Photo" : "Foto Struk"}
                     className="max-h-[60vh] md:max-h-[70vh] rounded-lg shadow-2xl object-contain border border-slate-700/50"
                   />
                 </div>
               ) : (
                 <div className="text-center text-slate-500 text-xs">
-                  Tidak ada pratinjau gambar.
+                  {t("receipts.no_image_preview", isEn ? "No image preview available." : "Tidak ada pratinjau gambar.")}
                 </div>
               )}
             </div>
@@ -392,7 +398,7 @@ export default function ReceiptReviewModal({
               {/* Mode Switcher: Ringkasan vs Terperinci */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">
-                  Mode Pencatatan Transaksi
+                  {t("receipts.mode_label", isEn ? "Transaction Recording Mode" : "Mode Pencatatan Transaksi")}
                 </label>
                 <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl gap-1">
                   <button
@@ -405,7 +411,7 @@ export default function ReceiptReviewModal({
                     }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Ringkasan (Satu Catatan)</span>
+                    <span>{t("receipts.mode_summary", isEn ? "Summary (Single Entry)" : "Ringkasan (Satu Catatan)")}</span>
                   </button>
 
                   <button
@@ -418,13 +424,13 @@ export default function ReceiptReviewModal({
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
-                    <span>Terperinci ({items.length} Item)</span>
+                    <span>{t("receipts.mode_itemized", isEn ? "Itemized" : "Terperinci")} ({items.length} {isEn ? "Items" : "Item"})</span>
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-400">
                   {mode === "summary"
-                    ? "Mencatat 1 total pengeluaran atas nama merchant. Praktis dan cepat."
-                    : "Menyimpan rincian tiap barang belanjaan beserta harga satuannya."}
+                    ? (isEn ? "Records 1 total expense under the merchant name. Fast and practical." : "Mencatat 1 total pengeluaran atas nama merchant. Praktis dan cepat.")
+                    : (isEn ? "Saves details of each purchased item with unit prices." : "Menyimpan rincian tiap barang belanjaan beserta harga satuannya.")}
                 </p>
               </div>
 
@@ -434,13 +440,13 @@ export default function ReceiptReviewModal({
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
                     <Store className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Nama Toko / Merchant</span>
+                    <span>{t("receipts.merchant_label", isEn ? "Store / Merchant Name" : "Nama Toko / Merchant")}</span>
                   </label>
                   <input
                     type="text"
                     value={merchant}
                     onChange={(e) => setMerchant(e.target.value)}
-                    placeholder="Contoh: Indomaret, Starbucks"
+                    placeholder={t("receipts.merchant_placeholder", isEn ? "e.g., Starbucks, Walmart" : "Contoh: Indomaret, Starbucks")}
                     required
                     className="w-full px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:border-[#00685F] focus:ring-1 focus:ring-[#00685F] outline-none transition"
                   />
@@ -451,14 +457,14 @@ export default function ReceiptReviewModal({
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Tanggal Transaksi</span>
+                      <span>{t("receipts.date_label", isEn ? "Transaction Date" : "Tanggal Transaksi")}</span>
                     </label>
                     <button
                       type="button"
                       onClick={() => setTransactionDate(new Date().toISOString().split("T")[0])}
                       className="text-[10px] text-[#00685F] hover:underline font-bold cursor-pointer"
                     >
-                      Hari ini
+                      {t("receipts.today", isEn ? "Today" : "Hari ini")}
                     </button>
                   </div>
                   <input
@@ -474,7 +480,7 @@ export default function ReceiptReviewModal({
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
                     <Wallet className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Rekening Sumber Dana</span>
+                    <span>{t("receipts.account_label", isEn ? "Source Funding Account" : "Rekening Sumber Dana")}</span>
                   </label>
                   <div className="relative">
                     <select
@@ -484,11 +490,11 @@ export default function ReceiptReviewModal({
                       className="w-full appearance-none px-3.5 py-2.5 pr-8 text-xs font-bold text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:border-[#00685F] focus:ring-1 focus:ring-[#00685F] outline-none transition cursor-pointer"
                     >
                       <option value="" disabled>
-                        Pilih Rekening
+                        {t("receipts.select_account", isEn ? "Select Account" : "Pilih Rekening")}
                       </option>
                       {accounts.map((acc) => (
                         <option key={acc.id} value={acc.id}>
-                          {acc.name} (Saldo: Rp {formatRupiah(acc.balance)})
+                          {acc.name} ({isEn ? "Balance:" : "Saldo:"} {formatCurrency(acc.balance)})
                         </option>
                       ))}
                     </select>
@@ -500,7 +506,7 @@ export default function ReceiptReviewModal({
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
                     <Tag className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Kategori Pengeluaran</span>
+                    <span>{t("receipts.category_label", isEn ? "Expense Category" : "Kategori Pengeluaran")}</span>
                   </label>
                   <div className="relative">
                     <select
@@ -510,7 +516,7 @@ export default function ReceiptReviewModal({
                       className="w-full appearance-none px-3.5 py-2.5 pr-8 text-xs font-bold text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:border-[#00685F] focus:ring-1 focus:ring-[#00685F] outline-none transition cursor-pointer"
                     >
                       <option value="" disabled>
-                        Pilih Kategori
+                        {t("receipts.select_category", isEn ? "Select Category" : "Pilih Kategori")}
                       </option>
                       {categories.map((cat) => (
                         <option key={cat.id} value={cat.id}>
@@ -529,10 +535,10 @@ export default function ReceiptReviewModal({
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                        Daftar Barang Belanja
+                        {t("receipts.items_title", isEn ? "Purchased Items List" : "Daftar Barang Belanja")}
                       </h4>
                       <p className="text-[11px] text-slate-400">
-                        Edit item jika ada salah baca atau klik hapus untuk baris teks yang tidak perlu
+                        {t("receipts.items_desc", isEn ? "Edit items if misread, or click trash to remove unnecessary text lines" : "Edit item jika ada salah baca atau klik hapus untuk baris teks yang tidak perlu")}
                       </p>
                     </div>
 
@@ -542,13 +548,13 @@ export default function ReceiptReviewModal({
                       className="flex items-center gap-1 px-2.5 py-1.5 bg-teal-50 text-[#00685F] rounded-lg text-xs font-bold hover:bg-teal-100 transition"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>Tambah Item</span>
+                      <span>{t("receipts.add_item", isEn ? "Add Item" : "Tambah Item")}</span>
                     </button>
                   </div>
 
                   {items.length === 0 ? (
                     <div className="p-4 text-center rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-400">
-                      Tidak ada daftar item yang terekstraksi. Klik &quot;Tambah Item&quot; untuk menambahkan secara manual.
+                      {t("receipts.no_items", isEn ? "No items extracted. Click \"Add Item\" to add manually." : "Tidak ada daftar item yang terekstraksi. Klik \"Tambah Item\" untuk menambahkan secara manual.")}
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
@@ -567,14 +573,14 @@ export default function ReceiptReviewModal({
                               onChange={(e) =>
                                 handleItemChange(it.id, "name", e.target.value)
                               }
-                              placeholder="Nama barang"
+                              placeholder={t("receipts.item_name_placeholder", isEn ? "Item name" : "Nama barang")}
                               className="flex-1 px-2.5 py-1.5 font-bold bg-white border border-slate-200 rounded-lg outline-none focus:border-[#00685F]"
                             />
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(it.id)}
                               className="p-1.5 text-slate-400 hover:text-rose-600 transition"
-                              title="Hapus baris"
+                              title={isEn ? "Delete row" : "Hapus baris"}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -583,7 +589,7 @@ export default function ReceiptReviewModal({
                           <div className="grid grid-cols-12 gap-2 pl-7">
                             <div className="col-span-3">
                               <label className="text-[10px] text-slate-400 block mb-0.5">
-                                Qty
+                                {t("receipts.qty", "Qty")}
                               </label>
                               <input
                                 type="number"
@@ -599,7 +605,7 @@ export default function ReceiptReviewModal({
 
                             <div className="col-span-4">
                               <label className="text-[10px] text-slate-400 block mb-0.5">
-                                Harga Satuan
+                                {t("receipts.unit_price", isEn ? "Unit Price" : "Harga Satuan")}
                               </label>
                               <input
                                 type="number"
@@ -614,10 +620,10 @@ export default function ReceiptReviewModal({
 
                             <div className="col-span-5 flex flex-col justify-end text-right">
                               <label className="text-[10px] text-slate-400 block mb-0.5">
-                                Subtotal
+                                {t("receipts.subtotal", "Subtotal")}
                               </label>
-                              <span className="font-black text-slate-800 py-1">
-                                Rp {formatRupiah(it.total)}
+                              <span className="font-black text-slate-800 py-1 font-mono">
+                                {formatCurrency(it.total)}
                               </span>
                             </div>
                           </div>
@@ -629,32 +635,30 @@ export default function ReceiptReviewModal({
                   {/* Subtotal, Pajak, Diskon */}
                   <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
                     <div className="flex justify-between items-center text-slate-600">
-                      <span>Subtotal Item</span>
-                      <span className="font-bold">Rp {formatRupiah(itemsSum)}</span>
+                      <span>{t("receipts.items_subtotal", isEn ? "Items Subtotal" : "Subtotal Item")}</span>
+                      <span className="font-bold font-mono">{formatCurrency(itemsSum)}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-slate-600">
-                      <span className="flex items-center gap-1">Pajak / PPN</span>
+                      <span className="flex items-center gap-1">{t("receipts.tax", isEn ? "Tax / VAT" : "Pajak / PPN")}</span>
                       <div className="flex items-center gap-1">
-                        <span className="text-slate-400">Rp</span>
                         <input
                           type="number"
                           value={tax}
                           onChange={(e) => setTax(Number(e.target.value) || 0)}
-                          className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-right font-bold text-xs"
+                          className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-right font-bold text-xs font-mono"
                         />
                       </div>
                     </div>
 
                     <div className="flex justify-between items-center text-slate-600">
-                      <span className="flex items-center gap-1">Diskon / Potongan</span>
+                      <span className="flex items-center gap-1">{t("receipts.discount", isEn ? "Discount" : "Diskon / Potongan")}</span>
                       <div className="flex items-center gap-1">
-                        <span className="text-slate-400">-Rp</span>
                         <input
                           type="number"
                           value={discount}
                           onChange={(e) => setDiscount(Number(e.target.value) || 0)}
-                          className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-right font-bold text-xs text-rose-600"
+                          className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-right font-bold text-xs text-rose-600 font-mono"
                         />
                       </div>
                     </div>
@@ -666,7 +670,9 @@ export default function ReceiptReviewModal({
                       <div className="flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                         <span>
-                          Selisih Rp {formatRupiah(Math.abs(Number(amount) - (itemsSum + Number(tax) - Number(discount))))} antara total struk dan item.
+                          {isEn
+                            ? `Difference of ${formatCurrency(Math.abs(Number(amount) - (itemsSum + Number(tax) - Number(discount))))} between receipt total and items.`
+                            : `Selisih ${formatCurrency(Math.abs(Number(amount) - (itemsSum + Number(tax) - Number(discount))))} antara total struk dan item.`}
                         </span>
                       </div>
                       <button
@@ -674,7 +680,7 @@ export default function ReceiptReviewModal({
                         onClick={syncTotalFromItems}
                         className="px-2.5 py-1 bg-amber-600 text-white rounded-lg font-bold text-[11px] hover:bg-amber-700 shrink-0"
                       >
-                        Sesuaikan Total
+                        {t("receipts.sync_total", isEn ? "Adjust Total" : "Sesuaikan Total")}
                       </button>
                     </div>
                   )}
@@ -690,10 +696,12 @@ export default function ReceiptReviewModal({
                     <div className="leading-snug">
                       <span className="font-bold flex items-center gap-1">
                         <Split className="w-3.5 h-3.5 text-indigo-600" />
-                        Pecah transaksi berdasarkan kategori item
+                        {t("receipts.split_category_label", isEn ? "Split transaction by item category" : "Pecah transaksi berdasarkan kategori item")}
                       </span>
                       <p className="text-[11px] text-indigo-700 mt-0.5">
-                        Jika struk belanja memiliki produk dengan kategori berbeda, sistem akan membuat entri transaksi terpisah agar alokasi budget bulanan tetap akurat.
+                        {t("receipts.split_category_desc", isEn
+                          ? "If the receipt has items from different categories, the system creates separate transactions so monthly budgets stay accurate."
+                          : "Jika struk belanja memiliki produk dengan kategori berbeda, sistem akan membuat entri transaksi terpisah agar alokasi budget bulanan tetap akurat.")}
                       </p>
                     </div>
                   </label>
@@ -704,39 +712,40 @@ export default function ReceiptReviewModal({
               <div className="p-4 rounded-2xl bg-teal-50/70 border border-teal-200/80 flex items-center justify-between">
                 <div>
                   <label className="text-[10px] font-bold text-[#00685F] uppercase tracking-wider block">
-                    Total Transaksi yang Dicatat
+                    {t("receipts.total_recorded", isEn ? "Total Recorded Transaction" : "Total Transaksi yang Dicatat")}
                   </label>
                   <p className="text-xs text-slate-500">
-                    {mode === "summary" ? "Total dari struk" : "Total akhir setelah pajak & diskon"}
+                    {mode === "summary"
+                      ? t("receipts.total_recorded_sub_summary", isEn ? "Total from receipt" : "Total dari struk")
+                      : t("receipts.total_recorded_sub_itemized", isEn ? "Final total after tax & discount" : "Total akhir setelah pajak & diskon")}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-black text-slate-700">Rp</span>
                   <input
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required
                     min="1"
-                    className="w-36 sm:w-44 px-3 py-1.5 text-lg font-black text-[#00685F] bg-white border border-teal-300 rounded-xl text-right outline-none focus:ring-2 focus:ring-[#00685F]"
+                    className="w-36 sm:w-44 px-3 py-1.5 text-lg font-black text-[#00685F] bg-white border border-teal-300 rounded-xl text-right outline-none focus:ring-2 focus:ring-[#00685F] font-mono"
                   />
                 </div>
               </div>
 
-              {/* STORAGE CONTROL TOGGLE (Requirement #2: Simpan atau Tidak) */}
+              {/* STORAGE CONTROL TOGGLE */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <HardDrive className="w-4 h-4 text-slate-600" />
                     <div>
                       <p className="text-xs font-bold text-slate-800">
-                        Simpan Foto Struk sebagai Lampiran?
+                        {t("receipts.save_photo_question", isEn ? "Save Receipt Photo as Attachment?" : "Simpan Foto Struk sebagai Lampiran?")}
                       </p>
                       <p className="text-[11px] text-slate-500">
                         {saveReceiptImage
-                          ? "Foto struk akan disimpan sebagai bukti transaksi."
-                          : "Foto struk tidak disimpan. 0 byte penyimpanan terpakai & privasi terjaga."}
+                          ? t("receipts.save_photo_yes", isEn ? "Receipt photo will be saved as transaction proof." : "Foto struk akan disimpan sebagai bukti transaksi.")
+                          : t("receipts.save_photo_no", isEn ? "Receipt photo is not saved. 0 bytes storage used & privacy protected." : "Foto struk tidak disimpan. 0 byte penyimpanan terpakai & privasi terjaga.")}
                       </p>
                     </div>
                   </div>
@@ -767,7 +776,7 @@ export default function ReceiptReviewModal({
                 disabled={isSubmitting}
                 className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer disabled:opacity-50"
               >
-                Batal / Pindai Ulang
+                {t("receipts.cancel_rescan", isEn ? "Cancel / Re-scan" : "Batal / Pindai Ulang")}
               </button>
 
               <button
@@ -778,12 +787,12 @@ export default function ReceiptReviewModal({
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Menyimpan...</span>
+                    <span>{t("receipts.saving", isEn ? "Saving..." : "Menyimpan...")}</span>
                   </>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>Konfirmasi & Simpan Transaksi</span>
+                    <span>{t("receipts.save_transaction", isEn ? "Confirm & Save Transaction" : "Konfirmasi & Simpan Transaksi")}</span>
                   </>
                 )}
               </button>
