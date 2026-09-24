@@ -40,14 +40,18 @@ function AuthCallbackContent() {
       }
 
       // Verifikasi ke backend dan hydrate user state
-      checkAuth().then((userData) => {
-        const activeLang = typeof window !== "undefined" ? (localStorage.getItem("language") || language) : language;
-        toast.success(
-          activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",
-          { id: "google-auth-toast" }
-        );
-        router.replace("/dashboard");
-      });
+      checkAuth(true)
+        .then(() => {
+          const activeLang = typeof window !== "undefined" ? (localStorage.getItem("language") || language) : language;
+          toast.success(
+            activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",
+            { id: "google-auth-toast" }
+          );
+          router.replace("/dashboard");
+        })
+        .catch(() => {
+          router.replace("/dashboard");
+        });
     } else {
       processedRef.current = true;
       router.replace("/login?error=callback_failed");

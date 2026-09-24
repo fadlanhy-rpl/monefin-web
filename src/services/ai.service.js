@@ -16,8 +16,11 @@ export async function aiBudgetRecommendations() {
 }
 
 /** Get financial health score and insights (always deterministic). */
-export async function aiInsights() {
-  return fetchAPI("/ai/insights");
+export async function aiInsights(force = false) {
+  return fetchAPI("/ai/insights", {
+    cacheTtl: 60000,
+    forceRefresh: force,
+  });
 }
 
 /** Test the AI provider connection (can pass current input credentials or use saved prefs). */

@@ -55,22 +55,23 @@ export function AuthProvider({ children }) {
   // -------------------------------------------------------
   // checkAuth — Verifikasi token ke backend
   // -------------------------------------------------------
-  const checkAuth = useCallback(async () => {
+  const checkAuth = useCallback(async (force = false) => {
     const token = getAuthToken();
     if (!token) {
       setLoading(false);
       setIsAuthenticated(false);
       setUser(null);
-      return;
+      return null;
     }
 
     try {
-      const userData = await getCurrentUser();
+      const userData = await getCurrentUser(force);
       setUser(userData);
       setIsAuthenticated(true);
       if (typeof window !== "undefined") {
         localStorage.setItem("user_data", JSON.stringify(userData));
       }
+      return userData;
     } catch (error) {
       if (error.status === 401) {
         setUser(null);
@@ -83,6 +84,7 @@ export function AuthProvider({ children }) {
         // Network error atau 503 — pertahankan session yang ada
         console.warn("Auth check failed (non-401). Keeping session.", error.message);
       }
+      return null;
     } finally {
       setLoading(false);
     }
