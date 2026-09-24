@@ -2,11 +2,20 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import OnboardingTutorialModal from "../onboarding/OnboardingTutorialModal";
-import AiChatWidget from "../ai/AiChatWidget";
 import { useAuth } from "../../hooks/useAuth";
+
+// Lazy-load heavy components — tidak perlu di-parse saat initial render
+const OnboardingTutorialModal = dynamic(
+  () => import("../onboarding/OnboardingTutorialModal"),
+  { ssr: false }
+);
+const AiChatWidget = dynamic(
+  () => import("../ai/AiChatWidget"),
+  { ssr: false }
+);
 
 export default function DashboardLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);

@@ -76,7 +76,10 @@ export default function Header({ setMobileOpen }) {
 
   useEffect(() => {
     let ignore = false;
-    async function init() {
+
+    // Defer non-critical header data (notifikasi + gamifikasi) 500ms setelah mount
+    // agar tidak bersaing dengan API call halaman utama (dashboard summary, transaksi, dll)
+    const timer = setTimeout(async () => {
       try {
         const [notifRes, gamifRes] = await Promise.all([
           getNotifications(),
@@ -95,14 +98,13 @@ export default function Header({ setMobileOpen }) {
           setIsNotifLoading(false);
         }
       }
-    }
-
-    init();
+    }, 500);
 
     const handleNotificationsUpdate = () => fetchNotifications();
     window.addEventListener("notificationsRead", handleNotificationsUpdate);
     return () => {
       ignore = true;
+      clearTimeout(timer);
       window.removeEventListener("notificationsRead", handleNotificationsUpdate);
     };
   }, [fetchNotifications]);

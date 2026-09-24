@@ -1,17 +1,26 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import dynamic from "next/dynamic";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import TransactionsStats from "../../../components/transactions/TransactionsStats";
 import TransactionsFilters from "../../../components/transactions/TransactionsFilters";
 import TransactionsTable from "../../../components/transactions/TransactionsTable";
 import TransactionModal from "../../../components/transactions/TransactionModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
-import ReceiptScannerModal from "../../../components/receipts/ReceiptScannerModal";
-import ReceiptReviewModal from "../../../components/receipts/ReceiptReviewModal";
 import { Plus, Search, X, Camera } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTransactionsPage } from "../../../components/transactions/hooks/useTransactionsPage";
+
+// Lazy-load: hanya muncul saat user klik "Pindai Struk" — tidak perlu di initial bundle
+const ReceiptScannerModal = dynamic(
+  () => import("../../../components/receipts/ReceiptScannerModal"),
+  { ssr: false }
+);
+const ReceiptReviewModal = dynamic(
+  () => import("../../../components/receipts/ReceiptReviewModal"),
+  { ssr: false }
+);
 
 function TransactionsPageContent() {
   const {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X, ExternalLink, HardDrive, Layers } from "lucide-react";
 import { formatDate } from "../../lib/utils";
@@ -16,9 +16,11 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
   const { t, language } = useLanguage();
   const isEn = language === "en";
   const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
+    setImgError(false); // reset on each open
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -100,23 +102,46 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
                   <HardDrive className="w-3.5 h-3.5 text-[#00685F]" />
                   {t("receipts.detail_attachment", isEn ? "Receipt Photo Attachment" : "Lampiran Foto Struk")}
                 </span>
-                <a
-                  href={imageUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] font-bold text-[#00685F] hover:underline flex items-center gap-1"
-                >
-                  <span>{t("receipts.open_full_size", isEn ? "Open Full Size" : "Buka Ukuran Penuh")}</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
+                {!imgError && (
+                  <a
+                    href={imageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-bold text-[#00685F] hover:underline flex items-center gap-1"
+                  >
+                    <span>{t("receipts.open_full_size", isEn ? "Open Full Size" : "Buka Ukuran Penuh")}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </div>
-              <div className="p-2 bg-slate-950 rounded-2xl border border-slate-800 flex justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imageUrl}
-                  alt={isEn ? "Shopping Receipt" : "Struk Belanja"}
-                  className="max-h-72 object-contain rounded-xl"
-                />
+              <div className="p-2 bg-slate-950 rounded-2xl border border-slate-800 flex justify-center min-h-24">
+                {imgError ? (
+                  <div className="flex flex-col items-center justify-center gap-2 py-6 text-slate-500">
+                    <HardDrive className="w-8 h-8 text-slate-600" />
+                    <p className="text-xs text-center">
+                      {isEn
+                        ? "Image could not be loaded. The server may be unreachable."
+                        : "Gambar tidak dapat dimuat. Server mungkin tidak dapat dijangkau."}
+                    </p>
+                    <a
+                      href={imageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-bold text-teal-400 hover:underline flex items-center gap-1 mt-1"
+                    >
+                      <span>{isEn ? "Try opening directly" : "Coba buka langsung"}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={imageUrl}
+                    alt={isEn ? "Shopping Receipt" : "Struk Belanja"}
+                    className="max-h-72 object-contain rounded-xl"
+                    onError={() => setImgError(true)}
+                  />
+                )}
               </div>
             </div>
           ) : (
