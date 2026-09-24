@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowUpDown, Search, TrendingUp, TrendingDown, Award, AlertCircle, Minus, X } from "lucide-react";
+import { ArrowUpDown, Search, TrendingUp, TrendingDown, Award, AlertCircle, Minus, X, FileText } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 
@@ -196,8 +196,20 @@ export default function ReportsTable({ monthlyData = [], loading = false }) {
               ))
             ) : sorted.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-14 text-center text-slate-300 text-xs font-bold">
-                  {searchQuery ? (language === 'en' ? `No results found for: "${searchQuery}"` : `Tidak ditemukan: "${searchQuery}"`) : (language === 'en' ? "No data available for this period" : "Belum ada data pada periode ini")}
+                <td colSpan={7} className="px-6 py-16 text-center">
+                  <div className="flex flex-col items-center justify-center text-center max-w-sm mx-auto">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/80 text-slate-400 flex items-center justify-center mb-3 shadow-xs">
+                      <FileText className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <p className="text-xs font-bold text-slate-800">
+                      {searchQuery ? (language === 'en' ? `No results for "${searchQuery}"` : `Tidak ada hasil untuk "${searchQuery}"`) : (language === 'en' ? "No financial records for this period" : "Belum ada riwayat pada periode ini")}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                      {searchQuery
+                        ? (language === 'en' ? "Try checking for spelling errors or clear your search query." : "Coba periksa kembali kata kunci atau bersihkan pencarian.")
+                        : (language === 'en' ? "Transactions recorded within this year will be compiled here automatically." : "Data transaksi pada rentang tahun ini akan otomatis terangkum di sini.")}
+                    </p>
+                  </div>
                 </td>
               </tr>
             ) : (

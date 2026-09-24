@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Banknote, Utensils, Car, ShoppingBag, TrendingUp, HelpCircle, Receipt } from "lucide-react";
+import { Pencil, Trash2, Banknote, Utensils, Car, ShoppingBag, TrendingUp, HelpCircle, Receipt, SearchX } from "lucide-react";
 import { formatDate } from "../../lib/utils";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useLanguage } from "../../context/LanguageContext";
@@ -154,8 +154,18 @@ export default function TransactionsTable({
               })
             ) : (
               <tr>
-                <td colSpan="6" className="py-14 text-center text-sm font-bold text-slate-400">
-                  {t("transactions.no_matching") || (language === "en" ? "No transactions match your search / filter." : "Tidak ada transaksi yang cocok dengan pencarian / filter.")}
+                <td colSpan="6" className="py-16 text-center">
+                  <div className="flex flex-col items-center justify-center text-center max-w-sm mx-auto px-4">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100/90 border border-slate-200/80 text-slate-400 flex items-center justify-center mb-3.5 shadow-xs">
+                      <SearchX className="w-7 h-7 text-slate-400" />
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-800 tracking-tight">
+                      {t("transactions.no_transactions_found", language === "en" ? "No Transactions Found" : "Tidak Ada Transaksi Ditemukan")}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                      {t("transactions.no_matching", language === "en" ? "No transactions match your search / filter criteria. Try adjusting date range or category filters." : "Tidak ada transaksi yang cocok dengan kriteria pencarian / filter Anda. Coba sesuaikan rentang tanggal atau kategori.")}
+                    </p>
+                  </div>
                 </td>
               </tr>
             )}

@@ -204,15 +204,54 @@ export default function AiInsightsCard() {
     );
   }
 
-  const score = data.health_score ?? 50;
-  const label = data.score_label ?? (score >= 60 ? "Sehat" : "Cukup");
-  const summary = data.weekly_summary ?? (language === "id" ? "Kondisi keuangan Anda dalam keadaan stabil. Pertahankan pencatatan rutin!" : "Your financial status is stable. Keep up regular tracking!");
-  const tips = data.tips && Array.isArray(data.tips) && data.tips.length > 0 ? data.tips.slice(0, 3) : [
-    { type: "expense", title: "Catat Pengeluaran", body: "Mulai catat setiap transaksi harian untuk visibilitas pengeluaran yang maksimal.", action_label: "Catat Transaksi", action_url: "/transactions" },
-    { type: "budget", title: "Atur Anggaran", body: "Tetapkan batas pengeluaran kategori bulanan agar arus kas tetap aman.", action_label: "Atur Budget", action_url: "/budgets" },
-    { type: "goal", title: "Target Tabungan", body: "Tentukan tujuan finansial untuk memacu motivasi menabung konsisten.", action_label: "Buat Goals", action_url: "/goals" },
+  const score = data?.health_score ?? 50;
+  const label = data?.score_label ?? (score >= 60 ? (language === "en" ? "Healthy" : "Sehat") : (language === "en" ? "Fair" : "Cukup"));
+  const summary = data?.weekly_summary ?? (language === "id" ? "Kondisi keuangan Anda dalam keadaan stabil. Pertahankan pencatatan rutin!" : "Your financial status is stable. Keep up regular tracking!");
+
+  const isEn = language === "en";
+  const defaultTips = [
+    {
+      type: "expense",
+      title: isEn ? "Record Transactions Regularly" : "Catat Transaksi Lebih Rutin",
+      body: isEn ? "Daily tracking ensures maximum visibility into spending habits." : "Mulai catat setiap transaksi harian untuk visibilitas pengeluaran maksimal.",
+      action_label: isEn ? "Record Transaction" : "Catat Transaksi",
+      action_url: "/transactions"
+    },
+    {
+      type: "budget",
+      title: isEn ? "Set Category Budgets" : "Atur Anggaran Kategori",
+      body: isEn ? "Set monthly category limits to prevent overspending." : "Tetapkan batas pengeluaran kategori bulanan agar arus kas tetap aman.",
+      action_label: isEn ? "Manage Budgets" : "Atur Budget",
+      action_url: "/budgets"
+    },
+    {
+      type: "goal",
+      title: isEn ? "Boost Emergency Cushion" : "Optimalkan Dana Darurat",
+      body: isEn ? "Allocate surplus cash into dedicated savings targets or buffers." : "Sisihkan surplus dana ke target tabungan atau dana darurat.",
+      action_label: isEn ? "View Goals" : "Lihat Goals",
+      action_url: "/goals"
+    },
+    {
+      type: "saving",
+      title: isEn ? "Analyze Monthly Trends" : "Analisis Tren Finansial",
+      body: isEn ? "Review your cashflow velocity and categories in detailed reports." : "Periksa grafik perputaran uang dan sebaran pengeluaran di Laporan.",
+      action_label: isEn ? "View Reports" : "Lihat Laporan",
+      action_url: "/reports"
+    },
   ];
-  const positive = data.positive_note;
+
+  let rawTips = Array.isArray(data?.tips) && data.tips.length > 0 ? [...data.tips] : [];
+  if (rawTips.length < 3) {
+    for (const def of defaultTips) {
+      if (rawTips.length >= 3) break;
+      const alreadyHas = rawTips.some(t => t.action_url === def.action_url || t.type === def.type);
+      if (!alreadyHas) {
+        rawTips.push(def);
+      }
+    }
+  }
+  const tips = rawTips.slice(0, 3);
+  const positive = data?.positive_note;
 
   return (
     <>
@@ -320,11 +359,11 @@ export default function AiInsightsCard() {
                 </span>
               </div>
               <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400">
-                {language === "id" ? "3 Langkah Praktis" : "3 Quick Actions"}
+                {language === "id" ? `${tips.length} Langkah Praktis` : `${tips.length} Quick Actions`}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 flex-1">
+            <div className={`grid grid-cols-1 ${tips.length === 1 ? 'sm:grid-cols-1' : tips.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-2.5 sm:gap-3 flex-1`}>
               {tips.map((tip, i) => (
                 <InsightTipItem key={i} tip={tip} />
               ))}
