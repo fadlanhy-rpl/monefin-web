@@ -43,8 +43,11 @@ export async function logout() {
  * Ambil data user yang sedang login
  * @returns {Object} user
  */
-export async function getCurrentUser() {
-  const { data } = await fetchAPI(`${ENDPOINT}/me`);
+export async function getCurrentUser(force = false) {
+  const { data } = await fetchAPI(`${ENDPOINT}/me`, {
+    cacheTtl: 30000,
+    forceRefresh: force,
+  });
   return data?.user || data;
 }
 
