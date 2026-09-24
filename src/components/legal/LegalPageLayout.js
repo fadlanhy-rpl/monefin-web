@@ -187,13 +187,8 @@ export default function LegalPageLayout({
     },
   ];
 
-  // Specific contact email per docKey
-  const contactEmail =
-    docKey === "privacy"
-      ? "privacy@monefin.com"
-      : docKey === "security"
-      ? "security@monefin.com"
-      : "legal@monefin.com";
+  // Official contact email
+  const contactEmail = "monefin.techapp@gmail.com";
 
   // Dedicated takeaway icons based on docKey and index
   const getTakeawayIcon = (index) => {
