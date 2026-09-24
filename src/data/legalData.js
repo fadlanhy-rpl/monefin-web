@@ -155,7 +155,7 @@ export const legalData = {
           paragraphs: [
             "Syarat & Ketentuan ini diatur oleh dan ditafsirkan sesuai dengan hukum Negara Kesatuan Republik Indonesia.",
             "Segala perselisihan yang timbul sehubungan dengan penafsiran atau pelaksanaan Ketentuan ini akan diupayakan untuk diselesaikan terlebih dahulu secara musyawarah mufakat. Apabila dalam waktu 30 (tiga puluh) hari musyawarah tidak mencapai kesepakatan, perselisihan akan diselesaikan melalui yurisdiksi pengadilan negeri yang berwenang di Republik Indonesia.",
-            "Untuk pertanyaan hukum resmi atau klarifikasi ketentuan, silakan hubungi tim hukum kami melalui email legal@monefin.com."
+            "Untuk pertanyaan hukum resmi atau klarifikasi ketentuan, silakan hubungi tim hukum kami melalui email monefin.techapp@gmail.com."
           ]
         }
       ]
@@ -275,7 +275,7 @@ export const legalData = {
           paragraphs: [
             "MoneFin telah menunjuk tim kepatuhan dan perlindungan data yang bertugas memastikan seluruh operasional data berjalan sesuai dengan regulasi perlindungan data pribadi yang berlaku.",
             "Apabila Anda memiliki pertanyaan, keluhan, permohonan ekspor khusus, atau ingin menjalankan hak Subjek Data Anda, silakan hubungi Pejabat Perlindungan Data kami melalui email:",
-            "Email: privacy@monefin.com"
+            "Email: monefin.techapp@gmail.com"
           ]
         }
       ]
@@ -395,7 +395,7 @@ export const legalData = {
           paragraphs: [
             "Kami sangat menghargai kontribusi komunitas peneliti keamanan siber independen (security researchers) dalam membantu menjaga ekosistem MoneFin tetap aman.",
             "Apabila Anda menemukan potensi celah keamanan atau kerentanan pada infrastruktur MoneFin, kami mengundang Anda untuk melaporkannya secara bertanggung jawab dan beretika melalui saluran khusus:",
-            "Email Tim Keamanan: security@monefin.com",
+            "Email Tim Keamanan: monefin.techapp@gmail.com",
             "Kebijakan kami terhadap pelapor yang beriktikad baik: Kami berkomitmen merespons dan memverifikasi laporan Anda dalam waktu maksimal 1x24 jam kerja, tidak akan mengambil tindakan hukum terhadap pengujian yang wajar dan bertanggung jawab, serta mencantumkan nama Anda dalam Hall of Fame kontributor keamanan kami."
           ]
         }
@@ -555,7 +555,7 @@ export const legalData = {
           paragraphs: [
             "These Terms shall be governed by and construed in accordance with the laws of the Republic of Indonesia.",
             "Any disputes arising from these Terms shall initially be resolved amicably through good-faith consultation. If unresolved within 30 (thirty) calendar days, the dispute shall be submitted to the exclusive jurisdiction of the competent courts of the Republic of Indonesia.",
-            "For formal legal inquiries or service notices, please contact us at legal@monefin.com."
+            "For formal legal inquiries or service notices, please contact us at monefin.techapp@gmail.com."
           ]
         }
       ]
@@ -675,7 +675,7 @@ export const legalData = {
           paragraphs: [
             "MoneFin has appointed dedicated data compliance personnel to oversee and guarantee alignment with personal data protection regulations.",
             "For inquiries, subject access requests, or regulatory questions, please contact our Data Protection Officer at:",
-            "Email: privacy@monefin.com"
+            "Email: monefin.techapp@gmail.com"
           ]
         }
       ]
@@ -795,7 +795,7 @@ export const legalData = {
           paragraphs: [
             "We warmly welcome collaboration with ethical security researchers to help keep MoneFin's ecosystem resilient.",
             "If you discover a potential vulnerability or security gap in MoneFin, please report it responsibly to our dedicated team:",
-            "Security Team Email: security@monefin.com",
+            "Security Team Email: monefin.techapp@gmail.com",
             "Our commitment: We verify reports within 1 business day, commit to zero legal action against researchers acting in good faith, and honor your contribution in our Security Hall of Fame."
           ]
         }
