@@ -457,7 +457,10 @@
     "receipt": "Receipt",
     "prev": "Previous",
     "next": "Next",
-    "no_transactions": "No transactions match your search / filter."
+    "no_transactions": "No transactions match your search / filter.",
+    "no_matching": "No transactions match your search / filter criteria.",
+    "no_transactions_found": "No Transactions Found",
+    "no_transactions_desc": "Try adjusting your search criteria, category, or date range filter."
   },
   "receipts": {
     "scan_title": "Scan Shopping Receipt",
@@ -834,6 +837,9 @@
     "btn_split_equal_amount": "Split Equally",
     "total_percentage": "Total Percentage: {pct}%",
     "percentage_warning": "Total must equal 100%",
+    "exact_input_title": "Set Exact Amount for Each Person",
+    "percentage_input_title": "Set Percentage Share for Each Person",
+    "tax_service": "Tax & Service",
     "select_account_placeholder": "Select wallet / account...",
     "select_category_placeholder": "Select category...",
     "hero_card_title": "Smart Expense Sharing Suite",

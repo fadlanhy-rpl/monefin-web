@@ -457,7 +457,10 @@
     "receipt": "Struk",
     "prev": "Sebelumnya",
     "next": "Selanjutnya",
-    "no_transactions": "Tidak ada transaksi yang cocok dengan pencarian / filter."
+    "no_transactions": "Tidak ada transaksi yang cocok dengan pencarian / filter.",
+    "no_matching": "Tidak ada transaksi yang cocok dengan kriteria pencarian / filter Anda.",
+    "no_transactions_found": "Tidak Ada Transaksi Ditemukan",
+    "no_transactions_desc": "Coba sesuaikan kata kunci pencarian, kategori, atau rentang tanggal filter Anda."
   },
   "receipts": {
     "scan_title": "Pindai Struk Belanja",
@@ -836,6 +839,7 @@
     "percentage_warning": "Total persentase harus 100%",
     "exact_input_title": "Tentukan Nominal Pasti Tiap Orang",
     "percentage_input_title": "Tentukan Persentase Beban Tiap Orang",
+    "tax_service": "Pajak & Layanan",
     "select_account_placeholder": "Pilih dompet / rekening...",
     "select_category_placeholder": "Pilih kategori pengeluaran...",
     "hero_card_title": "Sistem Patungan & Bagi Tagihan Cerdas",

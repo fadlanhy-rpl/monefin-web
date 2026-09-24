@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Utensils, Wallet, Car, ShoppingBag, Eye } from "lucide-react";
+import { Utensils, Wallet, Car, ShoppingBag, Eye, Inbox } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 
 export default function RecentTransactions({ transactions = [] }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -141,8 +141,18 @@ export default function RecentTransactions({ transactions = [] }) {
               })
             ) : (
               <tr>
-                <td colSpan="3" className="py-8 text-center text-xs sm:text-sm text-slate-600 font-medium">
-                  Tidak ada transaksi untuk filter ini
+                <td colSpan="3" className="py-12 text-center">
+                  <div className="flex flex-col items-center justify-center text-center max-w-xs mx-auto">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/80 text-slate-400 flex items-center justify-center mb-2.5 shadow-xs">
+                      <Inbox className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <p className="text-xs font-bold text-slate-700">
+                      {language === "en" ? "No transactions found" : "Belum ada transaksi"}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                      {language === "en" ? "No records match this filter criteria." : "Tidak ada transaksi untuk filter ini."}
+                    </p>
+                  </div>
                 </td>
               </tr>
             )}

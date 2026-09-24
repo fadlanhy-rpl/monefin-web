@@ -119,12 +119,24 @@ export function LanguageProvider({ children }) {
    * t(key, fallback) — translate a dot-notated key e.g. "dashboard.title"
    */
   const t = useCallback((key, fallback) => {
+    const formatFallback = (rawKey, fb) => {
+      if (fb !== undefined) return fb;
+      if (typeof rawKey === "string" && rawKey.includes(".")) {
+        const last = rawKey.split(".").pop();
+        if (last.startsWith("no_") || last.startsWith("empty_") || last.includes("empty")) {
+          return language === "id" ? "Tidak ada data yang cocok" : "No matching data found";
+        }
+        return last.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      }
+      return rawKey;
+    };
+
     const messages = MESSAGES[language] ?? MESSAGES[DEFAULT_LOCALE];
     const keys = key.split(".");
     let value = messages;
     for (const k of keys) {
       if (value === undefined || value === null || typeof value !== "object") {
-        return fallback !== undefined ? fallback : key;
+        return formatFallback(key, fallback);
       }
       if (!(k in value)) {
         // Fallback to DEFAULT_LOCALE
@@ -135,11 +147,11 @@ export function LanguageProvider({ children }) {
           defVal = defVal[dk];
         }
         if (typeof defVal === "string") return defVal;
-        return fallback !== undefined ? fallback : key;
+        return formatFallback(key, fallback);
       }
       value = value[k];
     }
-    return typeof value === "string" ? value : (fallback !== undefined ? fallback : key);
+    return typeof value === "string" ? value : formatFallback(key, fallback);
   }, [language]);
 
   return (
