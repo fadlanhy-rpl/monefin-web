@@ -149,15 +149,33 @@ function SettingsContent() {
         formData.append("photo", avatarFile);
       }
       // Also include preferences so they are not lost
-      const prefs = { currency, language, emailNotif, txAlert, budgetAlert, showTutorialOnLogin, theme };
+      const prefs = {
+        ...(user?.preferences || {}),
+        currency,
+        language,
+        emailNotif,
+        txAlert,
+        budgetAlert,
+        showTutorialOnLogin,
+        theme,
+      };
       formData.append("preferences", JSON.stringify(prefs));
 
       const result = await updateProfile(formData);
       if (result.success) {
         setAvatarFile(null);
+        // Sync nama dari hasil save agar avatar fallback langsung benar
+        if (result.user?.name) {
+          setFullName(result.user.name);
+        }
         if (result.user?.photo) {
-          const photoUrl = `${getAvatarUrl(result.user.photo, result.user.name)}?t=${Date.now()}`;
-          setAvatarUrl(photoUrl);
+          // Gunakan &t= bukan ?t= karena URL img.php sudah mengandung ?f=
+          const baseUrl = getAvatarUrl(result.user.photo, result.user.name);
+          const sep = baseUrl.includes("?") ? "&" : "?";
+          setAvatarUrl(`${baseUrl}${sep}t=${Date.now()}`);
+        } else {
+          // Tidak ada foto → tampilkan inisial dari nama terbaru
+          setAvatarUrl("");
         }
         showToast(currentGlobalLang === 'en' ? "Profile successfully updated." : "Profil berhasil diperbarui.", "success");
       } else {
@@ -227,8 +245,17 @@ function SettingsContent() {
       formData.append("phone", phone);
       formData.append("occupation", occupation);
       formData.append("bio", bio);
-      // Send updated preferences
-      const prefs = { currency, language, txAlert, budgetAlert, showTutorialOnLogin, emailNotif, theme };
+      // Send updated preferences preserving existing AI configurations
+      const prefs = {
+        ...(user?.preferences || {}),
+        currency,
+        language,
+        txAlert,
+        budgetAlert,
+        showTutorialOnLogin,
+        emailNotif,
+        theme,
+      };
       formData.append("preferences", JSON.stringify(prefs));
 
       const result = await updateProfile(formData);

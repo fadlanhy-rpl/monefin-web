@@ -170,8 +170,10 @@ export default function HeaderGlobalSearch({
 
       {/* Shortcut hint */}
       {!searchQuery && (
-        <kbd className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px] font-black text-slate-600 shadow-sm pointer-events-none select-none font-mono">
-          /
+        <kbd className="absolute right-3.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[9px] font-black text-slate-500 shadow-xs pointer-events-none select-none font-mono">
+          <span>Shift</span>
+          <span className="text-[8px] text-slate-400 font-sans">+</span>
+          <span>/</span>
         </kbd>
       )}
 

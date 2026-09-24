@@ -20,8 +20,11 @@ export async function aiInsights() {
   return fetchAPI("/ai/insights");
 }
 
-/** Test the user's configured AI provider connection. */
-export async function testAiConnection() {
+/** Test the AI provider connection (can pass current input credentials or use saved prefs). */
+export async function testAiConnection(payload = null) {
+  if (payload) {
+    return fetchAPI("/ai/test-connection", { method: "POST", body: payload });
+  }
   return fetchAPI("/ai/test-connection");
 }
 

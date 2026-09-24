@@ -1,17 +1,28 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import StatCards from "../../../components/dashboard/StatCards";
-import ChartsRow from "../../../components/dashboard/ChartsRow";
 import RecentTransactions from "../../../components/dashboard/RecentTransactions";
 import SmartInsight from "../../../components/dashboard/SmartInsight";
-import DashboardGamificationBanner from "../../../components/dashboard/DashboardGamificationBanner";
-import AiInsightsCard from "../../../components/ai/AiInsightsCard";
-import AiChatWidget from "../../../components/ai/AiChatWidget";
 import { getDashboardSummary } from "../../../services/dashboard.service";
 import { Calendar, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
+
+// Lazy-load: hanya ditampilkan setelah data API loaded, tidak perlu di initial bundle
+const ChartsRow = dynamic(
+  () => import("../../../components/dashboard/ChartsRow"),
+  { ssr: false, loading: () => <div className="h-72 bg-white rounded-2xl border border-slate-100 animate-pulse" /> }
+);
+const AiInsightsCard = dynamic(
+  () => import("../../../components/ai/AiInsightsCard"),
+  { ssr: false, loading: () => <div className="h-24 bg-white rounded-2xl border border-slate-100 animate-pulse" /> }
+);
+const DashboardGamificationBanner = dynamic(
+  () => import("../../../components/dashboard/DashboardGamificationBanner"),
+  { ssr: false }
+);
 
 export default function DashboardPage() {
   const { t, language } = useLanguage();
@@ -152,7 +163,6 @@ export default function DashboardPage() {
           {language === "en" ? "Failed to load dashboard data." : "Gagal memuat data dashboard."}
         </div>
       )}
-      <AiChatWidget />
     </DashboardLayout>
   );
 }

@@ -73,7 +73,7 @@ export default function RegisterIllustration() {
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-brand-600 border border-emerald-400/30 flex items-center justify-center shadow-lg shadow-brand-900/40">
             <img
-              src="/images/LogoMonefinWhite.svg"
+              src="/images/logo-monefin-white.svg"
               alt="MoneFin Logo"
               className="w-5 h-5"
             />

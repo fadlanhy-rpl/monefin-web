@@ -2,10 +2,20 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import OnboardingTutorialModal from "../onboarding/OnboardingTutorialModal";
 import { useAuth } from "../../hooks/useAuth";
+
+// Lazy-load heavy components — tidak perlu di-parse saat initial render
+const OnboardingTutorialModal = dynamic(
+  () => import("../onboarding/OnboardingTutorialModal"),
+  { ssr: false }
+);
+const AiChatWidget = dynamic(
+  () => import("../ai/AiChatWidget"),
+  { ssr: false }
+);
 
 export default function DashboardLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -113,7 +123,7 @@ export default function DashboardLayout({ children }) {
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 min-w-0 flex flex-col">
         <Header setMobileOpen={setMobileOpen} />
-        <main className="px-4 sm:px-6 lg:px-8 pt-6 pb-10 space-y-6">
+        <main className="w-full max-w-[1600px] 2xl:max-w-[1680px] mx-auto px-4 sm:px-6 xl:px-8 pt-5 sm:pt-6 pb-10 space-y-6">
           {children}
         </main>
       </div>
@@ -125,6 +135,9 @@ export default function DashboardLayout({ children }) {
         showTutorialOnLogin={tutorialShowOnLogin}
         onToggleShowTutorialOnLogin={handleToggleTutorialFromModal}
       />
+
+      {/* Global AI Financial Advisor Widget */}
+      <AiChatWidget />
     </div>
   );
 }

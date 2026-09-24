@@ -1,6 +1,6 @@
 import { fetchAPI } from "../lib/api";
 
-export const getTransactions = async (params = {}) => {
+export const getTransactions = async (params = {}, force = false) => {
   const searchParams = new URLSearchParams();
   
   if (params.start_date) searchParams.append("start_date", params.start_date);
@@ -10,11 +10,14 @@ export const getTransactions = async (params = {}) => {
   if (params.search) searchParams.append("search", params.search);
   if (params.page) searchParams.append("page", params.page);
   
-  // Optionally support fetching a larger page size
-  searchParams.append("per_page", 100); 
+  // Set default per_page to 10
+  searchParams.append("per_page", params.per_page || 10); 
 
   const url = "/transactions?" + searchParams.toString();
-  const data = await fetchAPI(url);
+  const data = await fetchAPI(url, {
+    cacheTtl: 15000,
+    forceRefresh: force,
+  });
   return data; // contains success, data (array), meta (pagination)
 };
 

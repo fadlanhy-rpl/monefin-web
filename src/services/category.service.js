@@ -1,11 +1,14 @@
 import { fetchAPI } from "../lib/api";
 
-export const getCategories = async (type = "") => {
+export const getCategories = async (type = "", force = false) => {
   let url = "/categories";
   if (type) {
     url += "?type=" + type;
   }
-  const data = await fetchAPI(url);
+  const data = await fetchAPI(url, {
+    cacheTtl: 60000,
+    forceRefresh: force,
+  });
   return data;
 };
 export const createCategory = async (categoryData) => {

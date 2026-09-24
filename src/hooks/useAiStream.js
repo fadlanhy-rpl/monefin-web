@@ -5,7 +5,7 @@ import { getAuthToken } from "../lib/api";
 
 /**
  * Custom hook to consume Server-Sent Events (SSE) stream from /api/ai/chat/stream
- * Prevents UI freezing and delivers realtime progressive token rendering.
+ * Prevents UI freezing, retains partial content on disconnect, and delivers realtime token rendering.
  */
 export function useAiStream() {
   const [output, setOutput] = useState("");
@@ -28,6 +28,8 @@ export function useAiStream() {
     const token = typeof window !== "undefined" ? getAuthToken() : null;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
+    let accumulated = "";
+
     try {
       const response = await fetch(`${apiUrl}/ai/chat/stream`, {
         method: "POST",
@@ -41,6 +43,29 @@ export function useAiStream() {
       });
 
       if (!response.ok) {
+        // Automatically fallback to standard JSON POST /ai/chat if stream endpoint fails
+        try {
+          const fallbackRes = await fetch(`${apiUrl}/ai/chat`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ message, history }),
+            signal: abortController.signal,
+          });
+          if (fallbackRes.ok) {
+            const data = await fallbackRes.json();
+            const reply = data?.data?.reply || data?.reply;
+            if (reply) {
+              setOutput(reply);
+              if (onChunk) onChunk(reply, reply);
+              if (onDone) onDone(reply);
+              return reply;
+            }
+          }
+        } catch {}
+
         const errJson = await response.json().catch(() => ({}));
         throw new Error(errJson.message || `HTTP error ${response.status}`);
       }
@@ -51,7 +76,6 @@ export function useAiStream() {
       }
 
       const decoder = new TextDecoder();
-      let accumulated = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -88,6 +112,11 @@ export function useAiStream() {
     } catch (err) {
       if (err.name === "AbortError") {
         return;
+      }
+      // If we already received partial content before stream dropped, retain and finish it gracefully!
+      if (accumulated && accumulated.trim()) {
+        if (onDone) onDone(accumulated);
+        return accumulated;
       }
       const errMsg = err.message || "Gagal menghubungi AI stream";
       setError(errMsg);

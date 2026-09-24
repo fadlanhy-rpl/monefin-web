@@ -2,17 +2,24 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check, Search } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function CustomSelect({
   value,
   onChange,
   options = [],
-  placeholder = "Pilih Opsi...",
+  placeholder,
   icon: LeadingIcon,
   className = "",
   searchable = false,
-  searchPlaceholder = "Cari...",
+  searchPlaceholder,
 }) {
+  const { language } = useLanguage();
+  const defaultPlaceholder = language === "en" ? "Select Option..." : "Pilih Opsi...";
+  const defaultSearchPlaceholder = language === "en" ? "Search..." : "Cari...";
+  const resolvedPlaceholder = placeholder || defaultPlaceholder;
+  const resolvedSearchPlaceholder = searchPlaceholder || defaultSearchPlaceholder;
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef(null);
@@ -62,7 +69,7 @@ export default function CustomSelect({
             <span className={`block truncate text-xs sm:text-sm font-extrabold ${
               selectedOption ? "text-slate-900" : "text-slate-400"
             }`}>
-              {selectedOption ? selectedOption.label : placeholder}
+              {selectedOption ? selectedOption.label : resolvedPlaceholder}
             </span>
             {selectedOption?.sublabel && (
               <span className="block truncate text-[10px] sm:text-[11px] font-bold text-[#00685F]">
@@ -90,7 +97,7 @@ export default function CustomSelect({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={searchPlaceholder}
+                  placeholder={resolvedSearchPlaceholder}
                   className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-8 pr-3 py-1.5 text-xs font-bold outline-none focus:border-[#00685F]"
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -101,7 +108,7 @@ export default function CustomSelect({
           <div className="space-y-0.5">
             {filteredOptions.length === 0 ? (
               <div className="py-4 text-center text-xs font-bold text-slate-400">
-                Tidak ada opsi yang cocok
+                {language === "en" ? "No matching options" : "Tidak ada opsi yang cocok"}
               </div>
             ) : (
               filteredOptions.map((opt) => {

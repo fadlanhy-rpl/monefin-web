@@ -19,8 +19,9 @@ export default function PreferencesSection({
   onSave,
   isSaving = false,
 }) {
-  const { t, language: globalLanguage } = useLanguage();
-  const isEn = globalLanguage === "en";
+  const { t, language: globalLanguage, changeLanguage } = useLanguage();
+  const activeFormLang = language || globalLanguage || "id";
+  const isEn = activeFormLang === "en";
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const currencyRef = useRef(null);
@@ -51,7 +52,6 @@ export default function PreferencesSection({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const activeFormLang = language || globalLanguage || "id";
   const selectedCurrency = currencyOptions.find(o => o.value === currency) || currencyOptions[0];
   const selectedLanguage = languageOptions.find(o => o.value === activeFormLang) || languageOptions[0];
 
@@ -187,6 +187,7 @@ export default function PreferencesSection({
                       type="button"
                       onClick={() => {
                         setLanguage(opt.value);
+                        changeLanguage(opt.value);
                         setIsLanguageOpen(false);
                       }}
                       className={`w-full px-3.5 py-2.5 rounded-xl flex items-center justify-between text-xs sm:text-sm font-bold transition-all text-left cursor-pointer ${
@@ -277,10 +278,10 @@ export default function PreferencesSection({
           <div className="flex justify-between items-center p-4 sm:p-5 bg-slate-50/80 rounded-2xl border border-slate-200/70 hover:border-slate-300 transition-colors">
             <div className="pr-3 space-y-0.5">
               <p className="text-xs sm:text-sm font-extrabold text-slate-900">
-                {t("settings.show_tutorial_on_login") || "Tampilkan Panduan Saat Login"}
+                {t("settings.show_tutorial_on_login") || (isEn ? "Show Walkthrough on Login" : "Tampilkan Panduan Saat Login")}
               </p>
               <p className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed">
-                {t("settings.show_tutorial_on_login_desc") || "Buka dialog panduan langkah awal secara otomatis setiap kali Anda masuk ke MoneFin"}
+                {t("settings.show_tutorial_on_login_desc") || (isEn ? "Automatically display the getting-started guide dialog every time you sign in to MoneFin" : "Buka dialog panduan langkah awal secara otomatis setiap kali Anda masuk ke MoneFin")}
               </p>
             </div>
             <button 

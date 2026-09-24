@@ -160,7 +160,7 @@ export function useTransactionsPage() {
   }, [dateFilter]);
 
   // Fetch Transactions when filters change
-  const fetchTransactionsData = useCallback(async () => {
+  const fetchTransactionsData = useCallback(async (force = false) => {
     try {
       const { start_date, end_date } = getDateRange();
       
@@ -171,24 +171,31 @@ export function useTransactionsPage() {
         search: searchQuery || undefined,
         start_date,
         end_date,
-      });
+      }, force); // pass force flag to bypass cache when called after mutation
 
       if (res.data) {
         setTransactions(res.data);
         setPaginationMeta(res.meta);
         
-        let income = 0;
-        let expense = 0;
-        res.data.forEach((t) => {
-          if (t.type === "income") income += parseFloat(t.amount);
-          if (t.type === "expense") expense += parseFloat(t.amount);
-        });
-        setStats({ income, expense, net: income - expense });
+        if (res.summary) {
+          const income = parseFloat(res.summary.income) || 0;
+          const expense = parseFloat(res.summary.expense) || 0;
+          setStats({ income, expense, net: income - expense });
+        } else {
+          let income = 0;
+          let expense = 0;
+          res.data.forEach((t) => {
+            if (t.type === "income") income += parseFloat(t.amount);
+            if (t.type === "expense") expense += parseFloat(t.amount);
+          });
+          setStats({ income, expense, net: income - expense });
+        }
       }
     } catch {
       toast.error(language === "en" ? "Failed to fetch transaction data" : "Gagal mengambil data transaksi");
     }
   }, [getDateRange, page, categoryIdFilter, accountFilter, searchQuery, language]);
+
 
   useEffect(() => {
     let ignore = false;
@@ -208,13 +215,19 @@ export function useTransactionsPage() {
           setTransactions(res.data);
           setPaginationMeta(res.meta);
           
-          let income = 0;
-          let expense = 0;
-          res.data.forEach((t) => {
-            if (t.type === "income") income += parseFloat(t.amount);
-            if (t.type === "expense") expense += parseFloat(t.amount);
-          });
-          setStats({ income, expense, net: income - expense });
+          if (res.summary) {
+            const income = parseFloat(res.summary.income) || 0;
+            const expense = parseFloat(res.summary.expense) || 0;
+            setStats({ income, expense, net: income - expense });
+          } else {
+            let income = 0;
+            let expense = 0;
+            res.data.forEach((t) => {
+              if (t.type === "income") income += parseFloat(t.amount);
+              if (t.type === "expense") expense += parseFloat(t.amount);
+            });
+            setStats({ income, expense, net: income - expense });
+          }
         }
       } catch {
         if (!ignore) {
@@ -280,7 +293,7 @@ export function useTransactionsPage() {
       setIsDeleting(true);
       await deleteTransaction(deletingId);
       toast.success(language === "en" ? "Transaction successfully deleted!" : "Transaksi berhasil dihapus!");
-      fetchTransactionsData();
+      fetchTransactionsData(true); // bypass cache after delete
     } catch {
       toast.error(language === "en" ? "Failed to delete transaction." : "Gagal menghapus transaksi.");
     } finally {
@@ -334,7 +347,7 @@ export function useTransactionsPage() {
         toast.success(language === "en" ? "Transaction successfully updated!" : "Transaksi berhasil diperbarui!");
       }
       setIsModalOpen(false);
-      fetchTransactionsData();
+      fetchTransactionsData(true); // bypass cache after create/update
     } catch (error) {
       toast.error(error.message || (language === "en" ? "Failed to save transaction." : "Gagal menyimpan transaksi."));
     } finally {
@@ -536,5 +549,6 @@ export function useTransactionsPage() {
     formNote,
     setFormNote,
     handleFormSubmit,
+    fetchTransactionsData,
   };
 }
