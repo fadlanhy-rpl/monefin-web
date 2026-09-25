@@ -28,9 +28,10 @@ import { useAuth } from "../../hooks/useAuth";
 
 /**
  * Client-side Canvas Image Compression
- * Resizes image to max 1600px width/height and compresses to JPEG ~80% quality.
+ * Resizes image to max 1280px width/height and compresses to JPEG ~72% quality.
+ * Cukup tajam untuk OCR struk, tapi payload ~2-3x lebih kecil → scan jauh lebih cepat.
  */
-function compressImage(file, maxDimension = 1600, quality = 0.8) {
+function compressImage(file, maxDimension = 1280, quality = 0.72) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;

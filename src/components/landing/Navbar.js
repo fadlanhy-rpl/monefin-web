@@ -83,7 +83,7 @@ export const Navbar = ({ isLoggedIn }) => {
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 sm:p-2 text-slate-800 hover:text-slate-900 rounded-full hover:bg-white/80 transition-colors cursor-pointer shrink-0"
+            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-slate-800 hover:text-slate-900 rounded-full hover:bg-white/80 active:scale-95 transition-all cursor-pointer shrink-0"
             aria-label="Toggle Menu"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">

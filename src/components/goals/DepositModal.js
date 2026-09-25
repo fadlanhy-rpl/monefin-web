@@ -65,8 +65,8 @@ export default function DepositModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-t-[2.5rem] sm:rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 flex flex-col max-h-[90vh] sm:max-h-[85vh]">
         {/* Modal Header */}
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between">
           <div>
@@ -204,7 +204,7 @@ export default function DepositModal({
                 required
                 value={formatThousand(depositAmount)}
                 onChange={handleDepositChange}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-base md:text-sm font-black text-slate-800"
                 placeholder="0"
                 autoFocus
               />

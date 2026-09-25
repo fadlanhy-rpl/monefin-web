@@ -23,6 +23,7 @@ import {
   toggle2fa as apiToggle2fa,
 } from "../services/auth.service";
 import { getAuthToken, setAuthToken } from "../lib/api";
+import { getBootstrap } from "../services/bootstrap.service";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
@@ -65,7 +66,16 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const userData = await getCurrentUser(force);
+      // Satu boot Laravel untuk me+accounts+categories (di-prime ke cache).
+      // Fallback ke /auth/me bila server belum di-patch (404) agar rollout aman.
+      let userData = null;
+      try {
+        const bundle = await getBootstrap(force);
+        userData = bundle?.user || null;
+      } catch (bootErr) {
+        if (bootErr?.status !== 404) throw bootErr;
+        userData = await getCurrentUser(force);
+      }
       setUser(userData);
       setIsAuthenticated(true);
       if (typeof window !== "undefined") {

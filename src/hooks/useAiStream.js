@@ -43,31 +43,13 @@ export function useAiStream() {
       });
 
       if (!response.ok) {
-        // Automatically fallback to standard JSON POST /ai/chat if stream endpoint fails
-        try {
-          const fallbackRes = await fetch(`${apiUrl}/ai/chat`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify({ message, history }),
-            signal: abortController.signal,
-          });
-          if (fallbackRes.ok) {
-            const data = await fallbackRes.json();
-            const reply = data?.data?.reply || data?.reply;
-            if (reply) {
-              setOutput(reply);
-              if (onChunk) onChunk(reply, reply);
-              if (onDone) onDone(reply);
-              return reply;
-            }
-          }
-        } catch {}
-
+        // Fail fast: JANGAN panggil ulang POST /ai/chat (double-call = 2x lambat & 2x biaya).
+        // Tampilkan error asli + tombol "Coba lagi" di widget.
         const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.message || `HTTP error ${response.status}`);
+        const code = errJson.code || "";
+        const msg = errJson.message || `HTTP error ${response.status}`;
+        const tagged = code ? `${code}| ${msg}` : msg;
+        throw new Error(tagged);
       }
 
       const reader = response.body?.getReader();
@@ -96,18 +78,30 @@ export function useAiStream() {
                 throw new Error(parsed.error);
               }
               if (parsed.text) {
+                // Backend menandai error stream dengan prefix "ERROR:<kode>| pesan"
+                // agar tidak dirender sebagai jawaban AI.
+                if (parsed.text.startsWith("ERROR:")) {
+                  throw new Error(parsed.text.slice(6).trim());
+                }
                 accumulated += parsed.text;
                 setOutput(accumulated);
                 if (onChunk) onChunk(parsed.text, accumulated);
               }
             } catch (jsonErr) {
-              // Ignore partial or unparseable chunks
+              if (jsonErr instanceof SyntaxError) {
+                // Ignore partial atau unparseable chunks
+              } else {
+                throw jsonErr;
+              }
             }
           }
         }
       }
 
       if (onDone) onDone(accumulated);
+      if (!accumulated || !accumulated.trim()) {
+        throw new Error("Respons AI kosong. Coba lagi atau pilih model lain di Pengaturan → AI Chatbot.");
+      }
       return accumulated;
     } catch (err) {
       if (err.name === "AbortError") {

@@ -41,7 +41,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function loadData() {
-      setLoading(true);
+      if (!data) {
+        setLoading(true);
+      }
       try {
         const res = await getDashboardSummary({ range: selectedRange });
         if (res.success) {

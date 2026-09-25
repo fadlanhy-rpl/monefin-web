@@ -62,13 +62,22 @@ export const Features = () => {
 
   const handleTabClick = (tabId) => {
     setActiveFeatureTab(tabId);
+    const container = tabScrollRef.current;
     const btn = tabButtonRefs.current[tabId];
-    if (btn) {
-      btn.scrollIntoView({
+    if (container && btn) {
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      const offsetLeft = btnRect.left - containerRect.left + container.scrollLeft;
+      const targetScrollLeft = offsetLeft - (container.clientWidth / 2) + (btn.clientWidth / 2);
+
+      container.scrollTo({
+        left: Math.max(0, targetScrollLeft),
         behavior: "smooth",
-        block: "nearest",
-        inline: "center",
       });
+    }
+    // Prevent browser from horizontally shifting the page
+    if (typeof window !== "undefined" && window.scrollX !== 0) {
+      window.scrollTo({ left: 0, behavior: "instant" });
     }
   };
 
@@ -307,9 +316,9 @@ export const Features = () => {
           <div
             ref={tabScrollRef}
             onScroll={checkScroll}
-            className="flex items-center overflow-x-auto no-scrollbar scroll-smooth py-2 px-2 sm:px-4 w-full touch-pan-x"
+            className="flex items-center justify-start lg:justify-center overflow-x-auto no-scrollbar scroll-smooth py-2 px-3 sm:px-4 w-full touch-pan-x"
           >
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-100/95 backdrop-blur-md rounded-2xl sm:rounded-full border border-slate-200/90 shadow-sm mx-auto shrink-0">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-100/95 backdrop-blur-md rounded-2xl sm:rounded-full border border-slate-200/90 shadow-sm shrink-0">
               {featureTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeFeatureTab === tab.id;
@@ -350,7 +359,7 @@ export const Features = () => {
 
         {/* TAB 1: AUTO BUDGETING 50/30/20 */}
         {activeFeatureTab === "budgeting" && (
-          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-5 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
             <div className="lg:col-span-6 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -385,7 +394,7 @@ export const Features = () => {
                 />
 
                 {/* Quick Presets */}
-                <div className="flex flex-wrap gap-1.5 pt-1 text-[11px]">
+                <div className="flex items-center gap-1.5 pt-1 text-[11px] overflow-x-auto no-scrollbar scroll-smooth touch-pan-x py-0.5">
                   {[
                     { label: t("features.t1_preset_fresh"), value: 5000000 },
                     { label: t("features.t1_preset_mid"), value: 10000000 },
@@ -395,7 +404,7 @@ export const Features = () => {
                     <button
                       key={preset.value}
                       onClick={() => setSimulatedIncome(preset.value)}
-                      className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
+                      className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
                         simulatedIncome === preset.value
                           ? "bg-brand-600 text-white border-brand-600 shadow-xs"
                           : "bg-white text-slate-600 border-slate-200 hover:border-brand-300"
@@ -481,7 +490,7 @@ export const Features = () => {
 
         {/* TAB 2: MULTI-REKENING & WALLETS */}
         {activeFeatureTab === "accounts" && (
-          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-5 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
             <div className="lg:col-span-6 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -590,7 +599,7 @@ export const Features = () => {
 
         {/* TAB 3: PINDAI STRUK AI (VISION RECEIPT SCANNER) */}
         {activeFeatureTab === "receipt" && (
-          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-5 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
             <div className="lg:col-span-6 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 text-teal-800 text-xs font-bold border border-teal-200">
                 <ScanLine className="w-3.5 h-3.5 text-teal-600" />
@@ -733,7 +742,7 @@ export const Features = () => {
 
         {/* TAB 4: SMART SPLIT BILL */}
         {activeFeatureTab === "splitbill" && (
-          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-5 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
             <div className="lg:col-span-6 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 text-teal-800 text-xs font-bold border border-teal-200">
                 <Split className="w-3.5 h-3.5 text-teal-600" />
@@ -896,7 +905,7 @@ export const Features = () => {
 
         {/* TAB 5: SMART AI COPILOT & BYOK */}
         {activeFeatureTab === "ai" && (
-          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-5 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
             <div className="lg:col-span-6 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-brand-50 text-brand-800 text-xs font-bold border border-brand-200">
                 <Sparkles className="w-3.5 h-3.5 text-brand-600" />
@@ -1034,8 +1043,8 @@ export const Features = () => {
 
         {/* TAB 6: GOALS & GAMIFICATION */}
         {activeFeatureTab === "goals" && (
-          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-5 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-fadeIn">
-            <div className="lg:col-span-6 space-y-5">
+          <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
+            <div className="lg:col-span-6 space-y-4 sm:space-y-5 min-w-0">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 text-teal-800 text-xs font-bold border border-teal-200">
                 <Target className="w-3.5 h-3.5 text-teal-600" />
                 <span>{t("features.t4_badge_title")}</span>
@@ -1069,7 +1078,7 @@ export const Features = () => {
                           : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-white hover:border-slate-300"
                       }`}
                     >
-                      <span>{g.label}</span>
+                      <span className="truncate pr-2">{g.label}</span>
                       <ChevronRight
                         className={`w-4 h-4 shrink-0 ${
                           selectedGoal === g.id ? "text-brand-600" : "text-slate-400"
@@ -1082,14 +1091,14 @@ export const Features = () => {
             </div>
 
             {/* Right: Dynamic Goal Progress Circle + Gamification Preview */}
-            <div className="lg:col-span-6 space-y-4">
-              <div className="bg-slate-50/90 rounded-3xl p-6 sm:p-7 border-2 border-slate-200/90 space-y-5 text-center shadow-lg">
+            <div className="lg:col-span-6 space-y-4 min-w-0">
+              <div className="bg-slate-50/90 rounded-3xl p-4 sm:p-6 lg:p-7 border-2 border-slate-200/90 space-y-4 sm:space-y-5 text-center shadow-lg min-w-0">
                 <h4 className="text-base sm:text-lg font-black text-slate-900">
                   {activeGoal.title}
                 </h4>
 
                 {/* Circular Progress & Percentage */}
-                <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+                <div className="relative w-32 h-32 sm:w-36 sm:h-36 mx-auto flex items-center justify-center">
                   <svg
                     className="w-full h-full transform -rotate-90"
                     viewBox="0 0 100 100"
@@ -1117,7 +1126,7 @@ export const Features = () => {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-black text-slate-950 tabular-nums">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-950 tabular-nums">
                       {goalPercent}%
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -1127,22 +1136,22 @@ export const Features = () => {
                 </div>
 
                 {/* Metric Details */}
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs">
-                    <p className="text-[11px] text-slate-500 font-medium">{t("features.t4_saved")}</p>
-                    <p className="font-black text-slate-900 text-sm sm:text-base tabular-nums">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                  <div className="p-2.5 sm:p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs min-w-0 text-left">
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">{t("features.t4_saved")}</p>
+                    <p className="font-black text-slate-900 text-xs sm:text-base tabular-nums truncate">
                       {formatRupiah(activeGoal.current)}
                     </p>
                   </div>
-                  <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs">
-                    <p className="text-[11px] text-slate-500 font-medium">{t("features.t4_target_total")}</p>
-                    <p className="font-black text-slate-900 text-sm sm:text-base tabular-nums">
+                  <div className="p-2.5 sm:p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs min-w-0 text-left">
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">{t("features.t4_target_total")}</p>
+                    <p className="font-black text-slate-900 text-xs sm:text-base tabular-nums truncate">
                       {formatRupiah(activeGoal.target)}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-3 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-200 text-xs font-bold">
+                <div className="p-2.5 sm:p-3 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-200 text-[11px] sm:text-xs font-bold leading-relaxed break-words">
                   {t("features.t4_est_completion")}{" "}
                   <span className="underline font-black">
                     {remainingMonths} {t("features.t4_months_left")}
@@ -1152,18 +1161,18 @@ export const Features = () => {
               </div>
 
               {/* Integrated Gamification Preview Pill */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 flex items-center justify-between gap-3 text-xs shadow-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+              <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs shadow-sm min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
                     <Flame className="w-4 h-4 fill-amber-500" />
                   </div>
-                  <div className="text-left">
-                    <p className="font-black text-slate-900 text-xs">{isEn ? "14 Days Active Streak" : "14 Hari Beruntun Aktif"}</p>
-                    <p className="text-[10px] text-slate-500">{isEn ? "Streak Freeze Shield Protected" : "Dilindungi Perisai Streak Freeze"}</p>
+                  <div className="text-left min-w-0">
+                    <p className="font-black text-slate-900 text-xs truncate">{isEn ? "14 Days Active Streak" : "14 Hari Beruntun Aktif"}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{isEn ? "Streak Freeze Shield Protected" : "Dilindungi Perisai Streak Freeze"}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-700 font-bold text-xs">
-                  <Shield className="w-3.5 h-3.5 text-brand-600" />
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-700 font-bold text-xs shrink-0 self-start sm:self-auto">
+                  <Shield className="w-3.5 h-3.5 text-brand-600 shrink-0" />
                   <span>Level 2 Financier</span>
                 </div>
               </div>

@@ -64,6 +64,109 @@ async function checkIsBrave() {
 const inFlightRequests = new Map();
 const memoryCache = new Map();
 
+// =============================================
+// Persistent SWR Cache (localStorage)
+// ---------------------------------------------
+// In-memory cache menguap saat refresh — lapisan ini membuatnya selamat.
+// Kebijakan: fresh (umur < TTL) → tanpa request sama sekali;
+// stale → tampil instan + revalidasi diam-diam di background.
+// Data finansial tetap aman: TTL pendek + invalidasi eksplisit saat mutasi.
+// =============================================
+const PERSIST_KEY = "monefin_api_pcache_v1";
+const PERSIST_MAX_ENTRIES = 80;
+
+function readPersistStore() {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return {};
+    const raw = window.localStorage.getItem(PERSIST_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writePersistStore(store) {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    const keys = Object.keys(store);
+    // Evict tertua jika melebihi batas
+    if (keys.length > PERSIST_MAX_ENTRIES) {
+      keys
+        .sort((a, b) => (store[a]?.timestamp || 0) - (store[b]?.timestamp || 0))
+        .slice(0, keys.length - PERSIST_MAX_ENTRIES)
+        .forEach((k) => delete store[k]);
+    }
+    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(store));
+  } catch {
+    // Kuota penuh / storage mati → abaikan, in-memory tetap jalan
+  }
+}
+
+function getPersistEntry(key) {
+  const store = readPersistStore();
+  const entry = store[key];
+  if (!entry || !entry.data) return null;
+  return entry; // { data, timestamp, ttl }
+}
+
+function setPersistEntry(key, data, ttl) {
+  try {
+    // Jangan simpan payload raksasa (mis. base64) ke localStorage
+    const approx = JSON.stringify(data)?.length || 0;
+    if (approx > 500000) return;
+  } catch {
+    return;
+  }
+  const store = readPersistStore();
+  store[key] = { data, timestamp: Date.now(), ttl };
+  writePersistStore(store);
+}
+
+function deletePersistByPattern(pattern) {
+  const store = readPersistStore();
+  let changed = false;
+  for (const key of Object.keys(store)) {
+    const hit =
+      typeof pattern === "string" ? key.includes(pattern) : pattern.test(key);
+    if (hit) {
+      delete store[key];
+      changed = true;
+    }
+  }
+  if (changed) writePersistStore(store);
+}
+
+/**
+ * Prime cache (memory + persistent) untuk sebuah endpoint GET — dipakai
+ * setelah /bootstrap agar panggilan individuell berikutnya tanpa jaringan.
+ * @param {string} endpoint - mis. "/accounts"
+ * @param {*} payloadData - isi `data` seperti hasil normalisasi fetchAPI
+ * @param {number} ttl - TTL ms (default 60000)
+ */
+export function primeApiCache(endpoint, payloadData, ttl = 60000) {
+  try {
+    const token = getAuthToken();
+    const activeLang =
+      typeof window !== "undefined"
+        ? Cookies.get("NEXT_LOCALE") || localStorage.getItem("language") || "en"
+        : "en";
+    const cacheKey = `GET:${endpoint}:${token ? token.slice(-12) : "anon"}:${activeLang}`;
+    const result = {
+      success: true,
+      data: payloadData,
+      message: "Success",
+      meta: null,
+      summary: null,
+    };
+    memoryCache.set(cacheKey, { data: result, timestamp: Date.now(), ttl });
+    setPersistEntry(cacheKey, result, ttl);
+  } catch {
+    // priming gagal → bukan fatal, fetch normal tetap jalan
+  }
+}
+
 /**
  * Invalidate in-memory cached API responses.
  * @param {string|RegExp|null} pattern - Substring or RegExp to match against cache keys. If null, clears all.
@@ -71,6 +174,7 @@ const memoryCache = new Map();
 export function invalidateApiCache(pattern = null) {
   if (!pattern) {
     memoryCache.clear();
+    deletePersistByPattern(/.*/);
     return;
   }
   for (const key of memoryCache.keys()) {
@@ -80,15 +184,25 @@ export function invalidateApiCache(pattern = null) {
       memoryCache.delete(key);
     }
   }
+  deletePersistByPattern(pattern);
 }
 
 export function clearApiCache() {
   memoryCache.clear();
   inFlightRequests.clear();
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(PERSIST_KEY);
+    }
+  } catch {
+    // ignore
+  }
 }
 
 /**
- * Otomatis bersihkan cache yang terkait saat terjadi mutasi data
+ * Otomatis bersihkan cache yang terkait saat terjadi mutasi data.
+ * Selalu sertakan "bootstrap" karena endpoint gabungan itu menyimpan
+ * salinan me/accounts/categories.
  */
 function autoInvalidateOnMutation(endpoint) {
   const ep = endpoint.toLowerCase();
@@ -99,26 +213,32 @@ function autoInvalidateOnMutation(endpoint) {
     invalidateApiCache("accounts");
     invalidateApiCache("budgets");
     invalidateApiCache("gamification");
+    invalidateApiCache("bootstrap");
   } else if (ep.includes("/accounts")) {
     invalidateApiCache("accounts");
     invalidateApiCache("dashboard");
     invalidateApiCache("reports");
+    invalidateApiCache("bootstrap");
   } else if (ep.includes("/categories")) {
     invalidateApiCache("categories");
     invalidateApiCache("dashboard");
     invalidateApiCache("reports");
     invalidateApiCache("budgets");
+    invalidateApiCache("bootstrap");
   } else if (ep.includes("/budgets")) {
     invalidateApiCache("budgets");
     invalidateApiCache("dashboard");
   } else if (ep.includes("/goals")) {
     invalidateApiCache("goals");
     invalidateApiCache("dashboard");
-  } else if (ep.includes("/recurring")) {
+  } else if (ep.includes("/recurring") || ep.includes("/income-settings")) {
     invalidateApiCache("recurring");
     invalidateApiCache("dashboard");
   } else if (ep.includes("/gamification")) {
     invalidateApiCache("gamification");
+  } else if (ep.includes("/auth/profile") || ep.includes("/auth/password")) {
+    invalidateApiCache("auth/me");
+    invalidateApiCache("bootstrap");
   } else if (ep.includes("/auth/logout")) {
     clearApiCache();
   }
@@ -165,6 +285,28 @@ export async function fetchAPI(endpoint, options = {}) {
     const cached = memoryCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < cached.ttl) {
       return cached.data;
+    }
+  }
+
+  // 1b. Persistent SWR Cache (selamat dari refresh/reopen)
+  //  - fresh (umur < TTL): tanpa request sama sekali
+  //  - stale: tampil instan + revalidasi diam-diam di background
+  if (isGet && cacheTtl > 0 && !forceRefresh && !noCache && typeof window !== "undefined") {
+    const pentry = getPersistEntry(cacheKey);
+    if (pentry) {
+      const age = Date.now() - (pentry.timestamp || 0);
+      const pttl = pentry.ttl || cacheTtl;
+      // Sinkronkan ke memory agar navigasi dalam sesi instan
+      memoryCache.set(cacheKey, { data: pentry.data, timestamp: pentry.timestamp, ttl: pttl });
+      if (age < pttl) {
+        return pentry.data;
+      }
+      // Stale: kembalikan langsung, segarkan di background (dedup otomatis)
+      if (!inFlightRequests.has(cacheKey)) {
+        const bg = fetchAPI(endpoint, { ...options, cacheTtl, forceRefresh: true });
+        if (bg && typeof bg.catch === "function") bg.catch(() => {});
+      }
+      return pentry.data;
     }
   }
 
@@ -271,6 +413,8 @@ export async function fetchAPI(endpoint, options = {}) {
           timestamp: Date.now(),
           ttl: cacheTtl,
         });
+        // Mirror ke persistent agar selamat dari refresh/reopen
+        setPersistEntry(cacheKey, result, cacheTtl);
       }
 
       // Jika operasi adalah mutasi (POST, PUT, PATCH, DELETE), auto-invalidate cache terkait
