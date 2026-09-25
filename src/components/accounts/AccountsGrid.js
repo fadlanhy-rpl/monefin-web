@@ -18,12 +18,17 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import SortableAccountCard from "./SortableAccountCard";
+import AccountsEmptyState from "./AccountsEmptyState";
 
 export default function AccountsGrid({
-  accounts,
+  accounts = [],
   openEditModal,
   handleDelete,
-  onReorder
+  onReorder,
+  openAddModal,
+  isFiltered = false,
+  searchQuery = "",
+  onResetSearch,
 }) {
   const { t, language } = useLanguage();
   const [activeMenuId, setActiveMenuId] = useState(null);
@@ -70,6 +75,17 @@ export default function AccountsGrid({
       }
     }
   };
+
+  if (!accounts || accounts.length === 0) {
+    return (
+      <AccountsEmptyState
+        isFiltered={isFiltered}
+        searchQuery={searchQuery}
+        onResetSearch={onResetSearch}
+        onAddAccount={openAddModal}
+      />
+    );
+  }
 
   return (
     <div className="relative">

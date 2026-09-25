@@ -17,11 +17,14 @@ import {
   SwitchCamera,
   ZapOff,
   Circle,
+  ExternalLink,
+  CheckCircle2,
 } from "lucide-react";
 import { scanReceipt } from "../../services/receipt.service";
 import ReceiptGuideModal from "./ReceiptGuideModal";
 import Link from "next/link";
 import { useLanguage } from "../../context/LanguageContext";
+import { useAuth } from "../../hooks/useAuth";
 
 /**
  * Client-side Canvas Image Compression
@@ -334,7 +337,18 @@ export default function ReceiptScannerModal({
   hasAiConfig = true,
 }) {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const isEn = language === "en";
+
+  // Check if AI BYOK is enabled and configured
+  const isAiConfigured = Boolean(
+    hasAiConfig &&
+    user?.preferences?.ai_enabled &&
+    (user?.preferences?.ai_config?.api_key_masked ||
+     user?.preferences?.ai_config?.api_key ||
+     user?.preferences?.ai_config?.api_key_encrypted)
+  );
+
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -355,6 +369,15 @@ export default function ReceiptScannerModal({
 
   const handleFileProcess = async (file) => {
     if (!file) return;
+
+    if (!isAiConfigured) {
+      setErrorMsg(
+        isEn
+          ? "AI BYOK is not enabled yet. Please configure your free Google Gemini API key in Settings > AI Chatbot first."
+          : "Fitur AI BYOK belum aktif. Silakan hubungkan API key Google Gemini gratis Anda di Pengaturan > AI Chatbot terlebih dahulu."
+      );
+      return;
+    }
 
     if (!file.type.startsWith("image/")) {
       setErrorMsg(isEn ? "Please upload an image file (JPG, PNG, or WebP)." : "Mohon unggah file gambar (JPG, PNG, atau WebP).");
@@ -396,6 +419,15 @@ export default function ReceiptScannerModal({
   };
 
   const handleOpenCamera = () => {
+    if (!isAiConfigured) {
+      setErrorMsg(
+        isEn
+          ? "Please activate AI BYOK first to enable receipt scanning."
+          : "Silakan aktifkan AI BYOK terlebih dahulu untuk menggunakan fitur scan struk."
+      );
+      return;
+    }
+
     // Check if getUserMedia is supported at all
     if (!navigator.mediaDevices?.getUserMedia) {
       setErrorMsg(
@@ -543,8 +575,109 @@ export default function ReceiptScannerModal({
               </div>
             )}
 
-            {/* ── Camera View ── */}
-            {showCamera ? (
+            {/* ── Case 1: AI BYOK Not Configured Prompt & Free Gemini Guide ── */}
+            {!isAiConfigured && !showCamera ? (
+              <div className="space-y-3.5 animate-in fade-in duration-300">
+                <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-500/10 via-amber-50/50 to-orange-50/30 border border-amber-200/80 text-amber-950 space-y-4 shadow-xs">
+                  <div className="flex items-start gap-3 sm:gap-3.5">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0 shadow-xs">
+                      <Key className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900">
+                          {isEn ? "AI BYOK Required" : "Fitur AI Belum Aktif"}
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-emerald-600" />
+                          <span>{isEn ? "Free Google Gemini" : "Google Gemini 100% Gratis"}</span>
+                        </span>
+                      </div>
+                      <h4 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">
+                        {isEn ? "Activate AI to Scan Receipts" : "Aktifkan Fitur AI untuk Scan Struk"}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                        {isEn
+                          ? "MoneFin uses Bring Your Own Key (BYOK) so your financial receipts are read directly via your private AI connection without costly subscription plans."
+                          : "Fitur Pindai Struk membaca foto fisik secara otomatis menggunakan Vision AI. Dengan konsep Bring Your Own Key (BYOK), privasi keuangan Anda tetap aman dan bebas biaya langganan."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step by step guide to get Free Google Gemini API Key */}
+                  <div className="bg-white/95 rounded-2xl border border-teal-100 p-3.5 sm:p-4 space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-1.5 font-black text-xs text-slate-900">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-3.5 h-3.5" alt="Google" />
+                        <span>{isEn ? "How to get a Free Google Gemini API Key:" : "Panduan Mendapatkan API Key Gemini Gratis:"}</span>
+                      </div>
+                      <a
+                        href="https://aistudio.google.com/app/apikey"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#00685F] hover:text-[#004D46] hover:underline shrink-0"
+                      >
+                        <span>{isEn ? "Open Google AI Studio" : "Buka Google AI Studio"}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+
+                    <ol className="text-xs text-slate-700 space-y-2 font-medium list-decimal list-inside">
+                      <li className="leading-relaxed">
+                        {isEn ? (
+                          <>Open <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="font-bold text-[#00685F] underline">aistudio.google.com</a> and sign in with your Google account.</>
+                        ) : (
+                          <>Buka tautan <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="font-bold text-[#00685F] underline">aistudio.google.com</a> dan login dengan akun Google Anda.</>
+                        )}
+                      </li>
+                      <li className="leading-relaxed">
+                        {isEn ? (
+                          <>Click <strong>Get API Key</strong> &gt; <strong>Create API Key</strong> (Free Tier, no credit card required).</>
+                        ) : (
+                          <>Klik tombol <strong>Get API Key</strong> &gt; <strong>Create API Key</strong> (Gratis, tanpa perlu kartu kredit).</>
+                        )}
+                      </li>
+                      <li className="leading-relaxed">
+                        {isEn ? (
+                          <>Copy the generated key (starts with <code className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-900 font-mono text-[11px]">AIzaSy...</code>).</>
+                        ) : (
+                          <>Salin kode API Key yang muncul (berawalan <code className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-900 font-mono text-[11px]">AIzaSy...</code>).</>
+                        )}
+                      </li>
+                      <li className="leading-relaxed">
+                        {isEn ? (
+                          <>Go to <strong>Settings &gt; AI Chatbot</strong> in MoneFin, paste your key, select <strong>gemini-3.6-flash</strong>, and turn AI on.</>
+                        ) : (
+                          <>Buka menu <strong>Pengaturan &gt; AI Chatbot</strong> di MoneFin, tempelkan API Key, pilih model <strong>gemini-3.6-flash</strong>, lalu simpan.</>
+                        )}
+                      </li>
+                    </ol>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
+                    <Link
+                      href="/settings?tab=ai"
+                      onClick={onClose}
+                      className="flex-1 py-3 px-4 bg-[#00685F] hover:bg-[#004D46] text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-[#00685F]/20 active:scale-98 cursor-pointer"
+                    >
+                      <Key className="w-4 h-4" />
+                      <span>{isEn ? "Open AI Settings in MoneFin" : "Buka Pengaturan AI di MoneFin"}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setIsGuideOpen(true)}
+                      className="py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer"
+                    >
+                      <HelpCircle className="w-4 h-4 text-slate-500" />
+                      <span>{isEn ? "View Visual Guide" : "Lihat Panduan Lengkap"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : showCamera ? (
+              /* ── Camera View ── */
               <CameraView
                 isEn={isEn}
                 t={t}

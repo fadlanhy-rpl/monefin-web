@@ -94,15 +94,21 @@ function AccountsPageContent() {
   const cashPercent = totalBalance > 0 ? ((cashBalance / totalBalance) * 100).toFixed(1) : "0.0";
 
   // Trigger add modal
-  const openAddModal = () => {
+  const openAddModal = (initialType = "bank") => {
     setModalMode("add");
     setEditingAccount(null);
     setFormName("");
     setFormBalance("");
     setFormNumber("");
     setFormHolder("");
-    setFormType("bank");
-    setFormTheme("bank-primary");
+    setFormType(initialType);
+    setFormTheme(
+      initialType === "ewallet"
+        ? "wallet-primary"
+        : initialType === "cash"
+        ? "cash-primary"
+        : "bank-primary"
+    );
     setIsModalOpen(true);
   };
 
@@ -244,6 +250,13 @@ function AccountsPageContent() {
               openEditModal={openEditModal}
               handleDelete={handleDeleteClick}
               onReorder={handleReorder}
+              openAddModal={openAddModal}
+              isFiltered={Boolean(searchQuery.trim())}
+              searchQuery={searchQuery}
+              onResetSearch={() => {
+                setSearchQuery("");
+                router.replace("/accounts");
+              }}
             />
           )}
         </div>

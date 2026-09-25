@@ -594,7 +594,10 @@
     "limit": "Budget Limit",
     "save": "Save",
     "create_new": "Create New Budget",
-    "add_new_desc": "Start managing your expenses better."
+    "add_new_desc": "Start managing your expenses better.",
+    "empty_title": "No Budgets Set for This Month",
+    "empty_desc": "You haven't set any category spending limits for this month. Set category limits to keep your expenses under control.",
+    "starter_title": "Choose a category to set your first budget:"
   },
   "accounts": {
     "title": "Account Overview",
@@ -604,6 +607,16 @@
     "accounts_list": "Your Accounts",
     "drag_drop": "Drag & drop to reorder",
     "no_accounts": "No accounts found.",
+    "empty_title": "No Financial Accounts Yet",
+    "empty_desc": "You haven't added any bank accounts, e-wallets, or cash reserves yet. Connect your funding sources to start tracking your total balance and cash flow.",
+    "starter_title": "Choose an account type to start:",
+    "starter_bank_title": "Bank Account",
+    "starter_bank_desc": "BCA, Mandiri, BRI, BNI",
+    "starter_ewallet_title": "Digital Wallet",
+    "starter_ewallet_desc": "GoPay, OVO, Dana, ShopeePay",
+    "starter_cash_title": "Cash in Hand",
+    "starter_cash_desc": "Physical wallet, petty cash",
+    "no_match_title": "No matching accounts found",
     "add_title": "Add Account",
     "edit_title": "Edit Account",
     "account_name": "Account Name",
