@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useAiStream } from "../../hooks/useAiStream";
-import { AlertTriangle, Settings, ExternalLink, Maximize2, Minimize2, RotateCcw } from "lucide-react";
+import { AlertTriangle, Settings, ExternalLink, Maximize2, Minimize2, RotateCcw, X } from "lucide-react";
 
 const QUICK_QUESTIONS = [
   "Kenapa pengeluaranku bulan ini naik?",
@@ -579,6 +579,18 @@ export default function AiChatWidget() {
   const messagesEndRef = useRef(null);
   const inputRef       = useRef(null);
 
+  // Screen size awareness for mobile responsiveness
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   // Resizing state
   const DEFAULT_SIZE = { width: 380, height: 560 };
   const [size, setSize] = useState(() => {
@@ -639,8 +651,8 @@ export default function AiChatWidget() {
       saveSize(restored, false);
     } else {
       prevSizeRef.current = size;
-      const maxW = Math.min(760, window.innerWidth - 24);
-      const maxH = Math.min(760, window.innerHeight - 110);
+      const maxW = Math.min(760, typeof window !== "undefined" ? window.innerWidth - 24 : 760);
+      const maxH = Math.min(760, typeof window !== "undefined" ? window.innerHeight - 110 : 700);
       const newSize = { width: maxW, height: maxH };
       setSize(newSize);
       setIsMaximized(true);
@@ -888,29 +900,61 @@ export default function AiChatWidget() {
         )}
       </button>
 
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+          aria-hidden="true"
+        />
+      )}
+
       {/* Adjustable Chat Panel */}
       <div
-        className={`fixed bottom-36 md:bottom-24 right-3 sm:right-6 z-50 bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col origin-bottom-right overflow-hidden ${
-          isDragging ? "select-none" : "transition-all duration-300"
+        className={`fixed z-50 bg-white shadow-2xl border border-slate-100 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${
+          isDragging ? "select-none" : ""
+        } ${
+          isMobile
+            ? isMaximized
+              ? "inset-0 rounded-none"
+              : "bottom-[4.5rem] inset-x-2.5 max-w-[420px] mx-auto rounded-2xl"
+            : isMaximized
+              ? "bottom-24 right-6 rounded-3xl"
+              : "bottom-24 right-6 rounded-3xl"
         } ${
           isOpen
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-90 translate-y-4 pointer-events-none"
+            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 scale-95 translate-y-4 pointer-events-none"
         }`}
-        style={{
-          // right: 24px (1.5rem) is the card's right offset.
-          // Width is capped to (viewport - right offset - 16px safe left gap) so the card can NEVER overflow the left viewport edge.
-          width: `min(${size.width}px, calc(100vw - 2.5rem))`,
-          height: `min(${size.height}px, calc(100vh - 7rem))`,
-          maxWidth: "calc(100vw - 2.5rem)",
-          maxHeight: "calc(100vh - 6.5rem)",
-          minHeight: "380px",
-          // Min width: 280px, but respect viewport if smaller
-          minWidth: "min(280px, calc(100vw - 2.5rem))",
-        }}
+        style={
+          isMobile
+            ? isMaximized
+              ? { width: "100%", height: "100%", maxWidth: "100vw", maxHeight: "100dvh" }
+              : {
+                  width: "calc(100vw - 1.25rem)",
+                  maxWidth: "420px",
+                  height: "min(500px, calc(100dvh - 5.5rem))",
+                  maxHeight: "calc(100dvh - 5.5rem)",
+                }
+            : isMaximized
+              ? {
+                  width: `min(760px, calc(100vw - 3rem))`,
+                  height: `min(720px, calc(100vh - 8rem))`,
+                  maxWidth: "calc(100vw - 3rem)",
+                  maxHeight: "calc(100vh - 8rem)",
+                }
+              : {
+                  width: `min(${size.width}px, calc(100vw - 2.5rem))`,
+                  height: `min(${size.height}px, calc(100vh - 7rem))`,
+                  maxWidth: "calc(100vw - 2.5rem)",
+                  maxHeight: "calc(100vh - 6.5rem)",
+                  minHeight: "380px",
+                  minWidth: "min(280px, calc(100vw - 2.5rem))",
+                }
+        }
       >
-        {/* Resize Handles (interactive when panel is open) */}
-        {isOpen && (
+        {/* Resize Handles (interactive when panel is open on desktop only) */}
+        {isOpen && !isMobile && (
           <>
             {/* Top-Left Corner Drag Handle (resizes width & height) */}
             <div
@@ -938,31 +982,45 @@ export default function AiChatWidget() {
         )}
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-5 py-3.5 flex items-center justify-between shrink-0 select-none relative">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+        <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-4 sm:px-5 py-3 sm:py-3.5 pt-[max(0.75rem,env(safe-area-inset-top))] flex items-center justify-between shrink-0 select-none relative">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-5h2v2h-2zm0-8h2v6h-2z"/>
               </svg>
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">MoneFin AI</p>
-              <p className="text-[10px] text-white/70 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block" />
-                {providerLabel
-                  ? `${language === "id" ? "Aktif via" : "Active via"} ${providerLabel}`
-                  : (language === "id" ? "Advisor Keuangan Pribadi" : "Personal Finance Advisor")}
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-bold text-white truncate">MoneFin AI</p>
+              <p className="text-[10px] text-white/70 flex items-center gap-1 truncate">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block shrink-0" />
+                <span className="truncate">
+                  {providerLabel
+                    ? `${language === "id" ? "Aktif via" : "Active via"} ${providerLabel}`
+                    : (language === "id" ? "Advisor Keuangan Pribadi" : "Personal Finance Advisor")}
+                </span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            {/* Reset size button if modified */}
-            {(size.width !== DEFAULT_SIZE.width || size.height !== DEFAULT_SIZE.height || isMaximized) && (
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Clear history */}
+            {messages.length > 0 && (
               <button
+                type="button"
+                onClick={clearChat}
+                className="text-white/70 hover:text-white hover:bg-white/10 px-2 py-1 rounded-lg transition-colors text-[11px] sm:text-xs cursor-pointer"
+              >
+                {language === "id" ? "Hapus" : "Clear"}
+              </button>
+            )}
+
+            {/* Reset size button if modified (desktop only) */}
+            {!isMobile && (size.width !== DEFAULT_SIZE.width || size.height !== DEFAULT_SIZE.height || isMaximized) && (
+              <button
+                type="button"
                 onClick={resetSize}
                 title={language === "id" ? "Kembalikan ke ukuran standar" : "Reset default size"}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -970,30 +1028,33 @@ export default function AiChatWidget() {
 
             {/* Maximize / Restore Toggle */}
             <button
+              type="button"
               onClick={toggleMaximize}
               title={
                 isMaximized
                   ? (language === "id" ? "Kecilkan tampilan" : "Restore size")
                   : (language === "id" ? "Perbesar tampilan" : "Maximize panel")
               }
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label={isMaximized ? "Restore size" : "Maximize panel"}
             >
               {isMaximized ? (
-                <Minimize2 className="w-3.5 h-3.5" />
+                <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               ) : (
-                <Maximize2 className="w-3.5 h-3.5" />
+                <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               )}
             </button>
 
-            {/* Clear history */}
-            {messages.length > 0 && (
-              <button
-                onClick={clearChat}
-                className="text-white/70 hover:text-white hover:bg-white/10 px-2 py-1 rounded-lg transition-colors text-xs ml-1"
-              >
-                {language === "id" ? "Hapus" : "Clear"}
-              </button>
-            )}
+            {/* Direct Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              title={language === "id" ? "Tutup chat" : "Close chat"}
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Close chat"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
@@ -1051,7 +1112,7 @@ export default function AiChatWidget() {
         )}
 
         {/* Input */}
-        <div className="p-3 bg-white border-t border-slate-100 shrink-0">
+        <div className="p-3 bg-white border-t border-slate-100 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-500/10 transition-all">
             <input
               ref={inputRef}
