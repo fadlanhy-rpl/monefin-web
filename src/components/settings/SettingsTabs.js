@@ -32,13 +32,18 @@ export default function SettingsTabs({ activeTab, setActiveTab }) {
     return () => window.removeEventListener("resize", checkScroll);
   }, []);
 
-  // Auto-scroll active tab into view on mobile
+  // Auto-scroll active tab into view on mobile without shifting viewport
   useEffect(() => {
     if (activeTabRef.current && scrollContainerRef.current) {
-      activeTabRef.current.scrollIntoView({
+      const container = scrollContainerRef.current;
+      const tab = activeTabRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const tabRect = tab.getBoundingClientRect();
+      const offsetLeft = tabRect.left - containerRect.left + container.scrollLeft;
+      const targetScrollLeft = offsetLeft - (container.clientWidth / 2) + (tab.clientWidth / 2);
+      container.scrollTo({
+        left: Math.max(0, targetScrollLeft),
         behavior: "smooth",
-        block: "nearest",
-        inline: "center",
       });
     }
   }, [activeTab]);

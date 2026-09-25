@@ -112,13 +112,13 @@ export const WealthSimulator = ({ isLoggedIn }) => {
                 onChange={(e) => setMonthlySavings(Number(e.target.value))}
                 className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
               />
-              <div className="flex flex-wrap gap-1.5 pt-1">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 w-full">
                 {savingsPresets.map((preset) => (
                   <button
                     key={preset.value}
                     type="button"
                     onClick={() => setMonthlySavings(preset.value)}
-                    className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+                    className={`py-2 px-1 text-[11px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer text-center truncate ${
                       monthlySavings === preset.value
                         ? "bg-brand-600 text-white shadow-xs"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -147,13 +147,13 @@ export const WealthSimulator = ({ isLoggedIn }) => {
                 onChange={(e) => setTimeHorizon(Number(e.target.value))}
                 className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
               />
-              <div className="flex flex-wrap gap-1.5 pt-1">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 w-full">
                 {yearPresets.map((yr) => (
                   <button
                     key={yr}
                     type="button"
                     onClick={() => setTimeHorizon(yr)}
-                    className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+                    className={`py-2 px-1 text-[11px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer text-center truncate ${
                       timeHorizon === yr
                         ? "bg-brand-600 text-white shadow-xs"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
