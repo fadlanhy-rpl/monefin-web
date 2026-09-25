@@ -6,6 +6,7 @@ import { formatDate } from "../../lib/utils";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useLanguage } from "../../context/LanguageContext";
 import ReceiptDetailModal from "../receipts/ReceiptDetailModal";
+import TransactionsEmptyState from "./TransactionsEmptyState";
 
 const getCategoryIcon = (iconName, colorCode) => {
   const style = colorCode ? { color: colorCode } : {};
@@ -27,7 +28,12 @@ export default function TransactionsTable({
   isVisible,
   paginationMeta,
   onPageChange,
-  setPage
+  setPage,
+  openAddModal,
+  onScanReceipt,
+  isFiltered = false,
+  searchQuery = "",
+  onResetFilter,
 }) {
   const onDelete = handleDelete || handleDeleteClick || (() => {});
   const onPage = onPageChange || setPage || (() => {});
@@ -72,6 +78,26 @@ export default function TransactionsTable({
       );
     });
   };
+
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className={`transition-all duration-700 delay-500 ease-out transform relative z-10 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+        <TransactionsEmptyState
+          isFiltered={isFiltered}
+          searchQuery={searchQuery}
+          onResetFilter={onResetFilter}
+          onAddTransaction={openAddModal}
+          onScanReceipt={onScanReceipt}
+        />
+        {/* Receipt Detail Modal */}
+        <ReceiptDetailModal
+          isOpen={Boolean(selectedReceiptTxn)}
+          onClose={() => setSelectedReceiptTxn(null)}
+          transaction={selectedReceiptTxn}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden transition-all duration-700 delay-500 ease-out transform relative z-10 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>

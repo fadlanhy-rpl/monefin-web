@@ -242,10 +242,10 @@ export function useTransactionsPage() {
   }, [getDateRange, page, categoryIdFilter, accountFilter, searchQuery, language]);
 
   // Action Triggers
-  const openAddModal = () => {
+  const openAddModal = (initialType = "expense") => {
     setModalMode("add");
     setEditingTransaction(null);
-    setFormType("expense");
+    setFormType(initialType === "income" ? "income" : "expense");
     setFormAmount("");
     setFormNote("");
     

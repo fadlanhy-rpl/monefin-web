@@ -140,17 +140,17 @@ export function useGoalsPage() {
   }, []);
 
   // Open Goal Modal (Add Mode)
-  const openAddModal = () => {
+  const openAddModal = (preset = null) => {
     setModalMode("add");
     setEditingGoal(null);
-    setFormTitle("");
-    setFormSubtitle("");
-    setFormTarget("");
+    setFormTitle(preset?.title || "");
+    setFormSubtitle(preset?.subtitle || "");
+    setFormTarget(preset?.target ? String(preset.target) : "");
     setFormCurrent("");
     setFormDeadlineDate("");
-    setFormType("linear");
-    setFormTag(language === "en" ? "Safety" : "Keamanan");
-    setFormIcon("target");
+    setFormType(preset?.type || "linear");
+    setFormTag(preset?.tag || (language === "en" ? "Safety" : "Keamanan"));
+    setFormIcon(preset?.icon || "target");
     setIsGoalModalOpen(true);
   };
 
