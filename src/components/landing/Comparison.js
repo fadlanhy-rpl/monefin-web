@@ -67,6 +67,12 @@ export const Comparison = () => {
                   </div>
                   <span>{t("comparison.old_3")}</span>
                 </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <X className="w-3 h-3" />
+                  </div>
+                  <span>{t("comparison.old_4")}</span>
+                </li>
               </ul>
             </div>
 
@@ -118,6 +124,12 @@ export const Comparison = () => {
                     <Check className="w-3 h-3" />
                   </div>
                   <span>{t("comparison.new_3")}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3" />
+                  </div>
+                  <span>{t("comparison.new_4")}</span>
                 </li>
               </ul>
             </div>

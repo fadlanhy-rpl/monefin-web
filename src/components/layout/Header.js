@@ -9,7 +9,6 @@ import { getNotifications, markAsRead, markAllAsRead } from "../../services/noti
 import { getGamificationSummary } from "../../services/gamification.service";
 import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { LanguageSwitcherDropdown } from "../ui/LanguageSwitcher";
 
 import HeaderGlobalSearch from "./header/HeaderGlobalSearch";
 import HeaderNotificationsDropdown from "./header/HeaderNotificationsDropdown";
@@ -216,9 +215,6 @@ export default function Header({ setMobileOpen }) {
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Gamification Pill */}
           <HeaderGamificationPill gamification={gamification} />
-
-          {/* Quick Language Switcher Dropdown */}
-          <LanguageSwitcherDropdown />
 
           {/* Balance Privacy Toggle */}
           <button

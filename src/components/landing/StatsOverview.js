@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "../../context/LanguageContext";
-import { Building2, TrendingUp, Sliders, ShieldCheck } from "lucide-react";
+import { Wallet, Sparkles, ScanLine, ShieldCheck } from "lucide-react";
 
 export const StatsOverview = () => {
   const { t } = useLanguage();
@@ -10,26 +10,26 @@ export const StatsOverview = () => {
     {
       value: t("stats.efficiency_val") || "Bebas",
       label: t("stats.efficiency"),
-      icon: Building2,
+      icon: Wallet,
       color: "text-slate-900",
       accent: "bg-slate-100 text-slate-700",
     },
     {
-      value: "Rp 120M+",
+      value: t("stats.managed_val") || "100% Free",
       label: t("stats.managed"),
-      icon: TrendingUp,
+      icon: Sparkles,
       color: "text-brand-600",
       accent: "bg-brand-50 text-brand-600",
     },
     {
-      value: "50 / 30 / 20",
+      value: t("stats.accuracy_val") || "< 3 Detik",
       label: t("stats.accuracy"),
-      icon: Sliders,
+      icon: ScanLine,
       color: "text-emerald-600",
       accent: "bg-emerald-50 text-emerald-700",
     },
     {
-      value: "100%",
+      value: t("stats.free_val") || "2FA & AES",
       label: t("stats.free"),
       icon: ShieldCheck,
       color: "text-teal-600",
