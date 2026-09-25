@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
+import { useState, useMemo, useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -20,16 +20,335 @@ import {
   AlertCircle,
   HardDrive,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Search,
   Split,
   Image as ImageIcon
 } from "lucide-react";
 import { confirmReceiptTransaction } from "../../services/receipt.service";
+import { getAccounts } from "../../services/account.service";
+import { getCategories } from "../../services/category.service";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 
 const emptySubscribe = () => () => {};
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
+
+/**
+ * Posisi menu floating (fixed) dari trigger — dirender via portal agar tidak
+ * terpotong container overflow-y-auto di dalam modal.
+ */
+function useFloatingStyle(triggerRef, open) {
+  const [style, setStyle] = useState(null);
+  useEffect(() => {
+    if (!open || !triggerRef.current || typeof window === "undefined") return;
+    const update = () => {
+      const r = triggerRef.current.getBoundingClientRect();
+      const menuH = 300;
+      const below = window.innerHeight - r.bottom;
+      const top = below >= menuH + 8 ? r.bottom + 6 : Math.max(8, r.top - menuH - 6);
+      setStyle({
+        position: "fixed",
+        top,
+        left: Math.max(8, Math.min(r.left, window.innerWidth - r.width - 8)),
+        width: Math.min(r.width, window.innerWidth - 16),
+        zIndex: 10000,
+      });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open, triggerRef]);
+  return style;
+}
+
+/**
+ * Dropdown modern gaya CustomSelect (searchable, sublabel, portal).
+ */
+function ModernSelect({
+  value,
+  onChange,
+  options = [],
+  placeholder,
+  icon: LeadingIcon,
+  searchable = false,
+  searchPlaceholder,
+  loading = false,
+  language = "id",
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+  const style = useFloatingStyle(triggerRef, isOpen);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onDown = (e) => {
+      if (
+        triggerRef.current && !triggerRef.current.contains(e.target) &&
+        menuRef.current && !menuRef.current.contains(e.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    const onKey = (e) => { if (e.key === "Escape") setIsOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen]);
+
+  const selected = options.find((o) => String(o.value) === String(value));
+  const filtered = searchable && query.trim()
+    ? options.filter((o) =>
+        o.label.toLowerCase().includes(query.toLowerCase()) ||
+        (o.sublabel && o.sublabel.toLowerCase().includes(query.toLowerCase()))
+      )
+    : options;
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        disabled={loading}
+        onClick={() => setIsOpen((v) => !v)}
+        className={`w-full bg-slate-50/70 border rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-left transition-all duration-200 cursor-pointer disabled:opacity-60 ${
+          isOpen
+            ? "bg-white border-[#00685F] ring-1 ring-[#00685F]"
+            : "border-slate-200 hover:border-slate-300 hover:bg-white"
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0 flex-1">
+          {LeadingIcon && <LeadingIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
+          <span className="min-w-0 flex-1">
+            <span className={`block truncate text-xs font-bold ${selected ? "text-slate-800" : "text-slate-400"}`}>
+              {loading ? (language === "en" ? "Loading..." : "Memuat...") : (selected ? selected.label : placeholder)}
+            </span>
+            {selected?.sublabel && (
+              <span className="block truncate text-[10px] font-bold text-[#00685F]">
+                {selected.sublabel}
+              </span>
+            )}
+          </span>
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#00685F]" : ""}`} />
+      </button>
+
+      {isOpen && style && createPortal(
+        <div
+          ref={menuRef}
+          style={style}
+          className="bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 max-h-[300px] overflow-y-auto"
+        >
+          {searchable && (
+            <div className="p-1.5 border-b border-slate-100 sticky top-0 bg-white/95">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={searchPlaceholder || (language === "en" ? "Search..." : "Cari...")}
+                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-8 pr-3 py-1.5 text-xs font-bold outline-none focus:border-[#00685F]"
+                />
+              </div>
+            </div>
+          )}
+          <div className="space-y-0.5">
+            {filtered.length === 0 ? (
+              <div className="py-4 text-center text-xs font-bold text-slate-400">
+                {language === "en" ? "No matching options" : "Tidak ada opsi yang cocok"}
+              </div>
+            ) : (
+              filtered.map((opt) => {
+                const active = String(opt.value) === String(value);
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => { onChange(opt.value); setIsOpen(false); setQuery(""); }}
+                    className={`w-full px-3 py-2 rounded-xl flex items-center justify-between gap-2 text-left transition-all duration-150 cursor-pointer ${
+                      active ? "bg-emerald-50 text-[#00685F] font-black" : "hover:bg-slate-50 text-slate-700 font-bold"
+                    }`}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs">{opt.label}</span>
+                      {opt.sublabel && (
+                        <span className={`block truncate text-[10px] ${active ? "text-[#00685F]/80" : "text-slate-400"}`}>
+                          {opt.sublabel}
+                        </span>
+                      )}
+                    </span>
+                    {active && <Check className="w-4 h-4 text-[#00685F] shrink-0" />}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
+
+const MONTH_ID = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const MONTH_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAY_ID = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+const DAY_EN = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+/**
+ * Field tanggal modern gaya DatePicker (kalender portal).
+ * value: "YYYY-MM-DD".
+ */
+function ModernDateField({ value, onChange, language = "id" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+  const style = useFloatingStyle(triggerRef, isOpen);
+
+  const parse = (s) => {
+    const p = String(s || "").split("-");
+    if (p.length === 3) return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return new Date();
+  };
+  const [view, setView] = useState(() => parse(value));
+
+  const openMenu = () => {
+    // Sinkronkan tampilan bulan ke value saat dibuka (di handler, bukan effect)
+    setView(parse(value));
+    setIsOpen(true);
+  };
+  const closeMenu = () => setIsOpen(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onDown = (e) => {
+      if (
+        triggerRef.current && !triggerRef.current.contains(e.target) &&
+        menuRef.current && !menuRef.current.contains(e.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    const onKey = (e) => { if (e.key === "Escape") setIsOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen]);
+
+  const MONTHS = language === "en" ? MONTH_EN : MONTH_ID;
+  const DAYS = language === "en" ? DAY_EN : DAY_ID;
+  const fmt = (d) => `${String(d.getFullYear())}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const display = value
+    ? new Intl.DateTimeFormat(language === "en" ? "en-US" : "id-ID", { day: "numeric", month: "long", year: "numeric" }).format(parse(value))
+    : (language === "en" ? "Select date" : "Pilih tanggal");
+
+  const year = view.getFullYear();
+  const month = view.getMonth();
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  const sel = value ? parse(value) : null;
+  const cells = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const pick = (day) => {
+    onChange(fmt(new Date(year, month, day)));
+    setIsOpen(false);
+  };
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => (isOpen ? closeMenu() : openMenu())}
+        className={`w-full px-3.5 py-2.5 bg-slate-50/70 border rounded-xl flex items-center justify-between gap-2 text-left transition-all cursor-pointer ${
+          isOpen ? "bg-white border-[#00685F] ring-1 ring-[#00685F]" : "border-slate-200 hover:border-slate-300 hover:bg-white"
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <span className={`truncate text-xs font-bold ${value ? "text-slate-800" : "text-slate-400"}`}>{display}</span>
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#00685F]" : ""}`} />
+      </button>
+
+      {isOpen && style && createPortal(
+        <div
+          ref={menuRef}
+          style={{ ...style, width: Math.max(280, Math.min(style.width || 280, 320)) }}
+          className="bg-white border border-slate-100 rounded-3xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div className="flex items-center justify-between mb-3 px-1">
+            <button type="button" onClick={() => setView(new Date(year, month - 1, 1))} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <h4 className="text-sm font-extrabold text-slate-900 tracking-tight">{MONTHS[month]} {year}</h4>
+            <button type="button" onClick={() => setView(new Date(year, month + 1, 1))} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-1 text-center mb-1">
+            {DAYS.map((d, i) => (
+              <span key={d} className={`text-[10px] font-black uppercase tracking-wider ${i === 0 ? "text-red-400" : "text-slate-400"}`}>{d}</span>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {cells.map((day, i) => {
+              if (day === null) return <span key={i} />;
+              const isSel = sel && sel.getDate() === day && sel.getMonth() === month && sel.getFullYear() === year;
+              const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => pick(day)}
+                  className={`h-9 rounded-xl flex items-center justify-center text-xs font-extrabold transition-all cursor-pointer ${
+                    isSel
+                      ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105"
+                      : isToday
+                        ? "bg-[#00685F]/10 text-[#00685F] ring-2 ring-[#00685F]/20 hover:bg-[#00685F]/20"
+                        : "text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex justify-between items-center px-1">
+            <button
+              type="button"
+              onClick={() => { const t = new Date(); onChange(fmt(t)); setView(t); setIsOpen(false); }}
+              className="text-xs font-extrabold text-[#00685F] hover:underline cursor-pointer"
+            >
+              {language === "en" ? "Today" : "Hari Ini"}
+            </button>
+            <button type="button" onClick={() => setIsOpen(false)} className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer">
+              {language === "en" ? "Close" : "Tutup"}
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
 
 export default function ReceiptReviewModal({
   isOpen,
@@ -70,6 +389,36 @@ export default function ReceiptReviewModal({
   const [rotation, setRotation] = useState(0);
   const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
 
+  // Cadangan lokal: modal mandiri mengambil akun/kategori bila props kosong
+  // (mis. fetch halaman gagal/lambat) — modal tidak pernah kosong.
+  const [localAccounts, setLocalAccounts] = useState([]);
+  const [localCategories, setLocalCategories] = useState([]);
+
+  const effAccounts = accounts && accounts.length > 0 ? accounts : localAccounts;
+  const effCategories = categories && categories.length > 0 ? categories : localCategories;
+  // Loading turunan per field (tanpa state): true saat terbuka tapi data masih kosong
+  const accLoading = isOpen && effAccounts.length === 0;
+  const catLoading = isOpen && effCategories.length === 0;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const needAcc = (!accounts || accounts.length === 0) && localAccounts.length === 0;
+    const needCat = (!categories || categories.length === 0) && localCategories.length === 0;
+    if (!needAcc && !needCat) return;
+    let ignore = false;
+    // setState hanya di callback async (then) — aman dari set-state-in-effect
+    Promise.all([
+      needAcc ? getAccounts().catch(() => null) : Promise.resolve(null),
+      needCat ? getCategories().catch(() => null) : Promise.resolve(null),
+    ]).then(([accRes, catRes]) => {
+      if (ignore) return;
+      if (accRes?.data && Array.isArray(accRes.data)) setLocalAccounts(accRes.data);
+      if (catRes?.data && Array.isArray(catRes.data)) setLocalCategories(catRes.data);
+    });
+    return () => { ignore = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   // Initialize data from extracted Vision LLM output
   useEffect(() => {
     if (extractedData) {
@@ -91,13 +440,13 @@ export default function ReceiptReviewModal({
       // Default category
       if (extractedData.suggested_category_id) {
         setCategoryId(String(extractedData.suggested_category_id));
-      } else if (categories.length > 0) {
-        setCategoryId(String(categories[0].id));
+      } else if (effCategories.length > 0) {
+        setCategoryId(String(effCategories[0].id));
       }
 
       // Default account
-      if (accounts.length > 0) {
-        setAccountId(String(accounts[0].id));
+      if (effAccounts.length > 0) {
+        setAccountId(String(effAccounts[0].id));
       }
 
       // Items list
@@ -116,7 +465,7 @@ export default function ReceiptReviewModal({
         setItems([]);
       }
     }
-  }, [extractedData, categories, accounts]);
+  }, [extractedData, effAccounts, effCategories]);
 
   // Calculate items sum — must be BEFORE the early return (Rules of Hooks)
   const itemsSum = useMemo(() => {
@@ -179,7 +528,7 @@ export default function ReceiptReviewModal({
         qty: 1,
         price: 0,
         total: 0,
-        category_id: categoryId || (categories[0]?.id ? String(categories[0].id) : ""),
+        category_id: categoryId || (effCategories[0]?.id ? String(effCategories[0].id) : ""),
       },
     ]);
   };
@@ -467,13 +816,7 @@ export default function ReceiptReviewModal({
                       {t("receipts.today", isEn ? "Today" : "Hari ini")}
                     </button>
                   </div>
-                  <input
-                    type="date"
-                    value={transactionDate}
-                    onChange={(e) => setTransactionDate(e.target.value)}
-                    required
-                    className="w-full px-3.5 py-2.5 text-xs font-bold text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:border-[#00685F] focus:ring-1 focus:ring-[#00685F] outline-none transition"
-                  />
+                  <ModernDateField value={transactionDate} onChange={setTransactionDate} language={language} />
                 </div>
 
                 {/* Rekening Sumber */}
@@ -482,24 +825,21 @@ export default function ReceiptReviewModal({
                     <Wallet className="w-3.5 h-3.5 text-slate-400" />
                     <span>{t("receipts.account_label", isEn ? "Source Funding Account" : "Rekening Sumber Dana")}</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      value={accountId}
-                      onChange={(e) => setAccountId(e.target.value)}
-                      required
-                      className="w-full appearance-none px-3.5 py-2.5 pr-8 text-xs font-bold text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:border-[#00685F] focus:ring-1 focus:ring-[#00685F] outline-none transition cursor-pointer"
-                    >
-                      <option value="" disabled>
-                        {t("receipts.select_account", isEn ? "Select Account" : "Pilih Rekening")}
-                      </option>
-                      {accounts.map((acc) => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name} ({isEn ? "Balance:" : "Saldo:"} {formatCurrency(acc.balance)})
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-                  </div>
+                  <ModernSelect
+                    value={accountId}
+                    onChange={setAccountId}
+                    placeholder={t("receipts.select_account", isEn ? "Select Account" : "Pilih Rekening")}
+                    icon={Wallet}
+                    searchable
+                    searchPlaceholder={isEn ? "Search account..." : "Cari rekening..."}
+                    loading={accLoading}
+                    language={language}
+                    options={effAccounts.map((acc) => ({
+                      value: acc.id,
+                      label: acc.name,
+                      sublabel: `${isEn ? "Balance:" : "Saldo:"} ${formatCurrency(acc.balance)}`,
+                    }))}
+                  />
                 </div>
 
                 {/* Kategori Utama */}
@@ -508,24 +848,20 @@ export default function ReceiptReviewModal({
                     <Tag className="w-3.5 h-3.5 text-slate-400" />
                     <span>{t("receipts.category_label", isEn ? "Expense Category" : "Kategori Pengeluaran")}</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                      required
-                      className="w-full appearance-none px-3.5 py-2.5 pr-8 text-xs font-bold text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:border-[#00685F] focus:ring-1 focus:ring-[#00685F] outline-none transition cursor-pointer"
-                    >
-                      <option value="" disabled>
-                        {t("receipts.select_category", isEn ? "Select Category" : "Pilih Kategori")}
-                      </option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-                  </div>
+                  <ModernSelect
+                    value={categoryId}
+                    onChange={setCategoryId}
+                    placeholder={t("receipts.select_category", isEn ? "Select Category" : "Pilih Kategori")}
+                    icon={Tag}
+                    searchable
+                    searchPlaceholder={isEn ? "Search category..." : "Cari kategori..."}
+                    loading={catLoading}
+                    language={language}
+                    options={effCategories.map((cat) => ({
+                      value: cat.id,
+                      label: cat.name,
+                    }))}
+                  />
                 </div>
               </div>
 
