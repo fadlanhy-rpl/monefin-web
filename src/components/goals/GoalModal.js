@@ -127,8 +127,8 @@ export default function GoalModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-t-[2.5rem] sm:rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 flex flex-col max-h-[90vh] sm:max-h-[85vh]">
         {/* Modal Header */}
         <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between">
           <h3 className="text-lg font-extrabold text-slate-900 select-none">
@@ -153,7 +153,7 @@ export default function GoalModal({
               required
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
-              className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800"
+              className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-base md:text-sm font-bold text-slate-800"
               placeholder={t("goals.goal_name_placeholder") || "Contoh: Beli Laptop Baru, Dana Darurat"}
             />
           </div>
@@ -165,7 +165,7 @@ export default function GoalModal({
               type="text"
               value={formSubtitle}
               onChange={(e) => setFormSubtitle(e.target.value)}
-              className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-semibold text-slate-800"
+              className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-base md:text-sm font-semibold text-slate-800"
               placeholder={t("goals.description_placeholder") || "Contoh: Tabungan cadangan, reward karir"}
             />
           </div>
@@ -207,7 +207,7 @@ export default function GoalModal({
                 required
                 value={formatThousand(formTarget)}
                 onChange={handleTargetChange}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-base md:text-sm font-black text-slate-800"
                 placeholder={t("goals.target_amount_placeholder") || "0"}
               />
             </div>
@@ -223,7 +223,7 @@ export default function GoalModal({
                 inputMode="numeric"
                 value={formatThousand(formCurrent)}
                 onChange={handleCurrentChange}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-base md:text-sm font-black text-slate-800"
                 placeholder={t("goals.initial_amount_placeholder") || "0"}
               />
             </div>

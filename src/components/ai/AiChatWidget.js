@@ -868,18 +868,18 @@ export default function AiChatWidget() {
       <button
         onClick={() => setIsOpen((v) => !v)}
         aria-label="AI Financial Advisor"
-        className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${
+        className={`fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${
           isOpen
             ? "bg-slate-700 rotate-45"
             : "bg-gradient-to-br from-brand-500 to-brand-700 hover:shadow-brand-500/40 hover:shadow-xl"
         }`}
       >
         {isOpen ? (
-          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         ) : (
-          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l4.93-1.37C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm-1 14H7v-2h4v2zm6 0h-4v-2h4v2zm0-4H7v-2h10v2z"/>
           </svg>
         )}
@@ -890,7 +890,7 @@ export default function AiChatWidget() {
 
       {/* Adjustable Chat Panel */}
       <div
-        className={`fixed bottom-24 right-6 z-50 bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col origin-bottom-right overflow-hidden ${
+        className={`fixed bottom-36 md:bottom-24 right-3 sm:right-6 z-50 bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col origin-bottom-right overflow-hidden ${
           isDragging ? "select-none" : "transition-all duration-300"
         } ${
           isOpen

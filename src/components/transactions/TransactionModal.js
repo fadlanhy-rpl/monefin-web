@@ -92,10 +92,10 @@ export default function TransactionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-y-auto">
+      <div className="bg-white rounded-t-[2.5rem] sm:rounded-[2rem] w-full max-w-md shadow-2xl border border-slate-100 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 sm:my-auto flex flex-col max-h-[90vh] sm:max-h-[85vh]">
         {/* Modal Header */}
-        <div className="p-6 pb-4 border-b border-slate-50 flex items-center justify-between shrink-0">
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-50 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-extrabold text-slate-900">
             {modalMode === "add" ? (t("transactions.add_transaction") || "Add Transaction") : (t("transactions.edit_transaction") || "Edit Transaction")}
           </h3>
@@ -140,7 +140,7 @@ export default function TransactionModal({
                   required
                   value={formatThousand(formAmount)}
                   onChange={handleAmountChange}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-base md:text-sm font-black text-slate-800"
                   placeholder="0"
                 />
               </div>
@@ -257,7 +257,7 @@ export default function TransactionModal({
                 type="text"
                 value={formNote}
                 onChange={(e) => setFormNote(e.target.value)}
-                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm text-slate-600 font-semibold"
+                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-base md:text-sm text-slate-600 font-semibold"
                 placeholder={t("transactions.note_placeholder") || "Transaction details..."}
               />
             </div>

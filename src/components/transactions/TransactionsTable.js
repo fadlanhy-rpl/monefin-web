@@ -101,7 +101,97 @@ export default function TransactionsTable({
 
   return (
     <div className={`bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden transition-all duration-700 delay-500 ease-out transform relative z-10 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-      <div className="overflow-x-auto">
+      
+      {/* Mobile Card List View (Phones & Small Screens: < md) */}
+      <div className="block md:hidden divide-y divide-slate-100">
+        {transactions.map((txn) => {
+          const isExpense = txn.type === 'expense';
+          const finalAmount = isExpense ? -Math.abs(txn.amount) : Math.abs(txn.amount);
+          const amountText = formatCurrency(finalAmount);
+          const amountClass = isExpense ? "text-rose-600 font-black" : "text-emerald-600 font-black";
+
+          const categoryName = txn.category?.name || (t("transactions.unknown") || "Unknown");
+          const catIcon = txn.category?.icon;
+          const catColor = txn.category?.color || "#00685F";
+
+          return (
+            <div 
+              key={`mobile-${txn.id}`} 
+              className="p-4 hover:bg-slate-50/70 transition-colors space-y-2.5"
+            >
+              {/* Top Row: Category Pill + Amount */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div 
+                    className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
+                    style={{ backgroundColor: catColor + '18', color: catColor }}
+                  >
+                    {getCategoryIcon(catIcon, catColor)}
+                  </div>
+                  <div className="min-w-0">
+                    <span 
+                      className="text-xs font-bold truncate block"
+                      style={{ color: catColor }}
+                    >
+                      {categoryName}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {formatDate(txn.transaction_date)} • {txn.account?.name || "Account"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <span className={`text-sm sm:text-base font-mono tracking-tight ${amountClass}`}>
+                    {amountText}
+                  </span>
+                </div>
+              </div>
+
+              {/* Middle Row: Note / Description + Receipt Badge */}
+              <div className="flex items-center justify-between gap-2 pt-0.5">
+                <p className="text-xs text-slate-600 font-medium truncate flex-1">
+                  {txn.description || <span className="text-slate-300 italic">{language === "en" ? "No note" : "Tanpa catatan"}</span>}
+                </p>
+
+                {Boolean(txn.receipt_data || txn.receipt_image_path) && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReceiptTxn(txn)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 text-[#00685F] text-[10px] font-bold border border-teal-200/60 hover:bg-teal-100 transition active:scale-95 shrink-0 cursor-pointer min-h-[32px]"
+                  >
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>{language === "en" ? "Receipt" : "Struk"}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Bottom Row: Quick Action Buttons (Touch target 40-44px) */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-50">
+                <button
+                  type="button"
+                  onClick={() => openEditModal(txn)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-[#00685F] hover:bg-slate-100 rounded-xl transition cursor-pointer active:scale-95 min-h-[38px]"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  <span>{language === "en" ? "Edit" : "Ubah"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(txn.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer active:scale-95 min-h-[38px]"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{language === "en" ? "Delete" : "Hapus"}</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop / Tablet Table View (Visible on screens >= md) */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left min-w-[700px]">
           <thead className="bg-slate-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest">
             <tr>
@@ -209,9 +299,9 @@ export default function TransactionsTable({
             <button 
               onClick={() => currentPage > 1 && onPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all ${currentPage === 1 ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 cursor-pointer"}`}
+              className={`px-3.5 py-2.5 sm:px-3 sm:py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all min-h-[40px] ${currentPage === 1 ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 active:scale-95 cursor-pointer shadow-xs"}`}
             >
-              &lt; <span className="hidden sm:inline">{t("transactions.prev") || (language === "en" ? "Previous" : "Sebelumnya")}</span>
+              &lt; <span className="inline">{t("transactions.prev") || (language === "en" ? "Previous" : "Sebelumnya")}</span>
             </button>
             <div className="hidden sm:flex items-center gap-1">
               {renderPaginationButtons()}
@@ -222,9 +312,9 @@ export default function TransactionsTable({
             <button 
               onClick={() => currentPage < lastPage && onPage(currentPage + 1)}
               disabled={currentPage === lastPage}
-              className={`px-3 py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all ${currentPage === lastPage ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 cursor-pointer"}`}
+              className={`px-3.5 py-2.5 sm:px-3 sm:py-2 text-xs border border-gray-100 rounded-xl font-bold flex items-center gap-1 select-none transition-all min-h-[40px] ${currentPage === lastPage ? "text-gray-300 bg-gray-50 cursor-not-allowed" : "text-slate-700 hover:bg-slate-100 active:scale-95 cursor-pointer shadow-xs"}`}
             >
-              <span className="hidden sm:inline">{t("transactions.next") || (language === "en" ? "Next" : "Berikutnya")}</span> &gt;
+              <span className="inline">{t("transactions.next") || (language === "en" ? "Next" : "Berikutnya")}</span> &gt;
             </button>
           </div>
         </div>
