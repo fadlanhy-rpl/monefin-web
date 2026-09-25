@@ -333,7 +333,11 @@ export function AuthProvider({ children }) {
   const forgotPassword = async (email) => {
     try {
       const result = await apiForgotPassword(email);
-      return { success: true, message: result.message };
+      return {
+        success: true,
+        message: result?.message,
+        oauth_only: !!result?.oauth_only,
+      };
     } catch (error) {
       const msg = error.data?.message || error.message || "Gagal mengirim OTP.";
       return { success: false, error: msg };
