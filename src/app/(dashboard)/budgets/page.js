@@ -156,10 +156,10 @@ export default function BudgetsPage() {
   const activeMonthStr = currentDate.toLocaleString(language === 'en' ? 'en-US' : 'id-ID', { month: 'long', year: 'numeric' });
 
   // Open Modal triggers
-  const openAddModal = () => {
+  const openAddModal = (initialCategoryId = "") => {
     setModalMode("add");
     setEditingBudget(null);
-    setFormCategoryId("");
+    setFormCategoryId(initialCategoryId ? String(initialCategoryId) : "");
     setFormLimit("");
     setIsModalOpen(true);
   };
@@ -262,6 +262,10 @@ export default function BudgetsPage() {
             getCategoryIcon={getCategoryIcon}
             openEditModal={openEditModal}
             handleDelete={openDeleteModal}
+            openAddModal={openAddModal}
+            onAiRecommend={() => setIsAiModalOpen(true)}
+            categories={categories}
+            monthName={activeMonthStr}
           />
         )}
 

@@ -594,7 +594,10 @@
     "limit": "Batas Anggaran (Limit)",
     "save": "Simpan",
     "create_new": "Buat Anggaran Baru",
-    "add_new_desc": "Mulai kelola pengeluaran lebih baik."
+    "add_new_desc": "Mulai kelola pengeluaran lebih baik.",
+    "empty_title": "Belum Ada Anggaran untuk Bulan Ini",
+    "empty_desc": "Anda belum menentukan batas anggaran pengeluaran untuk bulan ini. Buat anggaran kategori agar pengeluaran harian dan bulanan tetap terkontrol.",
+    "starter_title": "Pilih kategori untuk memulai anggaran pertama:"
   },
   "accounts": {
     "title": "Overview Akun",
@@ -604,6 +607,16 @@
     "accounts_list": "Daftar Akun Anda",
     "drag_drop": "Seret & lepas untuk mengurutkan",
     "no_accounts": "Tidak ada akun ditemukan.",
+    "empty_title": "Belum Ada Akun Keuangan",
+    "empty_desc": "Anda belum menambahkan rekening bank, dompet digital, atau uang tunai. Tambahkan akun pertama Anda untuk mulai memantau saldo dan arus kas secara terpusat.",
+    "starter_title": "Pilih tipe akun untuk memulai cepat:",
+    "starter_bank_title": "Rekening Bank",
+    "starter_bank_desc": "BCA, Mandiri, BRI, BNI, dll.",
+    "starter_ewallet_title": "Dompet Digital (E-Wallet)",
+    "starter_ewallet_desc": "GoPay, OVO, Dana, ShopeePay",
+    "starter_cash_title": "Uang Tunai (Cash)",
+    "starter_cash_desc": "Dompet fisik, uang darurat",
+    "no_match_title": "Tidak ada rekening yang cocok",
     "add_title": "Tambah Akun Baru",
     "edit_title": "Edit Akun",
     "account_name": "Nama Akun",

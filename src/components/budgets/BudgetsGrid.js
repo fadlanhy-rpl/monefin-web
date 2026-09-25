@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
+import BudgetsEmptyState from "./BudgetsEmptyState";
 
 export default function BudgetsGrid({
   viewMode,
@@ -25,11 +26,26 @@ export default function BudgetsGrid({
   setCurrentPage,
   getCategoryIcon,
   openEditModal,
-  handleDelete
+  handleDelete,
+  openAddModal,
+  onAiRecommend,
+  categories = [],
+  monthName = "",
 }) {
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const [activeMenuId, setActiveMenuId] = useState(null);
+
+  if (budgetsLength === 0) {
+    return (
+      <BudgetsEmptyState
+        monthName={monthName}
+        onAddBudget={openAddModal}
+        onAiRecommend={onAiRecommend}
+        categories={categories}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
