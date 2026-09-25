@@ -761,9 +761,12 @@ export default function AiChatWidget() {
     setQuotaError(null);
 
     const userMsg = { role: "user", content: trimmed };
+    // Payload dibatasi: 8 turn terakhir saja (backend juga memangkas) agar
+    // request cepat & murah; history penuh tetap tersimpan di UI.
     const history = messages
       .filter((m) => m.content && m.content.trim() !== "")
-      .map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
+      .map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }))
+      .slice(-8);
 
     // Add user message only; the typing indicator will display below while waiting for AI
     setMessages((prev) => [
@@ -814,6 +817,8 @@ export default function AiChatWidget() {
         },
         onError: (errText) => {
           setIsLoading(false);
+          // Kembalikan draft agar pengguna tinggal tekan kirim ulang (retry 1 klik).
+          setInput(trimmed);
           if (errText?.toLowerCase().includes("quota") || errText?.toLowerCase().includes("saldo")) {
             setQuotaError(errText);
           } else {
@@ -836,6 +841,7 @@ export default function AiChatWidget() {
       });
     } catch (err) {
       setIsLoading(false);
+      setInput(trimmed);
       const errMsg = err?.message || "Terjadi kesalahan koneksi.";
       if (errMsg.toLowerCase().includes("quota") || errMsg.toLowerCase().includes("saldo")) {
         setQuotaError(errMsg);
