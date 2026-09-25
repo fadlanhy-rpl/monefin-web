@@ -26,6 +26,7 @@ export default function MobileBottomNav({ setMobileOpen }) {
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
   const isActive = (path) => {
+    if (!pathname) return false;
     if (path === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(path);
   };

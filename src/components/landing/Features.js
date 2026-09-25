@@ -307,9 +307,9 @@ export const Features = () => {
           <div
             ref={tabScrollRef}
             onScroll={checkScroll}
-            className="flex items-center overflow-x-auto no-scrollbar scroll-smooth py-2 px-2 sm:px-4 w-full touch-pan-x"
+            className="flex items-center justify-start lg:justify-center overflow-x-auto no-scrollbar scroll-smooth py-2 px-3 sm:px-4 w-full touch-pan-x"
           >
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-100/95 backdrop-blur-md rounded-2xl sm:rounded-full border border-slate-200/90 shadow-sm mx-auto shrink-0">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-100/95 backdrop-blur-md rounded-2xl sm:rounded-full border border-slate-200/90 shadow-sm shrink-0">
               {featureTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeFeatureTab === tab.id;
@@ -385,7 +385,7 @@ export const Features = () => {
                 />
 
                 {/* Quick Presets */}
-                <div className="flex flex-wrap gap-1.5 pt-1 text-[11px]">
+                <div className="flex items-center gap-1.5 pt-1 text-[11px] overflow-x-auto no-scrollbar scroll-smooth touch-pan-x py-0.5">
                   {[
                     { label: t("features.t1_preset_fresh"), value: 5000000 },
                     { label: t("features.t1_preset_mid"), value: 10000000 },
@@ -395,7 +395,7 @@ export const Features = () => {
                     <button
                       key={preset.value}
                       onClick={() => setSimulatedIncome(preset.value)}
-                      className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
+                      className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
                         simulatedIncome === preset.value
                           ? "bg-brand-600 text-white border-brand-600 shadow-xs"
                           : "bg-white text-slate-600 border-slate-200 hover:border-brand-300"

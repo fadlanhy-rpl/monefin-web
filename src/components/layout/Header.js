@@ -176,18 +176,8 @@ export default function Header({ setMobileOpen }) {
   return (
     <header ref={headerRef} className="sticky top-0 z-[35] bg-[#f4f7f6]/80 backdrop-blur-md px-4 sm:px-6 xl:px-8 pt-5 pb-3">
       <div className="w-full max-w-[1600px] 2xl:max-w-[1680px] mx-auto flex items-center justify-between gap-3">
-        {/* LEFT GROUP: menu + search */}
+        {/* LEFT GROUP: search */}
         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="md:hidden p-1.5 sm:p-2 -ml-1 sm:-ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all shrink-0 cursor-pointer"
-            aria-label="Buka menu"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
           {/* Responsive Expandable Search Bar */}
           <HeaderGlobalSearch
             searchQuery={searchQuery}

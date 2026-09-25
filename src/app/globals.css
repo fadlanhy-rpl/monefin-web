@@ -662,4 +662,14 @@ input[type="search"]::-webkit-search-results-decoration {
   scrollbar-width: none;
 }
 
+/* Elevate Next.js dev overlay badge above mobile bottom navigation bar so it can be tapped */
+@media (max-width: 768px) {
+  nextjs-portal,
+  [data-nextjs-toast] {
+    bottom: 5.5rem !important;
+    z-index: 99999 !important;
+  }
+}
+
+
 
