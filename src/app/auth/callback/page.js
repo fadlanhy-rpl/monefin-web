@@ -3,14 +3,12 @@
 import { useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setAuthToken } from "../../../lib/api";
-import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { checkAuth } = useAuth();
   const { language } = useLanguage();
   const processedRef = useRef(false);
 
@@ -32,31 +30,22 @@ function AuthCallbackContent() {
       // Simpan token (30 hari — Google login selalu ingat)
       setAuthToken(token, 30);
 
-      // Set login event SEBELUM checkAuth agar DashboardLayout
+      // Set login event SEBELUM redirect agar DashboardLayout
       // mendeteksi sesi login baru dan menampilkan guide sesuai preferensi
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("monefin_tutorial_session_shown");
         sessionStorage.setItem("monefin_login_event", "true");
       }
 
-      // Verifikasi ke backend dan hydrate user state
-      checkAuth(true)
-        .then(() => {
-          const activeLang = typeof window !== "undefined" ? (localStorage.getItem("language") || language) : language;
-          toast.success(
-            activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",
-            { id: "google-auth-toast" }
-          );
-          router.replace("/dashboard");
-        })
-        .catch(() => {
-          router.replace("/dashboard");
-        });
+      // Redirect SEGERA tanpa menunggu checkAuth: verifikasi + hydrate user
+      // berjalan di background via AuthContext di halaman dashboard.
+      // (Sebelumnya menunggu 1 boot Laravel penuh di halaman spinner ini.)
+      router.replace("/dashboard");
     } else {
       processedRef.current = true;
       router.replace("/login?error=callback_failed");
     }
-  }, [searchParams, router, checkAuth, language]);
+  }, [searchParams, router]);
 
 
   return (
