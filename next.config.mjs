@@ -46,7 +46,23 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "**",
+        hostname: "monefin.web.id",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.monefin.web.id",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "sk0010uoic.skipper.my.id",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
       },
       {
         protocol: "https",
@@ -56,10 +72,35 @@ const nextConfig = {
     ],
   },
 
-  // Cache-Control headers untuk aset statis di public/
-  // Catatan: Next.js sudah mengelola cache immutable untuk /_next/static/ secara otomatis
+  // Security Headers & Cache-Control headers
   async headers() {
     return [
+      {
+        // Global Security Headers untuk semua route di Vercel
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+        ],
+      },
       {
         // Gambar di folder public/ — cache 7 hari
         source: "/images/:path*",

@@ -61,9 +61,11 @@ function AccountsPageContent() {
   const [formTheme, setFormTheme] = useState("bank-primary");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent && accounts.length === 0) {
+        setIsLoading(true);
+      }
       const response = await getAccounts();
       setAccounts(response.data || []);
     } catch (error) {
