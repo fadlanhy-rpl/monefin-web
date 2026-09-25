@@ -39,21 +39,21 @@ export default function ReceiptGuideModal({ isOpen, onClose }) {
   ];
 
   return createPortal(
-    <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-black/60 backdrop-blur-md z-[10000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-black/60 backdrop-blur-md z-[10000] flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto">
       {/* Click outside backdrop */}
       <div className="fixed inset-0 -z-10" onClick={onClose} aria-hidden="true" />
-      <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[90vh] overflow-hidden relative z-10">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[90vh] overflow-hidden relative z-10">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 text-[#00685F] flex items-center justify-center font-black">
-              <Camera className="w-5 h-5" />
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-teal-50 text-[#00685F] flex items-center justify-center font-black shrink-0">
+              <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+            <div className="min-w-0">
+              <h3 className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight truncate">
                 {isEn ? "Shopping Receipt Scanning Guide" : "Panduan Pindai Struk Belanja"}
               </h3>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate sm:whitespace-normal">
                 {isEn
                   ? "Tips for accurate scanning, AI key configuration, and privacy controls"
                   : "Kiat pemindaian akurat, pengaturan kunci AI, dan kontrol privasi Anda"}
@@ -64,14 +64,14 @@ export default function ReceiptGuideModal({ isOpen, onClose }) {
             onClick={onClose}
             type="button"
             aria-label={isEn ? "Close" : "Tutup"}
-            className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg sm:rounded-xl transition cursor-pointer shrink-0 ml-2"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-slate-100 px-6 bg-white overflow-x-auto gap-2 shrink-0 scrollbar-none">
+        <div className="flex border-b border-slate-100 px-3 sm:px-6 bg-white overflow-x-auto gap-1 sm:gap-2 shrink-0 scrollbar-none">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -80,13 +80,13 @@ export default function ReceiptGuideModal({ isOpen, onClose }) {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-3 text-[11px] sm:text-xs font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${
                   isActive
                     ? "border-[#00685F] text-[#00685F]"
                     : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>{tab.label}</span>
               </button>
             );
@@ -94,7 +94,7 @@ export default function ReceiptGuideModal({ isOpen, onClose }) {
         </div>
 
         {/* Tab Content */}
-        <div className="p-6 overflow-y-auto space-y-4 flex-1">
+        <div className="p-3.5 sm:p-6 overflow-y-auto space-y-3.5 sm:space-y-4 flex-1 text-xs">
           {activeTab === "camera" && (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-teal-50/60 border border-teal-100 text-teal-950 text-xs leading-relaxed">

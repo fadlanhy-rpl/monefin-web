@@ -246,17 +246,17 @@ export default function ReceiptReviewModal({
     <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto">
       {/* Click outside backdrop */}
       <div className="fixed inset-0 -z-10" onClick={onClose} aria-hidden="true" />
-      <div className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[92vh] overflow-hidden relative z-10">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[92vh] overflow-hidden relative z-10">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
-          <div>
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00685F] animate-pulse" />
-              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00685F] animate-pulse shrink-0" />
+              <h3 className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight truncate">
                 {t("receipts.review_title", isEn ? "Confirm & Review Shopping Receipt" : "Konfirmasi & Review Struk Belanja")}
               </h3>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate sm:whitespace-normal">
               {t("receipts.review_subtitle", isEn ? "Verify scanned data before saving to transaction history" : "Periksa data hasil pembacaan sebelum disimpan ke riwayat transaksi")}
             </p>
           </div>
@@ -265,9 +265,9 @@ export default function ReceiptReviewModal({
             onClick={onClose}
             disabled={isSubmitting}
             type="button"
-            className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg sm:rounded-xl transition cursor-pointer shrink-0 ml-2"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
@@ -769,12 +769,12 @@ export default function ReceiptReviewModal({
             </div>
 
             {/* Sticky Action Footer */}
-            <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3 shrink-0">
+            <div className="p-3.5 sm:p-5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer disabled:opacity-50"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 text-[11px] sm:text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
                 {t("receipts.cancel_rescan", isEn ? "Cancel / Re-scan" : "Batal / Pindai Ulang")}
               </button>
@@ -782,17 +782,17 @@ export default function ReceiptReviewModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#00685F] text-white text-xs font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-[#00685F] text-white text-[11px] sm:text-xs font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
                 {isSubmitting ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                     <span>{t("receipts.saving", isEn ? "Saving..." : "Menyimpan...")}</span>
                   </>
                 ) : (
                   <>
-                    <Check className="w-4 h-4" />
-                    <span>{t("receipts.save_transaction", isEn ? "Confirm & Save Transaction" : "Konfirmasi & Simpan Transaksi")}</span>
+                    <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>{t("receipts.save_transaction", isEn ? "Confirm & Save" : "Konfirmasi & Simpan")}</span>
                   </>
                 )}
               </button>

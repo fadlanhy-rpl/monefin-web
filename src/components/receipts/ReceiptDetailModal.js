@@ -35,18 +35,18 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
   const imageUrl = transaction.receipt_image_url;
 
   return createPortal(
-    <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto">
       {/* Click outside backdrop */}
       <div className="fixed inset-0 -z-10" onClick={onClose} aria-hidden="true" />
 
-      <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[90vh] overflow-hidden relative z-10">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[90vh] overflow-hidden relative z-10">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
-          <div>
-            <h3 className="text-base font-black text-slate-900">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-base font-black text-slate-900 truncate">
               {t("receipts.detail_title", isEn ? "Receipt Details & Proof of Purchase" : "Rincian Struk & Bukti Belanja")}
             </h3>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate sm:whitespace-normal">
               {transaction.description || receiptData.merchant || (isEn ? "Transaction" : "Transaksi")}
             </p>
           </div>
@@ -55,14 +55,14 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
             onClick={onClose}
             type="button"
             aria-label={t("common.close", isEn ? "Close" : "Tutup")}
-            className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg sm:rounded-xl transition cursor-pointer shrink-0 ml-2"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 flex-1">
           {/* Metadata Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
