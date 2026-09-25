@@ -105,17 +105,23 @@ function GoalsPageContent() {
             handleDelete={handleDeleteClick}
             openDepositModal={openDepositModal}
             handleTogglePin={handleTogglePin}
+            openAddModal={openAddModal}
+            isFiltered={Boolean(searchQuery && searchQuery.trim() !== '')}
+            searchQuery={searchQuery}
+            onResetSearch={clearSearch}
           />
         </div>
 
         {/* Stats Row & Tips Cerdas */}
-        <div className={`transition-all duration-700 delay-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-          <GoalsStats 
-            savingRate={850000}
-            savingRateIncrease={12}
-            openAddModal={openAddModal}
-          />
-        </div>
+        {(goals.length > 0 || achievedGoals.length > 0) && (
+          <div className={`transition-all duration-700 delay-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <GoalsStats 
+              savingRate={850000}
+              savingRateIncrease={12}
+              openAddModal={openAddModal}
+            />
+          </div>
+        )}
 
         {/* Achieved/Completed Goals */}
         <div className={`transition-all duration-700 delay-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>

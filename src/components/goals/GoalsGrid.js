@@ -6,19 +6,35 @@ import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 import GoalLinearCard from "./GoalLinearCard";
 import GoalCircularCard from "./GoalCircularCard";
+import GoalsEmptyState from "./GoalsEmptyState";
 
 export default function GoalsGrid({
   goals,
   openEditModal,
   handleDelete,
   openDepositModal,
-  handleTogglePin
+  handleTogglePin,
+  openAddModal,
+  isFiltered = false,
+  searchQuery = "",
+  onResetSearch,
 }) {
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [showInsightId, setShowInsightId] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
+
+  if (!goals || goals.length === 0) {
+    return (
+      <GoalsEmptyState
+        isFiltered={isFiltered}
+        searchQuery={searchQuery}
+        onResetSearch={onResetSearch}
+        onAddGoal={openAddModal}
+      />
+    );
+  }
 
   const toggleMenu = (id) => {
     setActiveMenuId(activeMenuId === id ? null : id);

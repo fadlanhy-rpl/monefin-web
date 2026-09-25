@@ -82,6 +82,24 @@ function TransactionsPageContent() {
   const [receiptImageFile, setReceiptImageFile] = useState(null);
   const [receiptPreviewUrl, setReceiptPreviewUrl] = useState(null);
 
+  const hasFilterActive = Boolean(
+    (searchQuery && searchQuery.trim() !== "") ||
+    (categoryIdFilter && categoryIdFilter !== "All") ||
+    (accountFilter && accountFilter !== "All") ||
+    (dateFilter && dateFilter !== "last_30_days" && dateFilter !== "all_time")
+  );
+
+  const isInitialEmpty = !searchQuery && categoryIdFilter === "All" && accountFilter === "All" && stats.income === 0 && stats.expense === 0;
+  const isFiltered = hasFilterActive && !isInitialEmpty;
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setCategoryIdFilter("All");
+    setAccountFilter("All");
+    setDateFilter("all_time");
+    setPage(1);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto pb-12">
@@ -107,7 +125,7 @@ function TransactionsPageContent() {
             </button>
 
             <button
-              onClick={openAddModal}
+              onClick={() => openAddModal("expense")}
               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#00685F] text-white font-bold rounded-xl hover:bg-[#004D46] hover:shadow-lg hover:shadow-[#00685F]/20 transition-all active:scale-95 text-xs sm:text-sm shadow-sm cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
@@ -187,6 +205,10 @@ function TransactionsPageContent() {
           handleDelete={handleDeleteClick}
           handleDeleteClick={handleDeleteClick}
           isVisible={isVisible}
+          onScanReceipt={() => setIsReceiptScannerOpen(true)}
+          isFiltered={isFiltered}
+          searchQuery={searchQuery}
+          onResetFilter={handleResetFilters}
         />
 
         {/* TRANSACTION ADD/EDIT MODAL */}
