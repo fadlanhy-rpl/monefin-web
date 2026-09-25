@@ -653,4 +653,13 @@ input[type="search"]::-webkit-search-results-decoration {
   transform: translateZ(0);
 }
 
+/* Hide scrollbar for Chrome, Safari, Edge, and Firefox */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 

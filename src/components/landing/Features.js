@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import {
   Wallet,
@@ -8,6 +8,7 @@ import {
   Target,
   Sliders,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   ShieldCheck,
   ArrowUpRight,
@@ -37,6 +38,49 @@ export const Features = () => {
 
   // Tab State
   const [activeFeatureTab, setActiveFeatureTab] = useState("budgeting");
+
+  // Tab Scroll State & Refs
+  const tabScrollRef = useRef(null);
+  const tabButtonRefs = useRef({});
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = tabScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 6);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [checkScroll]);
+
+  const handleTabClick = (tabId) => {
+    setActiveFeatureTab(tabId);
+    const btn = tabButtonRefs.current[tabId];
+    if (btn) {
+      btn.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  };
+
+  const scrollTabs = (direction) => {
+    const el = tabScrollRef.current;
+    if (!el) return;
+    const scrollAmount = 260;
+    el.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
 
   // Tab 1: Budgeting state
   const [simulatedIncome, setSimulatedIncome] = useState(10000000);
@@ -242,26 +286,66 @@ export const Features = () => {
           </p>
         </div>
 
-        {/* Modern Interactive Feature Navigation Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap items-center justify-center gap-2 max-w-5xl mx-auto p-2 bg-slate-100/90 backdrop-blur-md rounded-2xl lg:rounded-full border border-slate-200 shadow-sm text-xs">
-          {featureTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeFeatureTab === tab.id;
-            return (
+        {/* Modern Interactive Feature Navigation Tabs (Always flex single-row with smooth scroll) */}
+        <div className="relative max-w-5xl mx-auto w-full group/tabs">
+          {/* Left Arrow Button & Subtle Gradient Mask */}
+          {canScrollLeft && (
+            <div className="hidden sm:flex absolute left-0 top-0 bottom-0 z-20 items-center pl-1 pointer-events-none">
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none rounded-l-full" />
               <button
-                key={tab.id}
-                onClick={() => setActiveFeatureTab(tab.id)}
-                className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl lg:rounded-full font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-white text-brand-700 shadow-md border border-slate-200/90 font-black ring-1 ring-brand-500/20"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
-                }`}
+                type="button"
+                onClick={() => scrollTabs("left")}
+                aria-label="Scroll tabs left"
+                className="relative z-10 w-8 h-8 rounded-full bg-white/95 border border-slate-200 shadow-md text-slate-700 hover:text-brand-700 hover:scale-105 active:scale-95 transition flex items-center justify-center pointer-events-auto cursor-pointer"
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-brand-600" : "text-slate-400"}`} />
-                <span className="truncate">{tab.label}</span>
+                <ChevronLeft className="w-4 h-4" />
               </button>
-            );
-          })}
+            </div>
+          )}
+
+          {/* Scrollable Flex Track */}
+          <div
+            ref={tabScrollRef}
+            onScroll={checkScroll}
+            className="flex items-center overflow-x-auto no-scrollbar scroll-smooth py-2 px-2 sm:px-4 w-full touch-pan-x"
+          >
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-100/95 backdrop-blur-md rounded-2xl sm:rounded-full border border-slate-200/90 shadow-sm mx-auto shrink-0">
+              {featureTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeFeatureTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    ref={(el) => (tabButtonRefs.current[tab.id] = el)}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`shrink-0 flex items-center justify-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 select-none cursor-pointer ${
+                      isActive
+                        ? "bg-white text-brand-700 shadow-md border border-slate-200/90 font-black ring-1 ring-brand-500/20 scale-[1.02]"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/70 active:scale-98"
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-brand-600" : "text-slate-400"}`} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Arrow Button & Subtle Gradient Mask */}
+          {canScrollRight && (
+            <div className="hidden sm:flex absolute right-0 top-0 bottom-0 z-20 items-center pr-1 pointer-events-none justify-end">
+              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none rounded-r-full" />
+              <button
+                type="button"
+                onClick={() => scrollTabs("right")}
+                aria-label="Scroll tabs right"
+                className="relative z-10 w-8 h-8 rounded-full bg-white/95 border border-slate-200 shadow-md text-slate-700 hover:text-brand-700 hover:scale-105 active:scale-95 transition flex items-center justify-center pointer-events-auto cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* TAB 1: AUTO BUDGETING 50/30/20 */}
