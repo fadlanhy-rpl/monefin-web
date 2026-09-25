@@ -3,12 +3,14 @@
 import { useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setAuthToken } from "../../../lib/api";
+import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { checkAuth } = useAuth();
   const { language } = useLanguage();
   const processedRef = useRef(false);
 
@@ -37,15 +39,28 @@ function AuthCallbackContent() {
         sessionStorage.setItem("monefin_login_event", "true");
       }
 
-      // Redirect SEGERA tanpa menunggu checkAuth: verifikasi + hydrate user
-      // berjalan di background via AuthContext di halaman dashboard.
-      // (Sebelumnya menunggu 1 boot Laravel penuh di halaman spinner ini.)
-      router.replace("/dashboard");
+      // WAJIB tunggu checkAuth: menghidrasi isAuthenticated+user SEBELUM pindah
+      // ke /dashboard. Tanpa ini layout render null (layar putih) dan bisa
+      // loop redirect login↔dashboard (cookie ada tapi context belum login).
+      // checkAuth kini memakai /bootstrap (1 boot, prime akun+kategori) +
+      // Socialite backend sudah dibatasi timeout — jauh lebih cepat dari dulu.
+      checkAuth(true)
+        .then(() => {
+          const activeLang = typeof window !== "undefined" ? (localStorage.getItem("language") || language) : language;
+          toast.success(
+            activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",
+            { id: "google-auth-toast" }
+          );
+          router.replace("/dashboard");
+        })
+        .catch(() => {
+          router.replace("/dashboard");
+        });
     } else {
       processedRef.current = true;
       router.replace("/login?error=callback_failed");
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, checkAuth, language]);
 
 
   return (
