@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CatalisButton } from "../ui/CatalisButton";
+import { CurrencySwitcherPill } from "../ui/CurrencySwitcher";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 import {
   Shield,
   Sparkles,
@@ -19,6 +21,7 @@ import { HeroInteractiveCanvas } from "./HeroInteractiveCanvas";
 
 export const Hero = ({ isLoggedIn }) => {
   const { t, language } = useLanguage();
+  const { formatCurrency, formatCompact } = useCurrency();
   const isEn = language === "en";
   const heroRef = useRef(null);
 
@@ -36,13 +39,7 @@ export const Hero = ({ isLoggedIn }) => {
   });
   const [recentAction, setRecentAction] = useState(null);
 
-  const localFormatRupiah = (number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(number);
-  };
+  const localFormatRupiah = (number) => formatCurrency(number);
 
   const totalNetWorth =
     simulatedBalances.bca + simulatedBalances.mandiri + simulatedBalances.gopay;
@@ -73,12 +70,14 @@ export const Hero = ({ isLoggedIn }) => {
     if (type === "add") {
       setRecentAction({
         type: "income",
-        text: `+${localFormatRupiah(amount)} (${label})`,
+        amount,
+        label,
       });
     } else {
       setRecentAction({
         type: "expense",
-        text: `-${localFormatRupiah(amount)} (${label})`,
+        amount,
+        label,
       });
     }
 
@@ -267,8 +266,8 @@ export const Hero = ({ isLoggedIn }) => {
                   Cashflow In
                 </span>
               </div>
-              <p className="font-black text-xs text-slate-900 truncate">
-                +Rp 8.000.000
+              <p className="font-black text-xs text-slate-900 tabular-nums truncate">
+                +{localFormatRupiah(8000000)}
               </p>
               <p className="text-[10px] text-emerald-600 font-semibold truncate">
                 {isEn ? "BCA Payroll Salary" : "Gaji Payroll BCA"}
@@ -303,22 +302,25 @@ export const Hero = ({ isLoggedIn }) => {
           >
             <div className="relative mx-auto max-w-lg lg:max-w-xl bg-white/95 backdrop-blur-2xl rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-7 border-2 border-slate-200/90 shadow-2xl shadow-slate-900/10 space-y-4">
               
-              {/* Cockpit Header Bar */}
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              {/* Cockpit Header Bar with Live Multi-Currency Switcher */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse ring-4 ring-emerald-500/20" />
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse ring-4 ring-emerald-500/20 shrink-0" />
                   <span className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
                     MoneFin Live Control Desk
                   </span>
                 </div>
-                <button
-                  onClick={resetBalances}
-                  className="text-xs font-bold text-slate-400 hover:text-brand-600 flex items-center gap-1.5 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-100"
-                  title={t("hero.card_reset_sim")}
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span className="hidden sm:inline">{t("hero.card_reset_sim")}</span>
-                </button>
+                <div className="flex items-center gap-1.5 ml-auto">
+                  <CurrencySwitcherPill compact />
+                  <button
+                    onClick={resetBalances}
+                    className="text-xs font-bold text-slate-400 hover:text-brand-600 flex items-center gap-1 transition-colors cursor-pointer px-2 py-1.5 rounded-lg hover:bg-slate-100"
+                    title={t("hero.card_reset_sim")}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="hidden xl:inline">{t("hero.card_reset_sim")}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Account Switcher Tabs with Real Logos */}
@@ -385,7 +387,10 @@ export const Hero = ({ isLoggedIn }) => {
                     ) : (
                       <ArrowDownRight className="w-4 h-4 text-rose-400" />
                     )}
-                    <span>{recentAction.text}</span>
+                    <span>
+                      {recentAction.type === "income" ? "+" : "-"}
+                      {localFormatRupiah(recentAction.amount)} ({recentAction.label})
+                    </span>
                   </div>
                 )}
 
@@ -439,19 +444,19 @@ export const Hero = ({ isLoggedIn }) => {
                 <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
                   <div className="p-1.5 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
                     <p className="text-slate-400 truncate">{t("hero.card_split_needs")}</p>
-                    <p className="font-bold text-slate-800 tabular-nums">
+                    <p className="font-bold text-slate-800 tabular-nums truncate">
                       {localFormatRupiah(needsAmount)}
                     </p>
                   </div>
                   <div className="p-1.5 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
                     <p className="text-slate-400 truncate">{t("hero.card_split_wants")}</p>
-                    <p className="font-bold text-slate-800 tabular-nums">
+                    <p className="font-bold text-slate-800 tabular-nums truncate">
                       {localFormatRupiah(wantsAmount)}
                     </p>
                   </div>
                   <div className="p-1.5 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
                     <p className="text-slate-400 truncate">{t("hero.card_split_savings")}</p>
-                    <p className="font-bold text-slate-800 tabular-nums">
+                    <p className="font-bold text-slate-800 tabular-nums truncate">
                       {localFormatRupiah(savingsAmount)}
                     </p>
                   </div>
@@ -481,7 +486,7 @@ export const Hero = ({ isLoggedIn }) => {
                       alt="BCA"
                       className="h-3 w-auto object-contain shrink-0"
                     />
-                    <span>{isEn ? "+8M Salary" : "+8 Jt Gaji"}</span>
+                    <span className="tabular-nums">+{formatCompact(8000000, true)} {isEn ? "Salary" : "Gaji"}</span>
                   </button>
 
                   <button
@@ -500,7 +505,7 @@ export const Hero = ({ isLoggedIn }) => {
                       alt="GoPay"
                       className="h-2.5 w-auto object-contain shrink-0"
                     />
-                    <span>{isEn ? "-45k Coffee" : "-45rb Kopi"}</span>
+                    <span className="tabular-nums">-{formatCompact(45000, true)} {isEn ? "Coffee" : "Kopi"}</span>
                   </button>
 
                   <button
@@ -519,7 +524,7 @@ export const Hero = ({ isLoggedIn }) => {
                       alt="Bibit"
                       className="h-3 w-auto object-contain shrink-0"
                     />
-                    <span>{isEn ? "-500k Invest" : "-500rb Invest"}</span>
+                    <span className="tabular-nums">-{formatCompact(500000, true)} {isEn ? "Invest" : "Invest"}</span>
                   </button>
                 </div>
               </div>

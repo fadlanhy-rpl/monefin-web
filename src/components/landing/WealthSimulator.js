@@ -2,23 +2,20 @@
 
 import { useState } from "react";
 import { CatalisButton } from "../ui/CatalisButton";
+import { CurrencySwitcherPill } from "../ui/CurrencySwitcher";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 import { TrendingUp, Sparkles, Shield, ArrowUpRight } from "lucide-react";
 
 export const WealthSimulator = ({ isLoggedIn }) => {
   const { t, language } = useLanguage();
+  const { formatCurrency, formatCompact } = useCurrency();
   const isEn = language === "en";
   const [monthlySavings, setMonthlySavings] = useState(2500000);
   const [timeHorizon, setTimeHorizon] = useState(5);
   const [returnRate, setReturnRate] = useState(9);
 
-  const formatRupiah = (number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(number);
-  };
+  const formatRupiah = (number) => formatCurrency(number);
 
   // Calculate Wealth Projection
   const months = timeHorizon * 12;
@@ -46,10 +43,10 @@ export const WealthSimulator = ({ isLoggedIn }) => {
   };
 
   const savingsPresets = [
-    { label: isEn ? "1M" : "1 Jt", value: 1000000 },
-    { label: isEn ? "2.5M" : "2.5 Jt", value: 2500000 },
-    { label: isEn ? "5M" : "5 Jt", value: 5000000 },
-    { label: isEn ? "10M" : "10 Jt", value: 10000000 },
+    { label: formatCompact(1000000, true), value: 1000000 },
+    { label: formatCompact(2500000, true), value: 2500000 },
+    { label: formatCompact(5000000, true), value: 5000000 },
+    { label: formatCompact(10000000, true), value: 10000000 },
   ];
 
   const yearPresets = [3, 5, 10, 15];
@@ -118,13 +115,13 @@ export const WealthSimulator = ({ isLoggedIn }) => {
                     key={preset.value}
                     type="button"
                     onClick={() => setMonthlySavings(preset.value)}
-                    className={`py-2 px-1 text-[11px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer text-center truncate ${
+                    className={`py-2 px-1 text-[11px] sm:text-xs font-extrabold tabular-nums rounded-xl transition-all cursor-pointer text-center truncate ${
                       monthlySavings === preset.value
                         ? "bg-brand-600 text-white shadow-xs"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
-                    Rp {preset.label}
+                    {preset.label}
                   </button>
                 ))}
               </div>
@@ -200,10 +197,13 @@ export const WealthSimulator = ({ isLoggedIn }) => {
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-3xl pointer-events-none" />
 
             <div className="space-y-4 relative z-10">
-              {/* Milestone Indicator */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{getMilestone()}</span>
+              {/* Milestone Indicator & Live Currency Switcher */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>{getMilestone()}</span>
+                </div>
+                <CurrencySwitcherPill compact dark />
               </div>
 
               <div>

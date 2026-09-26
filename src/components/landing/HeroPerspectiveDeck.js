@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Sliders, Wallet, Sparkles, Target, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { Sliders, Wallet, Sparkles, Target, ArrowUpRight, CheckCircle2, Coins } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 export const HeroPerspectiveDeck = () => {
   const { t, language } = useLanguage();
+  const { formatCurrency, formatCompact, currencyCode } = useCurrency();
   const [activeCard, setActiveCard] = useState(0);
 
   const isEn = language === "en";
@@ -18,21 +20,21 @@ export const HeroPerspectiveDeck = () => {
       desc: t("deck.card1_desc"),
       icon: Sliders,
       highlight: t("deck.card1_highlight"),
-      metric: t("deck.card1_metric"),
+      metric: `${formatCurrency(10000000)} / ${isEn ? "mo" : "bln"}`,
       accent: "from-brand-600/20 to-emerald-500/10",
       badgeColor: "bg-brand-50 text-brand-700 border-brand-200",
       preview: (
         <div className="space-y-2 pt-1 text-[11px]">
-          <div className="flex justify-between items-center text-slate-700 font-bold">
-            <span>{t("deck.card1_needs")}</span>
-            <span className="text-brand-700 font-black">Rp 5.000.000 (50%)</span>
+          <div className="flex justify-between items-center text-slate-700 font-bold gap-1">
+            <span className="truncate">{t("deck.card1_needs")}</span>
+            <span className="text-brand-700 font-black tabular-nums shrink-0">{formatCompact(5000000, true)} (50%)</span>
           </div>
           <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
             <div className="bg-brand-600 h-full rounded-full" style={{ width: "50%" }} />
           </div>
-          <div className="flex justify-between items-center text-slate-700 font-bold">
-            <span>{t("deck.card1_savings")}</span>
-            <span className="text-emerald-700 font-black">Rp 2.000.000 (20%)</span>
+          <div className="flex justify-between items-center text-slate-700 font-bold gap-1">
+            <span className="truncate">{t("deck.card1_savings")}</span>
+            <span className="text-emerald-700 font-black tabular-nums shrink-0">{formatCompact(2000000, true)} (20%)</span>
           </div>
           <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
             <div className="bg-emerald-500 h-full rounded-full" style={{ width: "20%" }} />
@@ -47,24 +49,33 @@ export const HeroPerspectiveDeck = () => {
       desc: t("deck.card2_desc"),
       icon: Wallet,
       highlight: t("deck.card2_highlight"),
-      metric: t("deck.card2_metric"),
+      metric: `${formatCurrency(60750000)}`,
       accent: "from-emerald-500/20 to-teal-500/10",
       badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
       preview: (
-        <div className="grid grid-cols-2 gap-1.5 pt-1">
-          <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2">
-            <img src="/images/providers/bca.svg" alt="BCA" className="h-3 w-auto object-contain shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-slate-500 truncate">{t("deck.card2_bca")}</p>
-              <p className="text-[11px] font-black text-slate-900">28.5 Jt</p>
+        <div className="space-y-1.5 pt-1">
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2">
+              <img src="/images/providers/bca.svg" alt="BCA" className="h-3 w-auto object-contain shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] text-slate-500 truncate">{t("deck.card2_bca")}</p>
+                <p className="text-[11px] font-black text-slate-900 tabular-nums truncate">{formatCompact(28500000, true)}</p>
+              </div>
+            </div>
+            <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2">
+              <img src="/images/providers/mandiri.svg" alt="Mandiri" className="h-3 w-auto object-contain shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] text-slate-500 truncate">{t("deck.card2_mandiri")}</p>
+                <p className="text-[11px] font-black text-slate-900 tabular-nums truncate">{formatCompact(16000000, true)}</p>
+              </div>
             </div>
           </div>
-          <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2">
-            <img src="/images/providers/mandiri.svg" alt="Mandiri" className="h-3 w-auto object-contain shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-slate-500 truncate">{t("deck.card2_mandiri")}</p>
-              <p className="text-[11px] font-black text-slate-900">16.0 Jt</p>
-            </div>
+          <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-emerald-50/80 border border-emerald-200/70 text-[10px] font-bold text-emerald-800">
+            <span className="flex items-center gap-1">
+              <Coins className="w-3 h-3 text-emerald-600" />
+              <span>{isEn ? "Multi-Currency:" : "Multi-Mata Uang:"}</span>
+            </span>
+            <span className="font-black">IDR • USD • EUR • SGD ({currencyCode})</span>
           </div>
         </div>
       ),
@@ -85,7 +96,9 @@ export const HeroPerspectiveDeck = () => {
             <span className="text-emerald-400 font-bold flex items-center gap-1">
               <Sparkles className="w-3 h-3" /> {t("deck.card3_coffee_insight")}
             </span>
-            <span className="text-[9px] text-slate-400">{t("deck.card3_today")}</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+              1–8 {isEn ? "Photos" : "Foto"}
+            </span>
           </div>
           <p className="text-slate-300 text-[10px] leading-tight">
             {t("deck.card3_coffee_desc")}
@@ -105,15 +118,18 @@ export const HeroPerspectiveDeck = () => {
       badgeColor: "bg-teal-50 text-teal-700 border-teal-200",
       preview: (
         <div className="space-y-1.5 pt-1 text-[11px]">
-          <div className="flex justify-between items-center font-bold">
-            <span className="text-slate-800">{t("deck.card4_goal_title")}</span>
-            <span className="text-brand-600">{isEn ? "Rp 48M / 120M" : "Rp 48 Jt / 120 Jt"}</span>
+          <div className="flex justify-between items-center font-bold gap-1">
+            <span className="text-slate-800 truncate">{t("deck.card4_goal_title")}</span>
+            <span className="text-brand-600 tabular-nums shrink-0">
+              {formatCompact(48000000, true)} / {formatCompact(120000000, true)}
+            </span>
           </div>
           <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
             <div className="bg-gradient-to-r from-brand-600 to-emerald-500 h-full rounded-full" style={{ width: "40%" }} />
           </div>
           <p className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> {t("deck.card4_goal_progress")}
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            <span className="truncate">{t("deck.card4_goal_progress")}</span>
           </p>
         </div>
       ),

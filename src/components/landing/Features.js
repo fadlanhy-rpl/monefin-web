@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
+import { CURRENCY_OPTIONS, CurrencySwitcherPill } from "../ui/CurrencySwitcher";
 import {
   Wallet,
   Sparkles,
@@ -11,29 +13,30 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  ArrowUpRight,
-  TrendingUp,
-  CreditCard,
-  Building2,
-  Zap,
   ScanLine,
   Receipt,
   Split,
-  Users,
   Copy,
   Check,
   Calendar,
   Download,
   Lock,
-  FileSpreadsheet,
   Layers,
   Smartphone,
   Flame,
   Shield,
+  Coins,
 } from "lucide-react";
 
 export const Features = () => {
   const { t, language } = useLanguage();
+  const {
+    formatCurrency,
+    formatCompact,
+    currencyCode,
+    changeCurrency,
+    rates,
+  } = useCurrency();
   const isEn = language === "en";
 
   // Tab State
@@ -49,8 +52,8 @@ export const Features = () => {
     const el = tabScrollRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    setCanScrollLeft(scrollLeft > 6);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 6);
+    setCanScrollLeft(scrollLeft > 4);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 4);
   }, []);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export const Features = () => {
     const handleResize = () => checkScroll();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [checkScroll]);
+  }, [checkScroll, language]);
 
   const handleTabClick = (tabId) => {
     setActiveFeatureTab(tabId);
@@ -98,7 +101,7 @@ export const Features = () => {
   const [selectedAccount, setSelectedAccount] = useState("bca");
 
   // Tab 3: Receipt Scanner state
-  const [selectedReceipt, setSelectedReceipt] = useState("kopi");
+  const [selectedReceipt, setSelectedReceipt] = useState("superindo");
   const [isScanningReceipt, setIsScanningReceipt] = useState(false);
   const [receiptSaved, setReceiptSaved] = useState(false);
 
@@ -117,52 +120,55 @@ export const Features = () => {
   // Tab 6: Goals state
   const [selectedGoal, setSelectedGoal] = useState("emergency");
 
-  const formatRupiah = (number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(number);
-  };
+  const formatRupiah = (number) => formatCurrency(number);
 
-  // Receipt Scanner Presets
+  // Receipt Scanner Presets (Updated with Multi-Photo Long & Combined Receipt modes)
   const receiptsData = {
     kopi: {
       id: "kopi",
       merchant: "Kopi Kenangan Mall",
-      date: "24 Sep 2026, 14:20",
+      date: "26 Sep 2026, 14:20",
       total: 48000,
+      photoCount: 1,
+      scanMode: isEn ? "Single Receipt (1/8 Photo)" : "1 Struk Cepat (1/8 Foto)",
       category: isEn ? "Food & Beverage" : "Makanan & Minuman",
       account: isEn ? "BCA Main" : "BCA Utama",
       items: [
         { name: "Kenangan Mantan Large", price: 28000 },
         { name: "Toast Coklat Klasik", price: 20000 },
       ],
-      ocrConfidence: "99.4%",
+      ocrConfidence: "99.6%",
     },
     superindo: {
       id: "superindo",
       merchant: "Superindo Swalayan",
-      date: "23 Sep 2026, 19:15",
-      total: 184500,
+      date: "25 Sep 2026, 19:15",
+      total: 248500,
+      photoCount: 3,
+      scanMode: isEn ? "Long Receipt (3/8 Photos Stitched)" : "Struk Panjang (3/8 Foto Bersambung)",
       category: isEn ? "Groceries & Supplies" : "Belanja Kebutuhan",
       account: isEn ? "Mandiri Payroll" : "Mandiri Gaji",
       items: [
-        { name: "Apel Fuji 1kg", price: 42000 },
-        { name: "Minyak Goreng 2L", price: 38500 },
-        { name: "Daging Ayam Fillet", price: 64000 },
-        { name: "Susu UHT Full Cream", price: 40000 },
+        { name: "Apel Fuji 1kg (Foto 1)", price: 42000 },
+        { name: "Minyak Goreng 2L (Foto 1)", price: 38500 },
+        { name: "Daging Ayam Fillet (Foto 2 - Deduplicated)", price: 64000 },
+        { name: "Susu UHT & Deterjen (Foto 3)", price: 104000 },
       ],
-      ocrConfidence: "98.9%",
+      ocrConfidence: "99.4%",
     },
     spbu: {
       id: "spbu",
-      merchant: "SPBU Pertamina 31.124",
-      date: "22 Sep 2026, 08:45",
-      total: 150000,
+      merchant: isEn ? "Pertamina + Indomaret (Combined)" : "SPBU Pertamina + Indomaret",
+      date: "24 Sep 2026, 08:45",
+      total: 185000,
+      photoCount: 2,
+      scanMode: isEn ? "2 Receipts Combined (2/8 Photos)" : "Gabung 2 Struk (2/8 Foto)",
       category: isEn ? "Transportation & Fuel" : "Transportasi & Bensin",
       account: "GoPay E-Wallet",
-      items: [{ name: "Pertamax Turbo 10.3L", price: 150000 }],
+      items: [
+        { name: "Pertamax Turbo 10.3L (Struk 1)", price: 150000 },
+        { name: "Air Mineral & Tol E-Money (Struk 2)", price: 35000 },
+      ],
       ocrConfidence: "99.8%",
     },
   };
@@ -183,7 +189,7 @@ export const Features = () => {
     }, 3500);
   };
 
-  const currentReceipt = receiptsData[selectedReceipt] || receiptsData.kopi;
+  const currentReceipt = receiptsData[selectedReceipt] || receiptsData.superindo;
 
   // Split Bill Calculations
   const splitTaxAmount = splitIncludeTax ? Math.round(splitBillAmount * 0.1) : 0;
@@ -262,6 +268,15 @@ export const Features = () => {
     { id: "goals", label: t("features.tab6"), icon: Target },
   ];
 
+  const getRateDisplay = (code) => {
+    const idrPerUsd = rates?.IDR || 15500;
+    if (code === "IDR") return isEn ? "Base Currency (1:1)" : "Mata Uang Dasar (1:1)";
+    if (code === "USD") return `1 USD = Rp ${Math.round(idrPerUsd).toLocaleString("id-ID")}`;
+    if (code === "EUR") return `1 EUR = Rp ${Math.round(idrPerUsd / (rates?.EUR || 0.92)).toLocaleString("id-ID")}`;
+    if (code === "SGD") return `1 SGD = Rp ${Math.round(idrPerUsd / (rates?.SGD || 1.35)).toLocaleString("id-ID")}`;
+    return "";
+  };
+
   return (
     <section
       id="features"
@@ -283,7 +298,7 @@ export const Features = () => {
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-teal-400/10 blur-3xl pointer-events-none" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12 sm:space-y-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-14">
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-2 sm:space-y-3">
@@ -295,12 +310,12 @@ export const Features = () => {
           </p>
         </div>
 
-        {/* Modern Interactive Feature Navigation Tabs (Always flex single-row with smooth scroll) */}
-        <div className="relative max-w-5xl mx-auto w-full group/tabs">
+        {/* Modern Interactive Feature Navigation Tabs (Fixed left-overflow clipping with mx-auto on inner track) */}
+        <div className="relative max-w-full mx-auto w-full group/tabs">
           {/* Left Arrow Button & Subtle Gradient Mask */}
           {canScrollLeft && (
             <div className="hidden sm:flex absolute left-0 top-0 bottom-0 z-20 items-center pl-1 pointer-events-none">
-              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none rounded-l-full" />
+              <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white/95 via-white/60 to-transparent pointer-events-none rounded-l-full" />
               <button
                 type="button"
                 onClick={() => scrollTabs("left")}
@@ -312,13 +327,13 @@ export const Features = () => {
             </div>
           )}
 
-          {/* Scrollable Flex Track */}
+          {/* Scrollable Flex Track — NEVER use justify-center directly on overflow-x-auto; use mx-auto on inner pill bar */}
           <div
             ref={tabScrollRef}
             onScroll={checkScroll}
-            className="flex items-center justify-start lg:justify-center overflow-x-auto no-scrollbar scroll-smooth py-2 px-3 sm:px-4 w-full touch-pan-x"
+            className="flex items-center overflow-x-auto no-scrollbar scroll-smooth py-2 px-1 sm:px-2 w-full touch-pan-x"
           >
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-100/95 backdrop-blur-md rounded-2xl sm:rounded-full border border-slate-200/90 shadow-sm shrink-0">
+            <div className="mx-auto inline-flex items-center gap-1 sm:gap-1.5 lg:gap-2 p-1.5 sm:p-2 bg-slate-100/95 backdrop-blur-md rounded-2xl sm:rounded-full border border-slate-200/90 shadow-sm shrink-0">
               {featureTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeFeatureTab === tab.id;
@@ -327,13 +342,13 @@ export const Features = () => {
                     key={tab.id}
                     ref={(el) => (tabButtonRefs.current[tab.id] = el)}
                     onClick={() => handleTabClick(tab.id)}
-                    className={`shrink-0 flex items-center justify-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 select-none cursor-pointer ${
+                    className={`shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 xl:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full font-bold text-xs xl:text-sm whitespace-nowrap transition-all duration-200 select-none cursor-pointer ${
                       isActive
-                        ? "bg-white text-brand-700 shadow-md border border-slate-200/90 font-black ring-1 ring-brand-500/20 scale-[1.02]"
+                        ? "bg-white text-brand-700 shadow-md border border-slate-200/90 font-black ring-1 ring-brand-500/20"
                         : "text-slate-600 hover:text-slate-900 hover:bg-white/70 active:scale-98"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-brand-600" : "text-slate-400"}`} />
+                    <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors ${isActive ? "text-brand-600" : "text-slate-400"}`} />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -344,7 +359,7 @@ export const Features = () => {
           {/* Right Arrow Button & Subtle Gradient Mask */}
           {canScrollRight && (
             <div className="hidden sm:flex absolute right-0 top-0 bottom-0 z-20 items-center pr-1 pointer-events-none justify-end">
-              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none rounded-r-full" />
+              <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white/95 via-white/60 to-transparent pointer-events-none rounded-r-full" />
               <button
                 type="button"
                 onClick={() => scrollTabs("right")}
@@ -396,15 +411,15 @@ export const Features = () => {
                 {/* Quick Presets */}
                 <div className="flex items-center gap-1.5 pt-1 text-[11px] overflow-x-auto no-scrollbar scroll-smooth touch-pan-x py-0.5">
                   {[
-                    { label: t("features.t1_preset_fresh"), value: 5000000 },
-                    { label: t("features.t1_preset_mid"), value: 10000000 },
-                    { label: t("features.t1_preset_senior"), value: 20000000 },
-                    { label: "Rp 35 Jt", value: 35000000 },
+                    { label: formatCompact(5000000, true), value: 5000000 },
+                    { label: formatCompact(10000000, true), value: 10000000 },
+                    { label: formatCompact(20000000, true), value: 20000000 },
+                    { label: formatCompact(35000000, true), value: 35000000 },
                   ].map((preset) => (
                     <button
                       key={preset.value}
                       onClick={() => setSimulatedIncome(preset.value)}
-                      className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
+                      className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl border font-bold tabular-nums transition-all cursor-pointer ${
                         simulatedIncome === preset.value
                           ? "bg-brand-600 text-white border-brand-600 shadow-xs"
                           : "bg-white text-slate-600 border-slate-200 hover:border-brand-300"
@@ -488,12 +503,12 @@ export const Features = () => {
           </div>
         )}
 
-        {/* TAB 2: MULTI-REKENING & WALLETS */}
+        {/* TAB 2: MULTI-REKENING, WALLETS & MULTI-MATA UANG LIVE */}
         {activeFeatureTab === "accounts" && (
           <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
             <div className="lg:col-span-6 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <Coins className="w-3.5 h-3.5 text-emerald-600" />
                 <span>{t("features.t2_sync_status")}</span>
               </div>
 
@@ -505,11 +520,71 @@ export const Features = () => {
                 {t("features.t2_desc")}
               </p>
 
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-                <p className="font-bold text-slate-800">{t("features.t2_why_title")}</p>
-                <p className="text-slate-600 leading-relaxed">
-                  {t("features.t2_why_desc")}
-                </p>
+              {/* Interactive Multi-Currency Switcher Showcase Card */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-brand-50/90 via-white to-emerald-50/70 border-2 border-brand-200/80 space-y-3 shadow-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <Coins className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-900 text-xs sm:text-sm">
+                        {isEn ? "Live Currency Switcher (Auto-FX)" : "Fitur Ganti Mata Uang & Kurs Live"}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-semibold">
+                        {isEn
+                          ? "Click to convert all balances across the page in real time:"
+                          : "Klik untuk konversi instan seluruh saldo di halaman ini:"}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                    4 {isEn ? "Currencies" : "Mata Uang"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {CURRENCY_OPTIONS.map((curr) => {
+                    const active = currencyCode === curr.code;
+                    return (
+                      <button
+                        key={curr.code}
+                        type="button"
+                        onClick={() => changeCurrency(curr.code)}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          active
+                            ? "bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20 scale-[1.02]"
+                            : "bg-white text-slate-700 border-slate-200 hover:border-brand-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs font-black">{curr.code}</span>
+                          <span
+                            className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                              active ? "bg-white/20 text-white" : "bg-slate-100 text-brand-700"
+                            }`}
+                          >
+                            {curr.symbol}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-[10px] font-medium truncate mt-1 ${
+                            active ? "text-emerald-100" : "text-slate-400"
+                          }`}
+                        >
+                          {isEn ? curr.nameEn : curr.nameId}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] pt-1 text-slate-600 font-semibold">
+                  <span>{isEn ? "Active Exchange Rate:" : "Kurs Konversi Aktif:"}</span>
+                  <span className="font-black text-brand-700 tabular-nums">
+                    {getRateDisplay(currencyCode)}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -583,21 +658,21 @@ export const Features = () => {
               <div className="p-4 sm:p-5 bg-[#071613] text-white rounded-2xl shadow-xl flex justify-between items-center text-xs border border-emerald-900">
                 <div>
                   <span className="font-bold uppercase tracking-wider text-[10px] text-emerald-400">
-                    {t("features.t2_total_label")}
+                    {t("features.t2_total_label")} ({currencyCode})
                   </span>
                   <p className="text-[11px] text-slate-400">
                     {t("features.t2_total_sub")}
                   </p>
                 </div>
                 <span className="font-black text-lg sm:text-2xl text-emerald-400 tabular-nums">
-                  Rp 60.750.000
+                  {formatRupiah(60750000)}
                 </span>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 3: PINDAI STRUK AI (VISION RECEIPT SCANNER) */}
+        {/* TAB 3: PINDAI STRUK AI (VISION RECEIPT SCANNER 1-8 PHOTOS) */}
         {activeFeatureTab === "receipt" && (
           <div className="bg-white/95 backdrop-blur-xl border-2 border-slate-200/90 rounded-3xl p-4 sm:p-8 lg:p-12 shadow-2xl shadow-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center animate-fadeIn max-w-full overflow-hidden">
             <div className="lg:col-span-6 space-y-5">
@@ -614,6 +689,32 @@ export const Features = () => {
                 {t("features.t3_ocr_desc")}
               </p>
 
+              {/* Multi-Photo 1-8 Capability Highlights */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
+                  <p className="font-black text-slate-900 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                    <span>{isEn ? "Long Receipt (1–8 Photos)" : "Struk Panjang (1–8 Foto)"}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-snug">
+                    {isEn
+                      ? "Snap top-to-bottom parts; AI auto-deduplicates overlapping lines."
+                      : "Foto bagian atas hingga bawah; AI otomatis hapus baris tumpang tindih."}
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
+                  <p className="font-black text-slate-900 flex items-center gap-1.5">
+                    <Receipt className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{isEn ? "Combine Multiple Receipts" : "Gabung Beberapa Struk"}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-snug">
+                    {isEn
+                      ? "Scan up to 8 different receipts at once into 1 unified transaction."
+                      : "Scan hingga 8 bon berbeda sekaligus menjadi 1 transaksi rapi."}
+                  </p>
+                </div>
+              </div>
+
               <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center gap-3 text-xs text-emerald-800 font-semibold">
                 <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{t("features.t3_ocr_free_notice")}</span>
@@ -626,8 +727,8 @@ export const Features = () => {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
-                    { id: "kopi", label: t("features.t3_ocr_receipt1") },
                     { id: "superindo", label: t("features.t3_ocr_receipt2") },
+                    { id: "kopi", label: t("features.t3_ocr_receipt1") },
                     { id: "spbu", label: t("features.t3_ocr_receipt3") },
                   ].map((r) => (
                     <button
@@ -655,27 +756,38 @@ export const Features = () => {
                 )}
 
                 {/* Header */}
-                <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b border-white/10">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md">
+                    <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shrink-0">
                       <ScanLine className="w-5 h-5" />
                     </div>
                     <div>
                       <p className="font-black text-xs sm:text-sm text-white">
-                        MoneFin AI Vision Engine
+                        MoneFin Multi-Photo Vision
                       </p>
                       <p className="text-[10px] text-emerald-400">
-                        {isEn ? "Gemini 1.5 Flash Vision BYOK" : "Google Gemini 1.5 Flash Vision"}
+                        {isEn ? "Gemini 3.6 Flash Vision BYOK" : "Google Gemini 3.6 Flash Vision"}
                       </p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                    Confidence: {currentReceipt.ocrConfidence}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40">
+                      {currentReceipt.photoCount}/8 {isEn ? "Photos" : "Foto"}
+                    </span>
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      {currentReceipt.ocrConfidence}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Extracted Details Box */}
                 <div className="space-y-3 bg-white/5 rounded-2xl p-4 border border-white/10 text-xs">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-slate-400 font-medium">{isEn ? "Scan Mode" : "Mode Pindai"}</span>
+                    <span className="px-2 py-0.5 rounded-md bg-brand-500/25 text-emerald-300 font-bold text-[11px] border border-emerald-500/30">
+                      {currentReceipt.scanMode}
+                    </span>
+                  </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-medium">{t("features.t3_ocr_result_merchant")}</span>
                     <span className="font-black text-white">{currentReceipt.merchant}</span>
@@ -700,9 +812,9 @@ export const Features = () => {
                   {/* Items List */}
                   <div className="space-y-1.5 pt-1">
                     {currentReceipt.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-[11px] text-slate-300">
-                        <span>• {item.name}</span>
-                        <span className="font-semibold">{formatRupiah(item.price)}</span>
+                      <div key={idx} className="flex justify-between gap-2 text-[11px] text-slate-300">
+                        <span className="truncate">• {item.name}</span>
+                        <span className="font-semibold tabular-nums shrink-0">{formatRupiah(item.price)}</span>
                       </div>
                     ))}
                   </div>
@@ -781,7 +893,7 @@ export const Features = () => {
                       <button
                         key={preset}
                         onClick={() => setSplitBillAmount(preset)}
-                        className={`px-2.5 py-1 rounded-lg border font-bold transition-all cursor-pointer ${
+                        className={`px-2.5 py-1 rounded-lg border font-bold tabular-nums transition-all cursor-pointer ${
                           splitBillAmount === preset
                             ? "bg-brand-600 text-white border-brand-600"
                             : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
@@ -854,7 +966,7 @@ export const Features = () => {
                   <span className="text-slate-400 font-medium">
                     {splitPeopleCount} {isEn ? "Participants" : "Orang Patungan"}
                   </span>
-                  <span className="text-emerald-400 font-bold">
+                  <span className="text-emerald-400 font-bold tabular-nums">
                     Total: {formatRupiah(splitGrandTotal)}
                   </span>
                 </div>
@@ -868,7 +980,7 @@ export const Features = () => {
                   </p>
                   {splitRoundUp && (
                     <p className="text-[10px] text-slate-400">
-                      {isEn ? "(Rounded to nearest Rp 1,000)" : "(Sudah dibulatkan ke kelipatan Rp 1.000 terdekat)"}
+                      {isEn ? "(Friendly cash round-up active)" : "(Sudah dibulatkan ke nominal ramah transfer)"}
                     </p>
                   )}
                 </div>
@@ -982,7 +1094,9 @@ export const Features = () => {
                     {activePrompt === "coffee" && (
                       <>
                         <h4 className="font-black text-base sm:text-lg text-emerald-300 leading-snug">
-                          {t("features.t3_a1_title")}
+                          {isEn
+                            ? `Savings Potential: ${formatRupiah(450000)} / Month`
+                            : `Potensi Penghematan: ${formatRupiah(450000)} / Bulan`}
                         </h4>
                         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
                           {t("features.t3_a1_desc")}
@@ -993,7 +1107,9 @@ export const Features = () => {
                     {activePrompt === "emergency" && (
                       <>
                         <h4 className="font-black text-base sm:text-lg text-emerald-300 leading-snug">
-                          {t("features.t3_a2_title")}
+                          {isEn
+                            ? `Target Emergency Reserve: ${formatRupiah(48000000)} (6 Mo)`
+                            : `Target Dana Darurat: ${formatRupiah(48000000)} (6 Bulan)`}
                         </h4>
                         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
                           {t("features.t3_a2_desc")}
@@ -1004,7 +1120,9 @@ export const Features = () => {
                     {activePrompt === "invest" && (
                       <>
                         <h4 className="font-black text-base sm:text-lg text-emerald-300 leading-snug">
-                          {t("features.t3_a3_title")}
+                          {isEn
+                            ? `Best Timing: Start with ${formatRupiah(100000)} Right Now`
+                            : `Waktu Terbaik: Mulai dari ${formatRupiah(100000)} Sekarang`}
                         </h4>
                         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
                           {t("features.t3_a3_desc")}
@@ -1016,7 +1134,7 @@ export const Features = () => {
                     <div className="p-3 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold">
-                          85
+                          94
                         </div>
                         <div>
                           <p className="font-bold text-white text-[11px]">{isEn ? "Financial Health Score" : "Skor Kesehatan Finansial"}</p>
@@ -1024,7 +1142,7 @@ export const Features = () => {
                         </div>
                       </div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                        {isEn ? "Google Gemini BYOK" : "Google Gemini BYOK"}
+                        Gemini 3.6 Flash BYOK
                       </span>
                     </div>
 
@@ -1191,8 +1309,62 @@ export const Features = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* Bento Card 1: Recurring Automation */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Bento Card 1: Multi-Currency Live Switcher (IDR, USD, EUR, SGD) */}
+            <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 border-2 border-brand-200/90 shadow-md hover:shadow-xl hover:border-brand-400 transition-all flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-2xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-600">
+                    <Coins className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {isEn ? "Live FX Rate" : "Kurs Real-Time"}
+                  </span>
+                </div>
+                <h4 className="font-black text-base text-slate-900 leading-snug">
+                  {t("features.bento_currency_title")}
+                </h4>
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                  {t("features.bento_currency_desc")}
+                </p>
+              </div>
+              <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
+                <CurrencySwitcherPill compact />
+                <span className="text-[10px] font-black text-brand-700 tabular-nums truncate">
+                  {formatCompact(10000000, true)}
+                </span>
+              </div>
+            </div>
+
+            {/* Bento Card 2: Multi-Photo Long Receipt Scanner (1-8 Photos) */}
+            <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 border-2 border-slate-200/90 shadow-md hover:shadow-xl hover:border-brand-300 transition-all flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                    1–8 {isEn ? "Photos" : "Foto"}
+                  </span>
+                </div>
+                <h4 className="font-black text-base text-slate-900 leading-snug">
+                  {t("features.bento_multiphoto_title")}
+                </h4>
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                  {t("features.bento_multiphoto_desc")}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pt-2 text-[10px] font-bold text-teal-800">
+                <span className="px-2 py-0.5 rounded-md bg-teal-50 border border-teal-200">
+                  {isEn ? "Long Receipt Stitch" : "Struk Panjang Bersambung"}
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-teal-50 border border-teal-200">
+                  {isEn ? "Overlap Deduplication" : "Anti-Duplikat AI"}
+                </span>
+              </div>
+            </div>
+
+            {/* Bento Card 3: Recurring Automation */}
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 border-2 border-slate-200/90 shadow-md hover:shadow-xl hover:border-brand-300 transition-all flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600">
@@ -1212,7 +1384,7 @@ export const Features = () => {
               </div>
             </div>
 
-            {/* Bento Card 2: PDF & Excel Exports */}
+            {/* Bento Card 4: PDF & Excel Exports */}
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 border-2 border-slate-200/90 shadow-md hover:shadow-xl hover:border-brand-300 transition-all flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
@@ -1232,7 +1404,7 @@ export const Features = () => {
               </div>
             </div>
 
-            {/* Bento Card 3: 2FA & Active Sessions */}
+            {/* Bento Card 5: 2FA & Active Sessions */}
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 border-2 border-slate-200/90 shadow-md hover:shadow-xl hover:border-brand-300 transition-all flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-600">
@@ -1251,7 +1423,7 @@ export const Features = () => {
               </div>
             </div>
 
-            {/* Bento Card 4: 100% Privacy & Zero Bank Passwords */}
+            {/* Bento Card 6: 100% Privacy & Zero Bank Passwords */}
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 border-2 border-slate-200/90 shadow-md hover:shadow-xl hover:border-brand-300 transition-all flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">

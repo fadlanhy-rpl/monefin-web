@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CatalisButton } from "../ui/CatalisButton";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
+import { CurrencySwitcher, CurrencySwitcherPill } from "../ui/CurrencySwitcher";
 import { useLanguage } from "../../context/LanguageContext";
 
 export const Navbar = ({ isLoggedIn }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isEn = language === "en";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -40,7 +42,7 @@ export const Navbar = ({ isLoggedIn }) => {
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden lg:flex items-center gap-3.5 xl:gap-7 text-xs xl:text-sm font-bold text-slate-800">
+        <div className="hidden lg:flex items-center gap-3.5 xl:gap-6 text-xs xl:text-sm font-bold text-slate-800">
           <a href="#features" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.features")}</a>
           <a href="#simulator" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.simulator")}</a>
           <a href="#comparison" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.comparison")}</a>
@@ -49,7 +51,8 @@ export const Navbar = ({ isLoggedIn }) => {
         </div>
 
         {/* Desktop Actions */}
-        <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+        <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 shrink-0">
+          <CurrencySwitcher />
           <LanguageSwitcher />
           {isLoggedIn ? (
             <CatalisButton href="/dashboard" variant="primary" size="sm">
@@ -71,12 +74,13 @@ export const Navbar = ({ isLoggedIn }) => {
         </div>
 
         {/* Mobile / Tablet Right Actions & Hamburger */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 lg:hidden">
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden">
+          <CurrencySwitcher />
           <LanguageSwitcher />
           {!isLoggedIn && (
             <Link
               href="/login"
-              className="text-xs font-extrabold text-slate-800 hover:text-brand-600 px-3 py-1.5 rounded-full border border-slate-200/80 bg-white/80 transition-colors whitespace-nowrap"
+              className="hidden sm:inline-flex text-xs font-extrabold text-slate-800 hover:text-brand-600 px-3 py-1.5 rounded-full border border-slate-200/80 bg-white/80 transition-colors whitespace-nowrap"
             >
               {t("nav.login")}
             </Link>
@@ -100,16 +104,29 @@ export const Navbar = ({ isLoggedIn }) => {
           <a href="#simulator" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.simulator")}</a>
           <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.comparison")}</a>
           <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.testimonials")}</a>
-          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 transition-colors">{t("nav.faq")}</a>
-          <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
+          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.faq")}</a>
+
+          <div className="flex items-center justify-between gap-2 py-1.5">
+            <span className="text-xs font-bold text-slate-500">
+              {isEn ? "Display Currency:" : "Mata Uang Tampilan:"}
+            </span>
+            <CurrencySwitcherPill compact />
+          </div>
+
+          <div className="pt-2 border-t border-slate-100 flex flex-col gap-2.5">
             {isLoggedIn ? (
               <Link href="/dashboard" className="w-full text-center py-3 rounded-full bg-brand-600 text-white font-bold text-sm shadow-md hover:bg-brand-700 transition-colors">
                 {t("nav.dashboard_mobile")}
               </Link>
             ) : (
-              <Link href="/register" className="w-full text-center py-3 rounded-full bg-brand-600 text-white font-bold text-sm shadow-md hover:bg-brand-700 transition-colors">
-                {t("nav.register_mobile")}
-              </Link>
+              <>
+                <Link href="/login" className="w-full text-center py-2.5 rounded-full bg-slate-100 text-slate-800 font-bold text-sm hover:bg-slate-200 transition-colors sm:hidden">
+                  {t("nav.login")}
+                </Link>
+                <Link href="/register" className="w-full text-center py-3 rounded-full bg-brand-600 text-white font-bold text-sm shadow-md hover:bg-brand-700 transition-colors">
+                  {t("nav.register_mobile")}
+                </Link>
+              </>
             )}
           </div>
         </div>
