@@ -16,11 +16,10 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
   const { t, language } = useLanguage();
   const isEn = language === "en";
   const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
-  const [imgError, setImgError] = useState(false);
+  const [failedImgUrl, setFailedImgUrl] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    setImgError(false); // reset on each open
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -33,6 +32,9 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
   const receiptData = transaction.receipt_data || {};
   const items = receiptData.items || receiptData.split_items || [];
   const imageUrl = transaction.receipt_image_url;
+  const imgError = Boolean(imageUrl && failedImgUrl === imageUrl);
+  const pagesCount = Number(receiptData.pages_count) || 1;
+  const scanType = receiptData.scan_type || "single";
 
   return createPortal(
     <div className="fixed inset-0 w-screen h-screen min-h-[100dvh] bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto">
@@ -43,9 +45,22 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
         {/* Header */}
         <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
           <div className="min-w-0">
-            <h3 className="text-sm sm:text-base font-black text-slate-900 truncate">
-              {t("receipts.detail_title", isEn ? "Receipt Details & Proof of Purchase" : "Rincian Struk & Bukti Belanja")}
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm sm:text-base font-black text-slate-900 truncate">
+                {t("receipts.detail_title", isEn ? "Receipt Details & Proof of Purchase" : "Rincian Struk & Bukti Belanja")}
+              </h3>
+              {pagesCount > 1 && (
+                <span className="px-2 py-0.5 rounded-md bg-[#E6F0EF] text-[#00685F] font-mono tabular-nums text-[10px] font-black uppercase tracking-wider">
+                  {scanType === "multi_receipt"
+                    ? isEn
+                      ? `${pagesCount} Combined Receipts`
+                      : `Gabungan ${pagesCount} Struk`
+                    : isEn
+                      ? `Long Receipt (${pagesCount} Parts)`
+                      : `Struk Panjang (${pagesCount} Bagian)`}
+                </span>
+              )}
+            </div>
             <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate sm:whitespace-normal">
               {transaction.description || receiptData.merchant || (isEn ? "Transaction" : "Transaksi")}
             </p>
@@ -114,7 +129,7 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
                   </a>
                 )}
               </div>
-              <div className="p-2 bg-slate-950 rounded-2xl border border-slate-800 flex justify-center min-h-24">
+              <div className="p-2 bg-slate-950 rounded-2xl border border-slate-800 flex justify-center min-h-24 max-h-96 overflow-y-auto">
                 {imgError ? (
                   <div className="flex flex-col items-center justify-center gap-2 py-6 text-slate-500">
                     <HardDrive className="w-8 h-8 text-slate-600" />
@@ -138,8 +153,8 @@ export default function ReceiptDetailModal({ isOpen, onClose, transaction }) {
                   <img
                     src={imageUrl}
                     alt={isEn ? "Shopping Receipt" : "Struk Belanja"}
-                    className="max-h-72 object-contain rounded-xl"
-                    onError={() => setImgError(true)}
+                    className="w-auto max-w-full object-contain rounded-xl"
+                    onError={() => setFailedImgUrl(imageUrl)}
                   />
                 )}
               </div>

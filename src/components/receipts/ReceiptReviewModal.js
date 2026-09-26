@@ -376,12 +376,87 @@ function ModernDateField({ value, onChange, language = "id" }) {
   );
 }
 
+/**
+ * Stitch 2..8 receipt photos vertically on an HTML5 canvas into 1 combined JPEG File
+ * when the user opts to save the receipt attachment.
+ */
+async function stitchImagesVertically(files, maxWidth = 1080, quality = 0.72) {
+  if (!Array.isArray(files) || files.length === 0) return null;
+  if (files.length === 1) return files[0];
+
+  const loadImg = (file) =>
+    new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(url);
+        reject(err);
+      };
+      img.src = url;
+    });
+
+  try {
+    const loaded = await Promise.all(files.map(loadImg));
+    const targetWidth = Math.min(
+      maxWidth,
+      Math.max(...loaded.map((im) => im.width || 800))
+    );
+    const gap = 8;
+    const scaledHeights = loaded.map((im) =>
+      Math.round(((im.height || 800) * targetWidth) / (im.width || 800))
+    );
+    const totalHeight =
+      scaledHeights.reduce((sum, h) => sum + h, 0) + gap * (loaded.length - 1);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = totalHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(0, 0, targetWidth, totalHeight);
+
+    let y = 0;
+    loaded.forEach((im, idx) => {
+      const h = scaledHeights[idx];
+      ctx.drawImage(im, 0, y, targetWidth, h);
+      y += h + gap;
+    });
+
+    return await new Promise((resolve) => {
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(
+              new File([blob], "receipt_stitched.jpg", {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              })
+            );
+          } else {
+            resolve(files[0]);
+          }
+        },
+        "image/jpeg",
+        quality
+      );
+    });
+  } catch {
+    return files[0];
+  }
+}
+
 export default function ReceiptReviewModal({
   isOpen,
   onClose,
   extractedData,
   imageFile,
   previewUrl,
+  imageFiles = [],
+  previewUrls = [],
   accounts = [],
   categories = [],
   onSuccess,
@@ -389,6 +464,18 @@ export default function ReceiptReviewModal({
   const { t, language } = useLanguage();
   const isEn = language === "en";
   const { formatCurrency } = useCurrency();
+
+  const resolvedImageFiles = useMemo(() => {
+    if (Array.isArray(imageFiles) && imageFiles.length > 0) return imageFiles;
+    return imageFile ? [imageFile] : [];
+  }, [imageFiles, imageFile]);
+
+  const resolvedPreviewUrls = useMemo(() => {
+    if (Array.isArray(previewUrls) && previewUrls.length > 0) return previewUrls;
+    return previewUrl ? [previewUrl] : [];
+  }, [previewUrls, previewUrl]);
+
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
   // Mode: "summary" (Ringkasan) vs "itemized" (Terperinci)
   const [mode, setMode] = useState("summary");
@@ -458,6 +545,9 @@ export default function ReceiptReviewModal({
   useEffect(() => {
     if (extractedData) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActivePhotoIdx(0);
+      setZoomLevel(1);
+      setRotation(0);
       setMerchant(extractedData.merchant || (isEn ? "Store / Merchant" : "Toko Belanja"));
       let initialDate = extractedData.date || new Date().toISOString().split("T")[0];
       if (initialDate && initialDate.includes("-")) {
@@ -500,7 +590,7 @@ export default function ReceiptReviewModal({
         setItems([]);
       }
     }
-  }, [extractedData, effAccounts, effCategories]);
+  }, [extractedData, effAccounts, effCategories, isEn]);
 
   // Calculate items sum — must be BEFORE the early return (Rules of Hooks)
   const itemsSum = useMemo(() => {
@@ -517,13 +607,9 @@ export default function ReceiptReviewModal({
 
   if (!isOpen || !extractedData || !mounted) return null;
 
-  // Thousand formatter
-  const formatRupiah = (val) => {
-    const num = Math.round(Number(val) || 0);
-    return new Intl.NumberFormat("id-ID").format(num);
-  };
-
-
+  const photoCount = Math.max(resolvedPreviewUrls.length, Number(extractedData.pages_count) || 1);
+  const currentPreviewUrl = resolvedPreviewUrls[activePhotoIdx] || resolvedPreviewUrls[0] || previewUrl;
+  const scanType = extractedData.scan_type || (photoCount > 1 ? "long_receipt" : "single");
 
   // Recalculate total from items in itemized mode
   const syncTotalFromItems = () => {
@@ -588,6 +674,14 @@ export default function ReceiptReviewModal({
     setErrorMsg("");
 
     try {
+      let attachmentToUpload = null;
+      if (saveReceiptImage && resolvedImageFiles.length > 0) {
+        attachmentToUpload =
+          resolvedImageFiles.length > 1
+            ? await stitchImagesVertically(resolvedImageFiles)
+            : resolvedImageFiles[0];
+      }
+
       const payload = {
         account_id: Number(accountId),
         category_id: Number(categoryId),
@@ -603,12 +697,11 @@ export default function ReceiptReviewModal({
         discount: Number(discount),
         items: mode === "itemized" ? items : [],
         split_by_category: splitByCategory,
+        pages_count: photoCount,
+        scan_type: scanType,
       };
 
-      const res = await confirmReceiptTransaction(
-        payload,
-        saveReceiptImage ? imageFile : null
-      );
+      const res = await confirmReceiptTransaction(payload, attachmentToUpload);
 
       if (res?.success) {
         if (onSuccess) onSuccess(res.data);
@@ -634,14 +727,29 @@ export default function ReceiptReviewModal({
         {/* Header */}
         <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00685F] animate-pulse shrink-0" />
               <h3 className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight truncate">
                 {t("receipts.review_title", isEn ? "Confirm & Review Shopping Receipt" : "Konfirmasi & Review Struk Belanja")}
               </h3>
+              {photoCount > 1 && (
+                <span className="px-2 py-0.5 rounded-md bg-[#E6F0EF] text-[#00685F] font-mono tabular-nums text-[10px] font-black uppercase tracking-wider">
+                  {scanType === "multi_receipt"
+                    ? isEn
+                      ? `Combined ${photoCount} Receipts`
+                      : `Gabungan ${photoCount} Struk`
+                    : isEn
+                      ? `Long Receipt • ${photoCount} Parts`
+                      : `Struk Panjang • ${photoCount} Bagian`}
+                </span>
+              )}
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate sm:whitespace-normal">
-              {t("receipts.review_subtitle", isEn ? "Verify scanned data before saving to transaction history" : "Periksa data hasil pembacaan sebelum disimpan ke riwayat transaksi")}
+              {photoCount > 1
+                ? isEn
+                  ? `AI extracted & deduplicated data across ${photoCount} photos into 1 transaction`
+                  : `AI telah mengekstrak & menyambung ${photoCount} foto struk menjadi 1 pencatatan transaksi`
+                : t("receipts.review_subtitle", isEn ? "Verify scanned data before saving to transaction history" : "Periksa data hasil pembacaan sebelum disimpan ke riwayat transaksi")}
             </p>
           </div>
 
@@ -677,26 +785,55 @@ export default function ReceiptReviewModal({
                 : "border-transparent text-slate-500"
             }`}
           >
-            {t("receipts.tab_preview", isEn ? "Receipt Photo" : "Foto Struk")} ({Math.round(zoomLevel * 100)}%)
+            {t("receipts.tab_preview", isEn ? "Receipt Photo" : "Foto Struk")}{" "}
+            {resolvedPreviewUrls.length > 1 ? `(${activePhotoIdx + 1}/${resolvedPreviewUrls.length})` : `(${Math.round(zoomLevel * 100)}%)`}
           </button>
         </div>
 
         {/* Body (Split Screen Desktop) */}
         <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-0">
-          {/* LEFT: Receipt Image Viewer with Zoom/Pan */}
+          {/* LEFT: Receipt Image Viewer with Zoom/Pan & Multi-Photo Filmstrip */}
           <div
             className={`md:col-span-5 bg-slate-900 flex flex-col border-b md:border-b-0 md:border-r border-slate-800 ${
               mobileTab === "preview" ? "flex" : "hidden md:flex"
             }`}
           >
             {/* Toolbar */}
-            <div className="p-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-slate-300 text-xs shrink-0">
-              <span className="font-bold flex items-center gap-1.5 text-slate-400">
-                <ImageIcon className="w-4 h-4 text-[#00685F]" />
-                {t("receipts.proof_label", isEn ? "Receipt Proof" : "Bukti Struk")}
-              </span>
+            <div className="p-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-slate-300 text-xs shrink-0 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-bold flex items-center gap-1.5 text-slate-400 truncate">
+                  <ImageIcon className="w-4 h-4 text-[#00685F] shrink-0" />
+                  <span className="truncate">{t("receipts.proof_label", isEn ? "Receipt Proof" : "Bukti Struk")}</span>
+                </span>
 
-              <div className="flex items-center gap-1">
+                {resolvedPreviewUrls.length > 1 && (
+                  <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-0.5 shrink-0">
+                    <button
+                      type="button"
+                      disabled={activePhotoIdx === 0}
+                      onClick={() => setActivePhotoIdx((i) => Math.max(0, i - 1))}
+                      className="p-0.5 text-slate-300 hover:text-white disabled:opacity-30 cursor-pointer"
+                      aria-label={isEn ? "Previous photo" : "Foto sebelumnya"}
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="font-mono tabular-nums text-[10px] font-black text-teal-400 px-1">
+                      0{activePhotoIdx + 1}/0{resolvedPreviewUrls.length}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={activePhotoIdx === resolvedPreviewUrls.length - 1}
+                      onClick={() => setActivePhotoIdx((i) => Math.min(resolvedPreviewUrls.length - 1, i + 1))}
+                      className="p-0.5 text-slate-300 hover:text-white disabled:opacity-30 cursor-pointer"
+                      aria-label={isEn ? "Next photo" : "Foto berikutnya"}
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={() => setZoomLevel((z) => Math.max(0.6, z - 0.2))}
@@ -740,7 +877,7 @@ export default function ReceiptReviewModal({
 
             {/* Image Canvas Container */}
             <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-950/50">
-              {previewUrl ? (
+              {currentPreviewUrl ? (
                 <div
                   className="transition-transform duration-200 ease-out origin-center"
                   style={{
@@ -749,9 +886,9 @@ export default function ReceiptReviewModal({
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={previewUrl}
-                    alt={isEn ? "Receipt Photo" : "Foto Struk"}
-                    className="max-h-[60vh] md:max-h-[70vh] rounded-lg shadow-2xl object-contain border border-slate-700/50"
+                    src={currentPreviewUrl}
+                    alt={isEn ? `Receipt Photo ${activePhotoIdx + 1}` : `Foto Struk ${activePhotoIdx + 1}`}
+                    className="max-h-[54vh] md:max-h-[64vh] rounded-lg shadow-2xl object-contain border border-slate-700/50"
                   />
                 </div>
               ) : (
@@ -760,6 +897,33 @@ export default function ReceiptReviewModal({
                 </div>
               )}
             </div>
+
+            {/* Filmstrip Thumbnails when multiple photos were scanned */}
+            {resolvedPreviewUrls.length > 1 && (
+              <div className="p-2.5 bg-slate-950/90 border-t border-slate-800 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+                {resolvedPreviewUrls.map((url, idx) => {
+                  const isCurrent = idx === activePhotoIdx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActivePhotoIdx(idx)}
+                      className={`relative w-12 h-14 rounded-lg overflow-hidden border-2 transition shrink-0 cursor-pointer ${
+                        isCurrent
+                          ? "border-[#00685F] ring-2 ring-[#00685F]/40 scale-105"
+                          : "border-slate-700 opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                      <span className="absolute bottom-0.5 left-0.5 px-1 rounded bg-slate-950/85 text-white font-mono tabular-nums text-[9px] font-black">
+                        0{idx + 1}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* RIGHT: Verification & Confirmation Form */}
@@ -1115,7 +1279,11 @@ export default function ReceiptReviewModal({
                       </p>
                       <p className="text-[11px] text-slate-500">
                         {saveReceiptImage
-                          ? t("receipts.save_photo_yes", isEn ? "Receipt photo will be saved as transaction proof." : "Foto struk akan disimpan sebagai bukti transaksi.")
+                          ? photoCount > 1
+                            ? isEn
+                              ? `${photoCount} receipt photos will be automatically stitched vertically into 1 proof attachment.`
+                              : `${photoCount} foto struk akan digabungkan otomatis secara vertikal menjadi 1 bukti lampiran.`
+                            : t("receipts.save_photo_yes", isEn ? "Receipt photo will be saved as transaction proof." : "Foto struk akan disimpan sebagai bukti transaksi.")
                           : t("receipts.save_photo_no", isEn ? "Receipt photo is not saved. 0 bytes storage used & privacy protected." : "Foto struk tidak disimpan. 0 byte penyimpanan terpakai & privasi terjaga.")}
                       </p>
                     </div>

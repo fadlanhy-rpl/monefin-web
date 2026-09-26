@@ -81,6 +81,8 @@ function TransactionsPageContent() {
   const [extractedReceiptData, setExtractedReceiptData] = useState(null);
   const [receiptImageFile, setReceiptImageFile] = useState(null);
   const [receiptPreviewUrl, setReceiptPreviewUrl] = useState(null);
+  const [receiptImageFiles, setReceiptImageFiles] = useState([]);
+  const [receiptPreviewUrls, setReceiptPreviewUrls] = useState([]);
 
   const hasFilterActive = Boolean(
     (searchQuery && searchQuery.trim() !== "") ||
@@ -250,10 +252,12 @@ function TransactionsPageContent() {
         <ReceiptScannerModal
           isOpen={isReceiptScannerOpen}
           onClose={() => setIsReceiptScannerOpen(false)}
-          onScanSuccess={(data, file, previewUrl) => {
+          onScanSuccess={(data, file, previewUrl, allFiles = [], allUrls = []) => {
             setExtractedReceiptData(data);
             setReceiptImageFile(file);
             setReceiptPreviewUrl(previewUrl);
+            setReceiptImageFiles(Array.isArray(allFiles) && allFiles.length > 0 ? allFiles : file ? [file] : []);
+            setReceiptPreviewUrls(Array.isArray(allUrls) && allUrls.length > 0 ? allUrls : previewUrl ? [previewUrl] : []);
             setIsReceiptReviewOpen(true);
           }}
         />
@@ -266,10 +270,19 @@ function TransactionsPageContent() {
             setExtractedReceiptData(null);
             setReceiptImageFile(null);
             setReceiptPreviewUrl(null);
+            setReceiptImageFiles([]);
+            setReceiptPreviewUrls((prev) => {
+              prev.forEach((u) => {
+                if (u) URL.revokeObjectURL(u);
+              });
+              return [];
+            });
           }}
           extractedData={extractedReceiptData}
           imageFile={receiptImageFile}
           previewUrl={receiptPreviewUrl}
+          imageFiles={receiptImageFiles}
+          previewUrls={receiptPreviewUrls}
           accounts={accounts}
           categories={categories}
           onSuccess={() => {

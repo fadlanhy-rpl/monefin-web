@@ -1,26 +1,47 @@
 import { fetchAPI } from "../lib/api";
 
 /**
- * Scan receipt image using Vision LLM.
- * Accepts either a File/Blob (sent via FormData) or a base64 string.
+ * Scan 1 to 8 receipt images using Vision LLM.
+ * Accepts a single File/Blob, an array of File/Blob (1..8), or base64 string(s).
  *
- * @param {File|Blob|string} imageFileOrBlob
+ * @param {File|Blob|string|Array<File|Blob|string>} imageInput
  * @param {string} [mimeType='image/jpeg']
  * @returns {Promise<{success: boolean, data: object}>}
  */
-export async function scanReceipt(imageFileOrBlob, mimeType = "image/jpeg") {
-  if (typeof imageFileOrBlob === "string") {
+export async function scanReceipt(imageInput, mimeType = "image/jpeg") {
+  if (typeof imageInput === "string") {
     return fetchAPI("/receipts/scan", {
       method: "POST",
       body: {
-        image_base64: imageFileOrBlob,
+        image_base64: imageInput,
+        mime_type: mimeType,
+      },
+    });
+  }
+
+  const list = (Array.isArray(imageInput) ? imageInput : [imageInput])
+    .filter(Boolean)
+    .slice(0, 8);
+
+  if (list.length > 0 && typeof list[0] === "string") {
+    return fetchAPI("/receipts/scan", {
+      method: "POST",
+      body: {
+        images_base64: list,
+        image_base64: list[0],
         mime_type: mimeType,
       },
     });
   }
 
   const formData = new FormData();
-  formData.append("image", imageFileOrBlob, "receipt.jpg");
+  list.forEach((file, idx) => {
+    formData.append("images[]", file, file.name || `receipt_part_${idx + 1}.jpg`);
+  });
+  // Backward-compatible single field for 1-photo scans
+  if (list.length === 1) {
+    formData.append("image", list[0], list[0].name || "receipt.jpg");
+  }
 
   return fetchAPI("/receipts/scan", {
     method: "POST",
