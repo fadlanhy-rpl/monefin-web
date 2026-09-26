@@ -39,23 +39,43 @@ const getServerSnapshot = () => false;
 /**
  * Posisi menu floating (fixed) dari trigger — dirender via portal agar tidak
  * terpotong container overflow-y-auto di dalam modal.
+ * Selalu menempel tepat di bawah tombol (top: r.bottom + 6), atau tepat di atas
+ * tombol menggunakan bottom anchor (bottom: vh - r.top + 6) jika ruang bawah sempit.
  */
-function useFloatingStyle(triggerRef, open) {
+function useFloatingStyle(triggerRef, open, maxMenuH = 240) {
   const [style, setStyle] = useState(null);
   useEffect(() => {
     if (!open || !triggerRef.current || typeof window === "undefined") return;
     const update = () => {
+      if (!triggerRef.current) return;
       const r = triggerRef.current.getBoundingClientRect();
-      const menuH = 300;
-      const below = window.innerHeight - r.bottom;
-      const top = below >= menuH + 8 ? r.bottom + 6 : Math.max(8, r.top - menuH - 6);
-      setStyle({
-        position: "fixed",
-        top,
-        left: Math.max(8, Math.min(r.left, window.innerWidth - r.width - 8)),
-        width: Math.min(r.width, window.innerWidth - 16),
-        zIndex: 10000,
-      });
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const spaceBelow = vh - r.bottom - 12;
+      const spaceAbove = r.top - 12;
+      const openUp = spaceBelow < 180 && spaceAbove > spaceBelow;
+      const width = Math.min(r.width, vw - 16);
+      const left = Math.max(8, Math.min(r.left, vw - width - 8));
+
+      if (openUp) {
+        setStyle({
+          position: "fixed",
+          bottom: vh - r.top + 6,
+          left,
+          width,
+          maxHeight: Math.min(maxMenuH, Math.max(150, spaceAbove)),
+          zIndex: 10050,
+        });
+      } else {
+        setStyle({
+          position: "fixed",
+          top: r.bottom + 6,
+          left,
+          width,
+          maxHeight: Math.min(maxMenuH, Math.max(150, spaceBelow)),
+          zIndex: 10050,
+        });
+      }
     };
     update();
     window.addEventListener("resize", update);
@@ -64,7 +84,7 @@ function useFloatingStyle(triggerRef, open) {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [open, triggerRef]);
+  }, [open, triggerRef, maxMenuH]);
   return style;
 }
 
@@ -86,7 +106,7 @@ function ModernSelect({
   const [query, setQuery] = useState("");
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
-  const style = useFloatingStyle(triggerRef, isOpen);
+  const style = useFloatingStyle(triggerRef, isOpen, 240);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -148,23 +168,23 @@ function ModernSelect({
         <div
           ref={menuRef}
           style={style}
-          className="bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 max-h-[300px] overflow-y-auto"
+          className="bg-white border border-slate-200/90 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 flex flex-col overflow-hidden"
         >
           {searchable && (
-            <div className="p-1.5 border-b border-slate-100 sticky top-0 bg-white/95">
+            <div className="p-2 border-b border-slate-100 bg-white shrink-0">
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={searchPlaceholder || (language === "en" ? "Search..." : "Cari...")}
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-8 pr-3 py-1.5 text-xs font-bold outline-none focus:border-[#00685F]"
+                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-8 pr-3 py-1.5 text-xs font-bold text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#00685F] focus:bg-white transition"
                 />
               </div>
             </div>
           )}
-          <div className="space-y-0.5">
+          <div className="p-1.5 space-y-0.5 overflow-y-auto flex-1">
             {filtered.length === 0 ? (
               <div className="py-4 text-center text-xs font-bold text-slate-400">
                 {language === "en" ? "No matching options" : "Tidak ada opsi yang cocok"}
@@ -215,7 +235,7 @@ function ModernDateField({ value, onChange, language = "id" }) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
-  const style = useFloatingStyle(triggerRef, isOpen);
+  const style = useFloatingStyle(triggerRef, isOpen, 360);
 
   const parse = (s) => {
     const p = String(s || "").split("-");
@@ -291,15 +311,21 @@ function ModernDateField({ value, onChange, language = "id" }) {
       {isOpen && style && createPortal(
         <div
           ref={menuRef}
-          style={{ ...style, width: Math.max(280, Math.min(style.width || 280, 320)) }}
-          className="bg-white border border-slate-100 rounded-3xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150"
+          style={{
+            ...style,
+            width: Math.max(280, Math.min(style.width || 280, 310)),
+            left: typeof window !== "undefined"
+              ? Math.max(8, Math.min(style.left, window.innerWidth - Math.max(280, Math.min(style.width || 280, 310)) - 8))
+              : style.left,
+          }}
+          className="bg-white border border-slate-200/90 rounded-3xl shadow-2xl p-3.5 animate-in fade-in zoom-in-95 duration-150 overflow-y-auto"
         >
-          <div className="flex items-center justify-between mb-3 px-1">
-            <button type="button" onClick={() => setView(new Date(year, month - 1, 1))} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+          <div className="flex items-center justify-between mb-2.5 px-1">
+            <button type="button" onClick={() => setView(new Date(year, month - 1, 1))} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
               <ChevronLeft className="w-4 h-4" />
             </button>
             <h4 className="text-sm font-extrabold text-slate-900 tracking-tight">{MONTHS[month]} {year}</h4>
-            <button type="button" onClick={() => setView(new Date(year, month + 1, 1))} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+            <button type="button" onClick={() => setView(new Date(year, month + 1, 1))} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -318,7 +344,7 @@ function ModernDateField({ value, onChange, language = "id" }) {
                   key={i}
                   type="button"
                   onClick={() => pick(day)}
-                  className={`h-9 rounded-xl flex items-center justify-center text-xs font-extrabold transition-all cursor-pointer ${
+                  className={`h-8 rounded-xl flex items-center justify-center text-xs font-extrabold transition-all cursor-pointer ${
                     isSel
                       ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105"
                       : isToday
@@ -331,7 +357,7 @@ function ModernDateField({ value, onChange, language = "id" }) {
               );
             })}
           </div>
-          <div className="mt-3 pt-2.5 border-t border-slate-100 flex justify-between items-center px-1">
+          <div className="mt-2.5 pt-2 border-t border-slate-100 flex justify-between items-center px-1">
             <button
               type="button"
               onClick={() => { const t = new Date(); onChange(fmt(t)); setView(t); setIsOpen(false); }}
