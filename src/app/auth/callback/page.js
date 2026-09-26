@@ -2,23 +2,39 @@
 
 import { useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { setAuthToken } from "../../../lib/api";
 import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
 import toast from "react-hot-toast";
 
+function decodeBase64UrlJson(encoded) {
+  if (!encoded || typeof window === "undefined") return null;
+  try {
+    const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const binary = window.atob(padded);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    const jsonStr = new TextDecoder("utf-8").decode(bytes);
+    return JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+}
+
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { checkAuth } = useAuth();
+  const { checkAuth, hydrateAuthSession } = useAuth();
   const { language } = useLanguage();
   const processedRef = useRef(false);
 
   useEffect(() => {
     if (processedRef.current) return;
 
-    const token = searchParams.get("token");
-    const error = searchParams.get("error");
+    const urlParams =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const token = searchParams.get("token") || urlParams?.get("token");
+    const userParam = searchParams.get("user") || urlParams?.get("user");
+    const error = searchParams.get("error") || urlParams?.get("error");
 
     if (error) {
       processedRef.current = true;
@@ -29,38 +45,52 @@ function AuthCallbackContent() {
 
     if (token) {
       processedRef.current = true;
-      // Simpan token (30 hari — Google login selalu ingat)
-      setAuthToken(token, 30);
+      const decodedUser = decodeBase64UrlJson(userParam);
 
-      // Set login event SEBELUM redirect agar DashboardLayout
-      // mendeteksi sesi login baru dan menampilkan guide sesuai preferensi
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem("monefin_tutorial_session_shown");
-        sessionStorage.setItem("monefin_login_event", "true");
+      // Hidrasi token + state autentikasi (dan user jika dikirim di query param) secara sinkron
+      hydrateAuthSession(token, decodedUser, 30);
+
+      const finishRedirect = () => {
+        const activeLang =
+          typeof window !== "undefined" ? localStorage.getItem("language") || language : language;
+        toast.success(
+          activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",
+          { id: "google-auth-toast" }
+        );
+        router.replace("/dashboard");
+
+        // Pengaman tambahan: jika router transisi Next.js tertahan di /auth/callback,
+        // paksa navigasi penuh agar tidak pernah stuck.
+        if (typeof window !== "undefined") {
+          setTimeout(() => {
+            if (window.location.pathname.startsWith("/auth/callback")) {
+              window.location.replace("/dashboard");
+            }
+          }, 700);
+        }
+      };
+
+      // Jika data user sudah terhidrasi dari parameter callback backend,
+      // jalankan checkAuth(true) di background untuk mem-prime cache & langsung masuk dashboard!
+      if (decodedUser) {
+        checkAuth(true).catch(() => {});
+        finishRedirect();
+      } else {
+        // Fallback jika backend belum mengirim &user=: tunggu checkAuth(true) (maks 8 detik)
+        const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 8000));
+        Promise.race([checkAuth(true), timeoutPromise])
+          .then(() => {
+            finishRedirect();
+          })
+          .catch(() => {
+            finishRedirect();
+          });
       }
-
-      // WAJIB tunggu checkAuth: menghidrasi isAuthenticated+user SEBELUM pindah
-      // ke /dashboard. Tanpa ini layout render null (layar putih) dan bisa
-      // loop redirect login↔dashboard (cookie ada tapi context belum login).
-      // checkAuth kini memakai /bootstrap (1 boot, prime akun+kategori) +
-      // Socialite backend sudah dibatasi timeout — jauh lebih cepat dari dulu.
-      checkAuth(true)
-        .then(() => {
-          const activeLang = typeof window !== "undefined" ? (localStorage.getItem("language") || language) : language;
-          toast.success(
-            activeLang === "en" ? "Google login successful!" : "Login dengan Google berhasil!",
-            { id: "google-auth-toast" }
-          );
-          router.replace("/dashboard");
-        })
-        .catch(() => {
-          router.replace("/dashboard");
-        });
     } else {
       processedRef.current = true;
       router.replace("/login?error=callback_failed");
     }
-  }, [searchParams, router, checkAuth, language]);
+  }, [searchParams, router, checkAuth, hydrateAuthSession, language]);
 
 
   return (

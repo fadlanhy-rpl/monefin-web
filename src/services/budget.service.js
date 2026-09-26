@@ -1,10 +1,12 @@
 import { fetchAPI } from "../lib/api";
 
-export const getBudgets = async (month, year) => {
+export const getBudgets = async (month, year, force = false) => {
   let url = "/budgets?";
   if (month) url += "month=" + month + "&";
   if (year) url += "year=" + year;
-  const data = await fetchAPI(url);
+  const data = await fetchAPI(url, {
+    forceRefresh: force,
+  });
   return data;
 };
 

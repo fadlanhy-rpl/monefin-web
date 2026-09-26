@@ -22,7 +22,7 @@ import {
   verify2fa as apiVerify2fa,
   toggle2fa as apiToggle2fa,
 } from "../services/auth.service";
-import { getAuthToken, setAuthToken } from "../lib/api";
+import { getAuthToken, setAuthToken, clearApiCache } from "../lib/api";
 import { getBootstrap } from "../services/bootstrap.service";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -45,6 +45,7 @@ const AuthContext = createContext({
   toggle2fa: async () => {},
   setUser: () => {},
   checkAuth: async () => {},
+  hydrateAuthSession: () => {},
 });
 
 export function AuthProvider({ children }) {
@@ -52,6 +53,37 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  // -------------------------------------------------------
+  // hydrateAuthSession — Hidrasi instan untuk OAuth / Login
+  // -------------------------------------------------------
+  const hydrateAuthSession = useCallback((token, initialUser = null, rememberDays = 30) => {
+    if (!token) return;
+    clearApiCache();
+    setAuthToken(token, rememberDays);
+    setIsAuthenticated(true);
+
+    if (initialUser && typeof initialUser === "object") {
+      setUser(initialUser);
+      setLoading(false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user_data", JSON.stringify(initialUser));
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("monefin_tutorial_session_shown");
+      sessionStorage.setItem("monefin_login_event", "true");
+      if (initialUser?.id) {
+        sessionStorage.removeItem(`monefin_tutorial_shown_v2_${initialUser.id}`);
+        sessionStorage.removeItem(`monefin_tutorial_shown_${initialUser.id}`);
+      }
+      if (initialUser?.email) {
+        sessionStorage.removeItem(`monefin_tutorial_shown_v2_${initialUser.email}`);
+        sessionStorage.removeItem(`monefin_tutorial_shown_${initialUser.email}`);
+      }
+    }
+  }, []);
 
   // -------------------------------------------------------
   // checkAuth — Verifikasi token ke backend
@@ -65,21 +97,48 @@ export function AuthProvider({ children }) {
       return null;
     }
 
+    // Jika token ada dan user_data sudah ada di localStorage, pastikan state terhidrasi
+    if (typeof window !== "undefined") {
+      const cachedUserStr = localStorage.getItem("user_data");
+      if (cachedUserStr) {
+        try {
+          const parsedUser = JSON.parse(cachedUserStr);
+          if (parsedUser) {
+            setUser((prev) => prev || parsedUser);
+            setIsAuthenticated(true);
+          }
+        } catch {
+          localStorage.removeItem("user_data");
+        }
+      } else {
+        setLoading(true);
+      }
+    }
+
     try {
       // Satu boot Laravel untuk me+accounts+categories (di-prime ke cache).
-      // Fallback ke /auth/me bila server belum di-patch (404) agar rollout aman.
+      // Fallback ke /auth/me bila /bootstrap gagal (selain 401) agar login tidak pernah tertahan.
       let userData = null;
       try {
         const bundle = await getBootstrap(force);
         userData = bundle?.user || null;
       } catch (bootErr) {
-        if (bootErr?.status !== 404) throw bootErr;
+        if (bootErr?.status === 401) throw bootErr;
         userData = await getCurrentUser(force);
       }
-      setUser(userData);
-      setIsAuthenticated(true);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("user_data", JSON.stringify(userData));
+
+      if (!userData) {
+        userData = await getCurrentUser(force);
+      }
+
+      if (userData) {
+        setUser(userData);
+        setIsAuthenticated(true);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user_data", JSON.stringify(userData));
+        }
+      } else {
+        setIsAuthenticated(true);
       }
       return userData;
     } catch (error) {
@@ -87,12 +146,16 @@ export function AuthProvider({ children }) {
         setUser(null);
         setIsAuthenticated(false);
         setAuthToken(null);
+        clearApiCache();
         if (typeof window !== "undefined") {
           localStorage.removeItem("user_data");
         }
       } else {
-        // Network error atau 503 — pertahankan session yang ada
+        // Network error atau 503 — pertahankan / aktifkan sesi bila token ada agar tidak layar putih
         console.warn("Auth check failed (non-401). Keeping session.", error.message);
+        if (getAuthToken()) {
+          setIsAuthenticated(true);
+        }
       }
       return null;
     } finally {
@@ -120,6 +183,12 @@ export function AuthProvider({ children }) {
       } else if (!savedToken && savedUser) {
         localStorage.removeItem("user_data");
       }
+    }
+
+    // Jika sedang di halaman /auth/callback, biarkan AuthCallbackPage yang memimpin
+    // proses setAuthToken + checkAuth(true) agar tidak terjadi balapan (race condition)
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/auth/callback")) {
+      return;
     }
 
     // Verifikasi ke backend di background
@@ -175,7 +244,8 @@ export function AuthProvider({ children }) {
         return { success: false, require2fa: true, email: data.email };
       }
 
-      // Simpan token: 30 hari jika remember, session cookie jika tidak
+      // Bersihkan cache lama & simpan token: 30 hari jika remember, session cookie jika tidak
+      clearApiCache();
       setAuthToken(data.token, remember ? 30 : null);
       setUser(data.user);
       setIsAuthenticated(true);
@@ -194,6 +264,9 @@ export function AuthProvider({ children }) {
           sessionStorage.removeItem(`monefin_tutorial_shown_${data.user.email}`);
         }
       }
+
+      // Prime data awal di background tanpa memblokir navigasi login
+      checkAuth(true).catch(() => {});
 
       return { success: true, user: data.user };
     } catch (error) {
@@ -224,6 +297,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error("Logout API failed, proceeding to clear local session:", err);
     } finally {
+      clearApiCache();
       setAuthToken(null);
       setUser(null);
       setIsAuthenticated(false);
@@ -310,6 +384,7 @@ export function AuthProvider({ children }) {
       const data = await apiVerifyEmail(email, otp);
       // Auto-login setelah verifikasi
       if (data?.token) {
+        clearApiCache();
         setAuthToken(data.token);
         setUser(data.user);
         setIsAuthenticated(true);
@@ -382,6 +457,7 @@ export function AuthProvider({ children }) {
     } 
     
     // Success, clear local session and redirect
+    clearApiCache();
     setAuthToken(null);
     setUser(null);
     setIsAuthenticated(false);
@@ -400,6 +476,7 @@ export function AuthProvider({ children }) {
     try {
       const data = await apiVerify2fa(email, otp);
       if (data?.token) {
+        clearApiCache();
         setAuthToken(data.token);
         setUser(data.user);
         setIsAuthenticated(true);
@@ -463,6 +540,7 @@ export function AuthProvider({ children }) {
         toggle2fa,
         setUser,
         checkAuth,
+        hydrateAuthSession,
       }}
     >
       {children}

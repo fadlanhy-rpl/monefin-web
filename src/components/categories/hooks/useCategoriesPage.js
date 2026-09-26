@@ -106,9 +106,12 @@ export function useCategoriesPage() {
     async function load() {
       setIsLoading(true);
       try {
-        const res = await getCategories();
+        let res = await getCategories();
+        if (!Array.isArray(res?.data) || res.data.length === 0) {
+          res = await getCategories("", true);
+        }
         if (!ignore) {
-          setCategories(res.data || []);
+          setCategories(res?.data || []);
         }
       } catch (error) {
         if (!ignore && error?.status !== 401) {
@@ -179,7 +182,7 @@ export function useCategoriesPage() {
     setFormName(cat.name || "");
     setFormDescription(cat.description || "");
     setFormRealization(cat.realization || 0);
-    setFormTransactions(cat.transactions || 0);
+    setFormTransactions(cat.transactions_count ?? cat.transactions ?? 0);
     setFormType(cat.type || "expense");
     setFormIcon(cat.icon || "utensils");
     setFormColor(cat.color || "primary");
@@ -209,11 +212,19 @@ export function useCategoriesPage() {
       if (currentPage > newTotalPages) {
         setCurrentPage(newTotalPages);
       }
+
+      getCategories("", true)
+        .then((fresh) => {
+          if (Array.isArray(fresh?.data) && fresh.data.length > 0) {
+            setCategories(fresh.data);
+          }
+        })
+        .catch(() => {});
       
       showToast(language === 'en' ? `Category "${deletingCategory.name}" deleted successfully.` : `Kategori "${deletingCategory.name}" berhasil dihapus.`);
     } catch (error) {
       console.error("Failed to delete category:", error);
-      showToast(error?.response?.data?.message || (language === 'en' ? "Failed to delete category." : "Gagal menghapus kategori."));
+      showToast(error?.data?.message || error?.response?.data?.message || error?.message || (language === 'en' ? "Failed to delete category." : "Gagal menghapus kategori."));
     } finally {
       setIsDeleting(false);
       setIsConfirmOpen(false);
@@ -237,7 +248,7 @@ export function useCategoriesPage() {
       if (modalMode === "add") {
         const res = await createCategory(categoryData);
         const newCategory = res.data;
-        const updated = [...categories, newCategory];
+        const updated = newCategory ? [...categories, newCategory] : categories;
         setCategories(updated);
         
         // Switch tab and jump to the page containing the new item
@@ -254,9 +265,9 @@ export function useCategoriesPage() {
       } else if (modalMode === "edit" && editingCategory) {
         const res = await updateCategory(editingCategory.id, categoryData);
         const newCategory = res.data;
-        const updated = categories.map((c) =>
-          c.id === editingCategory.id ? newCategory : c
-        );
+        const updated = newCategory
+          ? categories.map((c) => (c.id === editingCategory.id ? newCategory : c))
+          : categories;
         setCategories(updated);
         
         setIsTransitioning(true);
@@ -274,9 +285,17 @@ export function useCategoriesPage() {
         showToast(`Kategori "${formName}" berhasil diperbarui.`);
       }
       setIsModalOpen(false);
+
+      getCategories("", true)
+        .then((fresh) => {
+          if (Array.isArray(fresh?.data) && fresh.data.length > 0) {
+            setCategories(fresh.data);
+          }
+        })
+        .catch(() => {});
     } catch (error) {
       console.error("Failed to save category:", error);
-      showToast(error?.response?.data?.message || "Gagal menyimpan kategori.");
+      showToast(error?.data?.message || error?.response?.data?.message || error?.message || "Gagal menyimpan kategori.");
     }
   };
 
@@ -286,7 +305,7 @@ export function useCategoriesPage() {
   };
 
   // Count active categories (categories that have at least 1 transaction)
-  const activeCategoriesCount = categories.filter((c) => c.transactions > 0).length;
+  const activeCategoriesCount = categories.filter((c) => (c.transactions_count ?? c.transactions ?? 0) > 0).length;
 
   // Find category with the highest realization for the active tab (expense/income)
   const highestCategory = filteredCategories.length > 0

@@ -50,30 +50,34 @@ export default function BudgetsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch data
-  const fetchData = async () => {
+  const fetchData = async (force = false) => {
     try {
       setIsLoading(true);
       const m = currentDate.getMonth() + 1;
       const y = currentDate.getFullYear();
       
-      const [budgetsRes, categoriesRes] = await Promise.all([
-        getBudgets(m, y),
-        getCategories('expense')
+      let [budgetsRes, categoriesRes] = await Promise.all([
+        getBudgets(m, y, force),
+        getCategories('expense', force)
       ]);
+
+      if (!force && (!Array.isArray(categoriesRes?.data) || categoriesRes.data.length === 0)) {
+        categoriesRes = await getCategories('expense', true);
+      }
       
       // Map API data to UI structure
-      const formattedBudgets = budgetsRes.data.map(b => ({
+      const formattedBudgets = (budgetsRes?.data || []).map(b => ({
         id: b.id,
         category_id: b.category_id,
-        category: b.category.name,
-        description: b.category.description || (t("sidebar.budgets") || "Anggaran"),
+        category: b.category?.name || (language === 'en' ? "Deleted Category" : "Kategori Terhapus"),
+        description: b.category?.description || (t("sidebar.budgets") || "Anggaran"),
         spent: parseFloat(b.spent_amount) || 0,
         limit: parseFloat(b.limit_amount) || 0,
-        iconType: b.category.icon
+        iconType: b.category?.icon || "hash"
       }));
       
       setBudgets(formattedBudgets);
-      setCategories(categoriesRes.data);
+      setCategories(categoriesRes?.data || []);
     } catch (error) {
       if (error?.status !== 401) {
         console.error("Error fetching data:", error.message || error);
@@ -187,7 +191,7 @@ export default function BudgetsPage() {
       notifySuccess(language === 'en' ? "Budget deleted successfully" : "Anggaran berhasil dihapus");
       setIsDeleteModalOpen(false);
       setDeletingBudgetId(null);
-      fetchData();
+      fetchData(true);
     } catch (error) {
       notifyError(language === 'en' ? "Failed to delete budget" : "Gagal menghapus anggaran");
     } finally {
@@ -220,7 +224,7 @@ export default function BudgetsPage() {
         notifySuccess(language === 'en' ? "Budget updated successfully" : "Anggaran berhasil diperbarui");
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchData(true);
     } catch (error) {
       notifyError(error?.data?.message || error?.message || (language === 'en' ? "An error occurred while saving" : "Terjadi kesalahan saat menyimpan"));
     }

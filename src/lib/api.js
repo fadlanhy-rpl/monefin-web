@@ -63,21 +63,36 @@ async function checkIsBrave() {
 // =============================================
 const inFlightRequests = new Map();
 const memoryCache = new Map();
+let mutationEpoch = 0;
 
 // =============================================
 // Persistent SWR Cache (localStorage)
 // ---------------------------------------------
 // In-memory cache menguap saat refresh — lapisan ini membuatnya selamat.
 // Kebijakan: fresh (umur < TTL) → tanpa request sama sekali;
-// stale → tampil instan + revalidasi diam-diam di background.
-// Data finansial tetap aman: TTL pendek + invalidasi eksplisit saat mutasi.
+// kadaluwarsa (umur >= TTL) → ambil data segar dari jaringan (dengan fallback
+// ke entri lama bila jaringan putus), sehingga komponen React selalu menerima
+// data terbaru saat revalidasi.
 // =============================================
-const PERSIST_KEY = "monefin_api_pcache_v1";
+const LEGACY_PERSIST_KEY = "monefin_api_pcache_v1";
+const PERSIST_KEY = "monefin_api_pcache_v2";
 const PERSIST_MAX_ENTRIES = 80;
+let legacyPurged = false;
+
+function purgeLegacyPersistStore() {
+  if (legacyPurged || typeof window === "undefined" || !window.localStorage) return;
+  legacyPurged = true;
+  try {
+    window.localStorage.removeItem(LEGACY_PERSIST_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 function readPersistStore() {
   try {
     if (typeof window === "undefined" || !window.localStorage) return {};
+    purgeLegacyPersistStore();
     const raw = window.localStorage.getItem(PERSIST_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
@@ -90,6 +105,7 @@ function readPersistStore() {
 function writePersistStore(store) {
   try {
     if (typeof window === "undefined" || !window.localStorage) return;
+    purgeLegacyPersistStore();
     const keys = Object.keys(store);
     // Evict tertua jika melebihi batas
     if (keys.length > PERSIST_MAX_ENTRIES) {
@@ -140,7 +156,7 @@ function deletePersistByPattern(pattern) {
 
 /**
  * Prime cache (memory + persistent) untuk sebuah endpoint GET — dipakai
- * setelah /bootstrap agar panggilan individuell berikutnya tanpa jaringan.
+ * setelah /bootstrap agar panggilan individual berikutnya tanpa jaringan.
  * @param {string} endpoint - mis. "/accounts"
  * @param {*} payloadData - isi `data` seperti hasil normalisasi fetchAPI
  * @param {number} ttl - TTL ms (default 60000)
@@ -168,12 +184,13 @@ export function primeApiCache(endpoint, payloadData, ttl = 60000) {
 }
 
 /**
- * Invalidate in-memory cached API responses.
+ * Invalidate in-memory & persistent cached API responses (plus matching in-flight GETs).
  * @param {string|RegExp|null} pattern - Substring or RegExp to match against cache keys. If null, clears all.
  */
 export function invalidateApiCache(pattern = null) {
   if (!pattern) {
     memoryCache.clear();
+    inFlightRequests.clear();
     deletePersistByPattern(/.*/);
     return;
   }
@@ -184,14 +201,23 @@ export function invalidateApiCache(pattern = null) {
       memoryCache.delete(key);
     }
   }
+  for (const key of inFlightRequests.keys()) {
+    if (typeof pattern === "string" && key.includes(pattern)) {
+      inFlightRequests.delete(key);
+    } else if (pattern instanceof RegExp && pattern.test(key)) {
+      inFlightRequests.delete(key);
+    }
+  }
   deletePersistByPattern(pattern);
 }
 
 export function clearApiCache() {
+  mutationEpoch += 1;
   memoryCache.clear();
   inFlightRequests.clear();
   try {
     if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(LEGACY_PERSIST_KEY);
       window.localStorage.removeItem(PERSIST_KEY);
     }
   } catch {
@@ -205,12 +231,14 @@ export function clearApiCache() {
  * salinan me/accounts/categories.
  */
 function autoInvalidateOnMutation(endpoint) {
+  mutationEpoch += 1;
   const ep = endpoint.toLowerCase();
   if (ep.includes("/transactions") || ep.includes("/receipts")) {
     invalidateApiCache("transactions");
     invalidateApiCache("dashboard");
     invalidateApiCache("reports");
     invalidateApiCache("accounts");
+    invalidateApiCache("categories");
     invalidateApiCache("budgets");
     invalidateApiCache("gamification");
     invalidateApiCache("bootstrap");
@@ -259,7 +287,7 @@ export class ApiError extends Error {
 /**
  * fetchAPI — wrapper untuk semua HTTP request ke backend
  * Otomatis: attach Bearer token, handle error, parse JSON,
- * in-flight request deduplication, dan in-memory micro-caching (Load Shield)
+ * in-flight request deduplication, dan in-memory + persistent caching (Load Shield)
  */
 export async function fetchAPI(endpoint, options = {}) {
   const {
@@ -280,33 +308,33 @@ export async function fetchAPI(endpoint, options = {}) {
 
   const cacheKey = `${method}:${endpoint}:${token ? token.slice(-12) : "anon"}:${activeLang}`;
 
+  // Jika ini adalah request mutasi, segera naikkan epoch & invalidasi sebelum request berjalan
+  // agar GET yang sedang in-flight tidak menimpa cache saat selesai.
+  if (!isGet) {
+    autoInvalidateOnMutation(endpoint);
+  }
+
   // 1. In-Memory Micro-Cache Check (Hit 0ms)
   if (isGet && cacheTtl > 0 && !forceRefresh && !noCache) {
     const cached = memoryCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < cached.ttl) {
-      return cached.data;
+      return { ...cached.data, fromCache: true };
     }
   }
 
-  // 1b. Persistent SWR Cache (selamat dari refresh/reopen)
-  //  - fresh (umur < TTL): tanpa request sama sekali
-  //  - stale: tampil instan + revalidasi diam-diam di background
+  // 1b. Persistent Cache Check (selamat dari refresh/reopen selama umur < TTL)
+  let staleFallbackData = null;
   if (isGet && cacheTtl > 0 && !forceRefresh && !noCache && typeof window !== "undefined") {
     const pentry = getPersistEntry(cacheKey);
     if (pentry) {
       const age = Date.now() - (pentry.timestamp || 0);
       const pttl = pentry.ttl || cacheTtl;
-      // Sinkronkan ke memory agar navigasi dalam sesi instan
-      memoryCache.set(cacheKey, { data: pentry.data, timestamp: pentry.timestamp, ttl: pttl });
       if (age < pttl) {
-        return pentry.data;
+        memoryCache.set(cacheKey, { data: pentry.data, timestamp: pentry.timestamp, ttl: pttl });
+        return { ...pentry.data, fromCache: true };
       }
-      // Stale: kembalikan langsung, segarkan di background (dedup otomatis)
-      if (!inFlightRequests.has(cacheKey)) {
-        const bg = fetchAPI(endpoint, { ...options, cacheTtl, forceRefresh: true });
-        if (bg && typeof bg.catch === "function") bg.catch(() => {});
-      }
-      return pentry.data;
+      // Simpan sebagai cadangan bila jaringan gagal/offline, tapi tetap ambil data segar dari server
+      staleFallbackData = pentry.data;
     }
   }
 
@@ -349,6 +377,7 @@ export async function fetchAPI(endpoint, options = {}) {
   }
 
   const config = { ...fetchOptions, headers };
+  const requestEpoch = mutationEpoch;
 
   const executeRequest = async () => {
     try {
@@ -406,8 +435,8 @@ export async function fetchAPI(endpoint, options = {}) {
         summary: payload?.summary ?? null,
       };
 
-      // Simpan ke memory cache jika cacheTtl aktif
-      if (isGet && cacheTtl > 0 && !noCache) {
+      // Simpan ke memory & persistent cache HANYA jika tidak ada mutasi yang terjadi selama request berjalan
+      if (isGet && cacheTtl > 0 && !noCache && requestEpoch === mutationEpoch) {
         memoryCache.set(cacheKey, {
           data: result,
           timestamp: Date.now(),
@@ -417,7 +446,7 @@ export async function fetchAPI(endpoint, options = {}) {
         setPersistEntry(cacheKey, result, cacheTtl);
       }
 
-      // Jika operasi adalah mutasi (POST, PUT, PATCH, DELETE), auto-invalidate cache terkait
+      // Jika operasi adalah mutasi (POST, PUT, PATCH, DELETE), auto-invalidate cache terkait sekali lagi setelah selesai
       if (!isGet) {
         autoInvalidateOnMutation(endpoint);
       }
@@ -426,7 +455,11 @@ export async function fetchAPI(endpoint, options = {}) {
     } catch (error) {
       if (error.status) throw error;
 
-      // Network error
+      // Network error: gunakan cadangan cache bila ada
+      if (isGet && staleFallbackData) {
+        return { ...staleFallbackData, fromCache: true };
+      }
+
       if (error.name === "TypeError" || error.name === "FetchError") {
         const networkError = new ApiError(
           "Koneksi ke server terputus. Periksa koneksi internet Anda.",

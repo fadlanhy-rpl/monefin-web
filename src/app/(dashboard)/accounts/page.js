@@ -61,13 +61,16 @@ function AccountsPageContent() {
   const [formTheme, setFormTheme] = useState("bank-primary");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchAccounts = async (silent = false) => {
+  const fetchAccounts = async (silent = false, force = false) => {
     try {
       if (!silent && accounts.length === 0) {
         setIsLoading(true);
       }
-      const response = await getAccounts();
-      setAccounts(response.data || []);
+      let response = await getAccounts(force);
+      if (!force && response?.fromCache && (!response?.data || response.data.length === 0)) {
+        response = await getAccounts(true);
+      }
+      setAccounts(response?.data || []);
     } catch (error) {
       if (error?.status !== 401) {
         console.error("Failed to fetch accounts:", error.message || error);
@@ -138,8 +141,9 @@ function AccountsPageContent() {
     try {
       setIsDeleting(true);
       await deleteAccount(deletingId);
+      setAccounts(prev => prev.filter(a => a.id !== deletingId));
       toast.success(language === 'en' ? "Account deleted successfully" : "Akun berhasil dihapus");
-      fetchAccounts();
+      fetchAccounts(true, true);
     } catch (error) {
       console.error("Error deleting account:", error);
       toast.error(language === 'en' ? "Failed to delete account" : "Gagal menghapus akun");
@@ -172,14 +176,20 @@ function AccountsPageContent() {
 
     try {
       if (modalMode === "add") {
-        await createAccount(payload);
+        const res = await createAccount(payload);
+        if (res?.data) {
+          setAccounts(prev => [...prev, res.data]);
+        }
         toast.success(language === 'en' ? "Account added successfully" : "Akun berhasil ditambahkan");
       } else {
-        await updateAccount(editingAccount.id, payload);
+        const res = await updateAccount(editingAccount.id, payload);
+        if (res?.data) {
+          setAccounts(prev => prev.map(a => a.id === editingAccount.id ? res.data : a));
+        }
         toast.success(language === 'en' ? "Account updated successfully" : "Akun berhasil diperbarui");
       }
       setIsModalOpen(false);
-      fetchAccounts();
+      fetchAccounts(true, true);
     } catch (error) {
       console.error("Error saving account:", error);
       toast.error(language === 'en' ? "Failed to save account" : "Gagal menyimpan akun");
@@ -203,7 +213,7 @@ function AccountsPageContent() {
     } catch (error) {
       console.error("Failed to reorder accounts:", error);
       toast.error(language === 'en' ? "Failed to save card order" : "Gagal menyimpan urutan kartu");
-      fetchAccounts(); // Revert back
+      fetchAccounts(true, true); // Revert back
     }
   };
 

@@ -154,7 +154,7 @@ export default function CategoriesGrid({
                   
                   <div className="flex items-center gap-1.5 shrink-0 select-none">
                     <span className="bg-slate-50 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-100">
-                      {cat.transactions_count || 0} {t("categories.transaction_count") || "TRANSAKSI"}
+                      {cat.transactions_count ?? cat.transactions ?? 0} {t("categories.transaction_count") || "TRANSAKSI"}
                     </span>
                     {/* Options Menu */}
                     <div className="relative">
@@ -248,7 +248,7 @@ export default function CategoriesGrid({
                     </h3>
                     <div className="flex items-center gap-2 mt-0.5 select-none">
                       <span className="bg-slate-50 text-slate-500 text-[9px] font-bold px-2 py-0.5 rounded-lg border border-slate-100 sm:hidden">
-                        {cat.transactions_count || 0} {t("categories.transaction_count") || "TRANSAKSI"}
+                        {cat.transactions_count ?? cat.transactions ?? 0} {t("categories.transaction_count") || "TRANSAKSI"}
                       </span>
                       <p className="text-xs text-gray-400 truncate hidden sm:block max-w-md font-medium">
                         {cat.description}
@@ -262,7 +262,7 @@ export default function CategoriesGrid({
                   {/* Transaction badge */}
                   <div className="hidden sm:flex items-center gap-1.5">
                     <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-xl border border-slate-100 select-none">
-                      {cat.transactions_count || 0} {t("categories.transaction_count") || "TRANSAKSI"}
+                      {cat.transactions_count ?? cat.transactions ?? 0} {t("categories.transaction_count") || "TRANSAKSI"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 select-none">

@@ -7,6 +7,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import MobileBottomNav from "./MobileBottomNav";
 import { useAuth } from "../../hooks/useAuth";
+import { getAuthToken } from "../../lib/api";
 
 // Lazy-load heavy components — tidak perlu di-parse saat initial render
 const OnboardingTutorialModal = dynamic(
@@ -22,8 +23,9 @@ export default function DashboardLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const hasTriggeredRef = useRef(false);
+  const recheckTriggeredRef = useRef(false);
 
-  const { isAuthenticated, loading, user, updateProfile } = useAuth();
+  const { isAuthenticated, loading, user, updateProfile, checkAuth } = useAuth();
   const router = useRouter();
 
   const tutorialShowOnLogin = user?.preferences?.showTutorialOnLogin !== false &&
@@ -32,12 +34,22 @@ export default function DashboardLayout({ children }) {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
+      // Jika cookie auth_token sebenarnya ada (mis. baru selesai Google OAuth callback),
+      // jangan lempar ke /login atau tampilkan layar putih — jalankan checkAuth!
+      const token = getAuthToken();
+      if (token && !recheckTriggeredRef.current) {
+        recheckTriggeredRef.current = true;
+        checkAuth(true);
+        return;
+      }
       if (typeof window !== "undefined" && window.location.pathname.startsWith("/login")) {
         return;
       }
       router.replace("/login");
+    } else if (isAuthenticated) {
+      recheckTriggeredRef.current = false;
     }
-  }, [loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated, router, checkAuth]);
 
   // Periksa apakah preferensi pengguna mengaktifkan tutorial setiap kali login
   useEffect(() => {
@@ -104,7 +116,7 @@ export default function DashboardLayout({ children }) {
     }
   };
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -113,10 +125,6 @@ export default function DashboardLayout({ children }) {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

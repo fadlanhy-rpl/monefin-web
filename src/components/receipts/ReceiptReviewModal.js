@@ -393,27 +393,36 @@ export default function ReceiptReviewModal({
   // (mis. fetch halaman gagal/lambat) — modal tidak pernah kosong.
   const [localAccounts, setLocalAccounts] = useState([]);
   const [localCategories, setLocalCategories] = useState([]);
+  const [fallbackDone, setFallbackDone] = useState(false);
 
   const effAccounts = accounts && accounts.length > 0 ? accounts : localAccounts;
   const effCategories = categories && categories.length > 0 ? categories : localCategories;
-  // Loading turunan per field (tanpa state): true saat terbuka tapi data masih kosong
-  const accLoading = isOpen && effAccounts.length === 0;
-  const catLoading = isOpen && effCategories.length === 0;
+  // Loading turunan per field: true saat terbuka tapi fallback belum selesai dan data masih kosong
+  const accLoading = isOpen && !fallbackDone && effAccounts.length === 0;
+  const catLoading = isOpen && !fallbackDone && effCategories.length === 0;
 
   useEffect(() => {
     if (!isOpen) return;
     const needAcc = (!accounts || accounts.length === 0) && localAccounts.length === 0;
     const needCat = (!categories || categories.length === 0) && localCategories.length === 0;
-    if (!needAcc && !needCat) return;
+    if (!needAcc && !needCat) {
+      Promise.resolve().then(() => setFallbackDone(true));
+      return;
+    }
     let ignore = false;
     // setState hanya di callback async (then) — aman dari set-state-in-effect
     Promise.all([
       needAcc ? getAccounts().catch(() => null) : Promise.resolve(null),
-      needCat ? getCategories().catch(() => null) : Promise.resolve(null),
+      needCat
+        ? getCategories()
+            .then((res) => (!res?.data || res.data.length === 0 ? getCategories("", true) : res))
+            .catch(() => null)
+        : Promise.resolve(null),
     ]).then(([accRes, catRes]) => {
       if (ignore) return;
       if (accRes?.data && Array.isArray(accRes.data)) setLocalAccounts(accRes.data);
       if (catRes?.data && Array.isArray(catRes.data)) setLocalCategories(catRes.data);
+      setFallbackDone(true);
     });
     return () => { ignore = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
