@@ -172,6 +172,11 @@ export default function RootLayout({ children }) {
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var isApk=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true||window.location.search.indexOf('source=apk')!==-1||document.referrer.indexOf('id.web.monefin.app')!==-1||sessionStorage.getItem('monefin_apk_session')==='1';if(isApk){sessionStorage.setItem('monefin_apk_session','1');document.documentElement.classList.add('monefin-apk');}}catch(e){}})();`,
+          }}
+        />
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />

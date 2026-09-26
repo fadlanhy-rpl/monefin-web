@@ -123,6 +123,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <>
+      {/* APK-Only Hero Launch Splash (hidden on website via .apk-only-splash CSS before first paint) */}
       {(showBootSplash || !isAuthReady) && (
         <DashboardBootSplash
           isReady={isAuthReady}
@@ -130,14 +131,22 @@ export default function DashboardLayout({ children }) {
         />
       )}
 
+      {/* Website-Only Loader (hidden on APK via .web-only-loader CSS before first paint) */}
+      {!isAuthReady && (
+        <div className="web-only-loader min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <span className="w-9 h-9 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
+            <p className="text-sm font-semibold text-slate-600">Memuat dashboard...</p>
+          </div>
+        </div>
+      )}
+
       {isAuthenticated && (
         <div
           style={{
             transition: "opacity 450ms cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-          className={`flex min-h-screen bg-[#f4f7f6] ${
-            showBootSplash ? "opacity-95" : "opacity-100"
-          }`}
+          className="flex min-h-screen bg-[#f4f7f6] opacity-100"
         >
           <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
           <div className="flex-1 min-w-0 flex flex-col">

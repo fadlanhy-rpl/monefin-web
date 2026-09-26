@@ -467,7 +467,18 @@ export function DashboardBootSplash({ isReady, onComplete }) {
   }, [isReady]);
 
   useEffect(() => {
-    if (hasCompletedColdBoot) {
+    const isApkEnv =
+      typeof window !== "undefined" &&
+      (document.documentElement.classList.contains("monefin-apk") ||
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true ||
+        window.location.search.includes("source=apk") ||
+        document.referrer.includes("id.web.monefin.app") ||
+        sessionStorage.getItem("monefin_apk_session") === "1");
+
+    // On normal website browser, never run the APK boot splash
+    if (!isApkEnv || hasCompletedColdBoot) {
+      hasCompletedColdBoot = true;
       if (onComplete) onComplete();
       return undefined;
     }
@@ -489,7 +500,6 @@ export function DashboardBootSplash({ isReady, onComplete }) {
         setProgress(Math.min(96, rawPct));
         raf = requestAnimationFrame(tick);
       } else if (!isReadyRef.current && elapsed < maxWait) {
-        // Hold smoothly at 97-99% while waiting for Auth/Dashboard ready
         const holdPct = Math.min(99, 96 + ((elapsed - minDuration) / (maxWait - minDuration)) * 3);
         setProgress(holdPct);
         raf = requestAnimationFrame(tick);
@@ -531,7 +541,7 @@ export function DashboardBootSplash({ isReady, onComplete }) {
           "opacity 520ms cubic-bezier(0.22, 1, 0.36, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1)",
         willChange: "opacity, transform",
       }}
-      className={`fixed inset-0 z-[9999] ${
+      className={`apk-only-splash fixed inset-0 z-[9999] ${
         exiting
           ? "opacity-0 scale-[1.035] pointer-events-none"
           : "opacity-100 scale-100"

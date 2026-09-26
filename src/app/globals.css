@@ -671,5 +671,25 @@ input[type="search"]::-webkit-search-results-decoration {
   }
 }
 
+/* APK-only boot splash visibility (evaluated before first paint) */
+.apk-only-splash {
+  display: none !important;
+}
+html.monefin-apk .apk-only-splash {
+  display: block !important;
+}
+html.monefin-apk .web-only-loader {
+  display: none !important;
+}
+@media (display-mode: standalone) {
+  .apk-only-splash {
+    display: block !important;
+  }
+  .web-only-loader {
+    display: none !important;
+  }
+}
+
+
 
 
