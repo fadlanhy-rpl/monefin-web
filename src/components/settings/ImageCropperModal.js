@@ -19,9 +19,81 @@ export default function ImageCropperModal({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [naturalDims, setNaturalDims] = useState({ width: 1, height: 1 });
+  const [cropBoxSize, setCropBoxSize] = useState(260);
 
   const imageRef = useRef(null);
   const containerRef = useRef(null);
+  const cropBoxRef = useRef(null);
+
+  // Measure actual cutout box size (220px on mobile, 260px on sm+)
+  const updateCropBoxSize = useCallback(() => {
+    if (cropBoxRef.current) {
+      const rect = cropBoxRef.current.getBoundingClientRect();
+      if (rect.width > 0) {
+        setCropBoxSize(rect.width);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const raf = requestAnimationFrame(updateCropBoxSize);
+    window.addEventListener("resize", updateCropBoxSize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", updateCropBoxSize);
+    };
+  }, [isOpen, updateCropBoxSize]);
+
+  // Compute cover-fit base dimensions so at zoom = 1 the image always fills 100% of the cutout box
+  const getBaseDisplayDims = useCallback(
+    (natW = naturalDims.width, natH = naturalDims.height, boxSize = cropBoxSize) => {
+      const safeW = Math.max(1, natW);
+      const safeH = Math.max(1, natH);
+      const baseScale = Math.max(boxSize / safeW, boxSize / safeH);
+      return {
+        width: safeW * baseScale,
+        height: safeH * baseScale,
+      };
+    },
+    [naturalDims.width, naturalDims.height, cropBoxSize]
+  );
+
+  // Clamp offset so the user can never drag empty/black space into the crop frame
+  const clampOffset = useCallback(
+    (rawOffset, targetZoom = zoom, targetRotation = rotation, boxSize = cropBoxSize) => {
+      const { width: baseW, height: baseH } = getBaseDisplayDims(
+        naturalDims.width,
+        naturalDims.height,
+        boxSize
+      );
+      const isRotated90 = Math.abs(targetRotation % 180) === 90;
+      const effW = (isRotated90 ? baseH : baseW) * targetZoom;
+      const effH = (isRotated90 ? baseW : baseH) * targetZoom;
+
+      const maxX = Math.max(0, (effW - boxSize) / 2);
+      const maxY = Math.max(0, (effH - boxSize) / 2);
+
+      return {
+        x: Math.max(-maxX, Math.min(maxX, rawOffset.x)),
+        y: Math.max(-maxY, Math.min(maxY, rawOffset.y)),
+      };
+    },
+    [zoom, rotation, cropBoxSize, naturalDims.width, naturalDims.height, getBaseDisplayDims]
+  );
+
+  const handleImageLoad = (e) => {
+    const img = e.currentTarget;
+    const natW = img.naturalWidth || img.width || 512;
+    const natH = img.naturalHeight || img.height || 512;
+    setNaturalDims({ width: natW, height: natH });
+    const boxW = cropBoxRef.current?.getBoundingClientRect()?.width || cropBoxSize;
+    if (boxW > 0) setCropBoxSize(boxW);
+    setZoom(1);
+    setRotation(0);
+    setOffset({ x: 0, y: 0 });
+  };
 
   const handleClose = useCallback(() => {
     setZoom(1);
@@ -53,11 +125,13 @@ export default function ImageCropperModal({
 
   const handleMouseMove = useCallback((e) => {
     if (!isDragging) return;
-    setOffset({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  }, [isDragging, dragStart]);
+    setOffset(
+      clampOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      })
+    );
+  }, [isDragging, dragStart, clampOffset]);
 
   const handleMouseUp = () => {
     setIsDragging(false);
@@ -77,41 +151,52 @@ export default function ImageCropperModal({
   const handleTouchMove = (e) => {
     if (!isDragging || e.touches.length !== 1) return;
     if (e.cancelable) e.preventDefault();
-    setOffset({
-      x: e.touches[0].clientX - dragStart.x,
-      y: e.touches[0].clientY - dragStart.y
-    });
+    setOffset(
+      clampOffset({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y
+      })
+    );
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
   };
 
+  const handleZoomChange = (nextZoom) => {
+    setZoom(nextZoom);
+    setOffset((prev) => clampOffset(prev, nextZoom, rotation));
+  };
+
   const handleRotate = () => {
-    setRotation((prev) => (prev + 90) % 360);
+    const nextRot = (rotation + 90) % 360;
+    setRotation(nextRot);
+    setOffset((prev) => clampOffset(prev, zoom, nextRot));
   };
 
   const handleUseOriginal = () => {
     if (!imageRef.current) return;
     const img = imageRef.current;
+    const exportSize = 512;
     const canvas = document.createElement("canvas");
-    const maxDim = 800;
-    let w = img.naturalWidth || img.width || 400;
-    let h = img.naturalHeight || img.height || 400;
-    if (w > maxDim || h > maxDim) {
-      if (w > h) {
-        h = Math.round((h * maxDim) / w);
-        w = maxDim;
-      } else {
-        w = Math.round((w * maxDim) / h);
-        h = maxDim;
-      }
-    }
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = exportSize;
+    canvas.height = exportSize;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(img, 0, 0, w, h);
+
+    // Center-crop ("object-cover") full photo into 512x512 square so there is never empty space
+    const natW = img.naturalWidth || img.width || 512;
+    const natH = img.naturalHeight || img.height || 512;
+    const scale = Math.max(exportSize / natW, exportSize / natH);
+    const drawW = natW * scale;
+    const drawH = natH * scale;
+    const drawX = (exportSize - drawW) / 2;
+    const drawY = (exportSize - drawH) / 2;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
     canvas.toBlob(
       (blob) => {
         if (blob) {
@@ -131,17 +216,25 @@ export default function ImageCropperModal({
         }
       },
       "image/jpeg",
-      0.88
+      0.92
     );
   };
 
   const handleApplyCrop = () => {
-    if (!imageRef.current || !containerRef.current) return;
+    if (!imageRef.current) return;
 
     const img = imageRef.current;
-    const cropSize = 300; // Ukuran area crop tampilan (px)
+    const activeCropSize =
+      cropBoxRef.current?.getBoundingClientRect()?.width || cropBoxSize || 260;
     const exportSize = 512; // Ukuran export canvas (px)
-    const scaleFactor = exportSize / cropSize;
+    const exportRatio = exportSize / activeCropSize;
+
+    const { width: baseW, height: baseH } = getBaseDisplayDims(
+      img.naturalWidth || naturalDims.width,
+      img.naturalHeight || naturalDims.height,
+      activeCropSize
+    );
+    const safeOffset = clampOffset(offset, zoom, rotation, activeCropSize);
 
     const canvas = document.createElement("canvas");
     canvas.width = exportSize;
@@ -150,28 +243,20 @@ export default function ImageCropperModal({
 
     if (!ctx) return;
 
-    // Bersihkan canvas
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     ctx.clearRect(0, 0, exportSize, exportSize);
 
-    // Pusatkan titik gambar untuk transformasi (rotasi, zoom, pan)
+    // Exact 1:1 match with CSS transform: translate3d(offset.x, offset.y, 0) rotate(rotation) scale(zoom)
     ctx.save();
     ctx.translate(exportSize / 2, exportSize / 2);
+    ctx.translate(safeOffset.x * exportRatio, safeOffset.y * exportRatio);
     ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(zoom * scaleFactor, zoom * scaleFactor);
-
-    // Hitung posisi draw
-    // img rendered dimensions vs natural dimensions
-    const renderedWidth = img.width || 260;
-    const renderedHeight = img.height || 260;
-
-    // Geser sesuai offset pan
-    const drawX = (offset.x / zoom) - (renderedWidth / 2);
-    const drawY = (offset.y / zoom) - (renderedHeight / 2);
-
-    ctx.drawImage(img, drawX, drawY, renderedWidth, renderedHeight);
+    ctx.scale(zoom * exportRatio, zoom * exportRatio);
+    ctx.drawImage(img, -baseW / 2, -baseH / 2, baseW, baseH);
     ctx.restore();
 
-    // Export sebagai file Blob JPEG
+    // Export sebagai file Blob JPEG berkualitas tinggi
     canvas.toBlob(
       (blob) => {
         if (blob) {
@@ -191,11 +276,14 @@ export default function ImageCropperModal({
         }
       },
       "image/jpeg",
-      0.88
+      0.92
     );
   };
 
   if (!isOpen || !imageSrc || typeof document === "undefined") return null;
+
+  const baseDisplayDims = getBaseDisplayDims();
+  const clampedOffset = clampOffset(offset);
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
@@ -233,23 +321,29 @@ export default function ImageCropperModal({
           onTouchEnd={handleTouchEnd}
           ref={containerRef}
         >
-          {/* Draggable & Transformable Image */}
+          {/* Draggable & Transformable Image (Exact Cover-Fit to Cutout Frame at zoom = 1) */}
           <img
             ref={imageRef}
             src={imageSrc}
             alt="To crop"
+            onLoad={handleImageLoad}
             draggable={false}
-            className="max-w-none transition-transform duration-75 pointer-events-none select-none"
+            className="max-w-none pointer-events-none select-none shrink-0"
             style={{
-              transform: `translate(${offset.x}px, ${offset.y}px) rotate(${rotation}deg) scale(${zoom})`,
-              maxHeight: "260px"
+              width: `${baseDisplayDims.width}px`,
+              height: `${baseDisplayDims.height}px`,
+              transform: `translate3d(${clampedOffset.x}px, ${clampedOffset.y}px, 0) rotate(${rotation}deg) scale(${zoom})`,
+              transformOrigin: "center center",
             }}
           />
 
           {/* Semi-transparent dark mask with circular/square cutout */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
             {/* Viewport Boundary 220px on tiny screens, 260px on larger screens */}
-            <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] rounded-3xl border-2 border-white/90 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] relative overflow-hidden">
+            <div
+              ref={cropBoxRef}
+              className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] rounded-3xl border-2 border-white/90 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] relative overflow-hidden"
+            >
               {/* Subtle Rule of Thirds Guide Lines */}
               <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none border border-white/20">
                 <div className="border-r border-b border-white/20"></div>
@@ -275,18 +369,32 @@ export default function ImageCropperModal({
         {/* Controls Toolbar: Zoom Slider & Rotate */}
         <div className="p-4 sm:p-5 bg-white space-y-3 sm:space-y-4 border-t border-slate-100 shrink-0">
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <ZoomOut className="w-4 h-4 text-slate-400 shrink-0" />
+            <button
+              type="button"
+              onClick={() => handleZoomChange(Math.max(1, +(zoom - 0.15).toFixed(2)))}
+              aria-label="Zoom Out"
+              className="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer shrink-0"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
             <input
               type="range"
               min="1"
               max="3"
-              step="0.05"
+              step="0.02"
               value={zoom}
-              onChange={(e) => setZoom(parseFloat(e.target.value))}
+              onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
               aria-label="Zoom"
               className="w-full accent-[#00685F] h-1.5 bg-slate-200 rounded-lg cursor-pointer"
             />
-            <ZoomIn className="w-4 h-4 text-slate-400 shrink-0" />
+            <button
+              type="button"
+              onClick={() => handleZoomChange(Math.min(3, +(zoom + 0.15).toFixed(2)))}
+              aria-label="Zoom In"
+              className="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer shrink-0"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
 
             <button
               type="button"
