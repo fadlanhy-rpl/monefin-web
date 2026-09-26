@@ -201,13 +201,12 @@ export const Hero = ({ isLoggedIn }) => {
         {/* Top Centered Header & Headline */}
         <div className="text-center max-w-4xl mx-auto space-y-3 sm:space-y-4 pt-1 pb-4 sm:pb-6">
           
-          {/* Confident, Solid Monolithic Headline with Semantic SEO Eyebrow inside H1 */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight text-slate-950 leading-[1.08] max-w-4xl mx-auto flex flex-col items-center gap-2.5">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-50 border border-brand-200/80 text-brand-700 text-[11px] sm:text-xs font-extrabold tracking-wide uppercase shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-600" />
-              <span>{t("hero.badge")}</span>
+          {/* Confident, Solid Monolithic Headline (No AI Slop Split Gradients) */}
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight text-slate-950 leading-[1.08] max-w-4xl mx-auto">
+            <span className="sr-only">
+              MoneFin — Platform Manajemen Keuangan Pribadi Gratis:{" "}
             </span>
-            <span>{t("hero.title")}</span>
+            {t("hero.title")}
           </h1>
 
           <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">

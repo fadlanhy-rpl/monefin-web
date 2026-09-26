@@ -8,7 +8,7 @@ import { updateProfile } from "../services/auth.service";
 
 const MESSAGES = { id, en };
 const SUPPORTED_LOCALES = ["en", "id"];
-const DEFAULT_LOCALE = "en";
+const DEFAULT_LOCALE = "id";
 const COOKIE_NAME = "NEXT_LOCALE"; // same convention as next-intl for future compatibility
 
 const LanguageContext = createContext();
