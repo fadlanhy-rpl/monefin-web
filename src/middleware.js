@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 // Rute yang boleh diakses tanpa login (termasuk Landing Page "/")
 const publicPaths = [
   "/",
+  "/download",
   "/login",
   "/register",
   "/verify-email",

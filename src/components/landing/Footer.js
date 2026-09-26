@@ -2,7 +2,8 @@ import Link from "next/link";
 import { useLanguage } from "../../context/LanguageContext";
 
 export const Footer = ({ isLoggedIn }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isEn = language === "en";
   return (
     <footer className="relative z-10 bg-[#eaf4f2] text-slate-600 py-8 sm:py-10 border-t border-slate-200/80 text-[11px] sm:text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 text-center md:text-left">
@@ -20,6 +21,9 @@ export const Footer = ({ isLoggedIn }) => {
           <a href="#comparison" className="hover:text-brand-600 transition-colors">{t("nav.comparison")}</a>
           <a href="#testimonials" className="hover:text-brand-600 transition-colors">{t("nav.testimonials")}</a>
           <a href="#faq" className="hover:text-brand-600 transition-colors">{t("nav.faq")}</a>
+          <Link href="/download" className="text-brand-700 hover:text-brand-800 font-bold transition-colors">
+            {isEn ? "Download App (APK & iOS)" : "Download Aplikasi (APK & iOS)"}
+          </Link>
           <span className="text-slate-300 hidden sm:inline">•</span>
           <Link href="/terms" className="hover:text-brand-600 transition-colors">{t("auth.terms") || "Terms"}</Link>
           <Link href="/privacy" className="hover:text-brand-600 transition-colors">{t("auth.privacy") || "Privacy"}</Link>

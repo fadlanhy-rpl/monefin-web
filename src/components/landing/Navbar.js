@@ -102,6 +102,16 @@ export const Navbar = ({ isLoggedIn }) => {
           <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.comparison")}</a>
           <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.testimonials")}</a>
           <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.faq")}</a>
+          <Link
+            href="/download"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center justify-between text-brand-700 hover:text-brand-800 font-extrabold py-2 border-b border-slate-100 transition-colors"
+          >
+            <span>{isEn ? "Download App (Android APK & iOS)" : "Download Aplikasi (APK & iOS)"}</span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">
+              {isEn ? "Free" : "Gratis"}
+            </span>
+          </Link>
 
           <div className="flex items-center justify-between gap-2 py-1.5">
             <span className="text-xs font-bold text-slate-500">

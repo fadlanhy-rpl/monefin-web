@@ -28,12 +28,12 @@ export default function robots() {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/login", "/register", "/privacy", "/terms", "/security"],
+        allow: ["/", "/download", "/login", "/register", "/privacy", "/terms", "/security"],
         disallow: disallowedPaths,
       },
       {
         userAgent: "Googlebot",
-        allow: ["/", "/login", "/register", "/privacy", "/terms", "/security"],
+        allow: ["/", "/download", "/login", "/register", "/privacy", "/terms", "/security"],
         disallow: disallowedPaths,
       },
     ],

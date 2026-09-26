@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { CatalisButton } from "../ui/CatalisButton";
 import { CurrencySwitcherPill } from "../ui/CurrencySwitcher";
 import { useLanguage } from "../../context/LanguageContext";
@@ -15,6 +16,7 @@ import {
   TrendingUp,
   Activity,
   Zap,
+  Smartphone,
 } from "lucide-react";
 
 import { HeroInteractiveCanvas } from "./HeroInteractiveCanvas";
@@ -214,7 +216,7 @@ export const Hero = ({ isLoggedIn }) => {
           </p>
 
           {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 sm:gap-3.5 pt-2">
             <CatalisButton
               href={isLoggedIn ? "/dashboard" : "/register"}
               variant="primary"
@@ -225,11 +227,19 @@ export const Hero = ({ isLoggedIn }) => {
 
             <a
               href="#simulator"
-              className="w-full sm:w-auto px-7 py-3 rounded-full text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300/80 shadow-sm hover:text-brand-600 hover:border-brand-300 transition-all text-center flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-3 rounded-full text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300/80 shadow-sm hover:text-brand-600 hover:border-brand-300 transition-all text-center flex items-center justify-center gap-2"
             >
               <TrendingUp className="w-4 h-4 text-brand-600" />
               <span>{t("hero.cta_secondary")}</span>
             </a>
+
+            <Link
+              href="/download"
+              className="w-full sm:w-auto px-6 py-3 rounded-full text-sm font-bold text-emerald-900 bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200/90 shadow-sm hover:border-emerald-300 transition-all text-center flex items-center justify-center gap-2"
+            >
+              <Smartphone className="w-4 h-4 text-brand-600" />
+              <span>{isEn ? "Download App (APK & iOS)" : "Download Aplikasi (APK & iOS)"}</span>
+            </Link>
           </div>
 
           {/* Clean Integrated Trust Line (No Clunky AI Pill Badges) */}

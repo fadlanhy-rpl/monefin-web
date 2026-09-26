@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { CatalisButton } from "../ui/CatalisButton";
 import { useLanguage } from "../../context/LanguageContext";
-import { ShieldCheck, Zap, Sparkles, Lock, ArrowRight } from "lucide-react";
+import { ShieldCheck, Zap, Sparkles, Lock, Smartphone } from "lucide-react";
 
 export const CtaBanner = ({ isLoggedIn }) => {
   const { t, language } = useLanguage();
@@ -34,7 +35,7 @@ export const CtaBanner = ({ isLoggedIn }) => {
               {t("cta.subtitle")}
             </p>
 
-            <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3">
               <CatalisButton
                 href={isLoggedIn ? "/dashboard" : "/register"}
                 variant="primary"
@@ -42,6 +43,13 @@ export const CtaBanner = ({ isLoggedIn }) => {
               >
                 <span>{isLoggedIn ? t("cta.btn_loggedin") : t("cta.btn")}</span>
               </CatalisButton>
+              <Link
+                href="/download"
+                className="w-full sm:w-auto px-7 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/25 text-sm sm:text-base font-bold transition-all flex items-center justify-center gap-2 backdrop-blur-md"
+              >
+                <Smartphone className="w-4 h-4 text-emerald-300" />
+                <span>{isEn ? "Download APK & iOS Guide" : "Download APK & Panduan iOS"}</span>
+              </Link>
             </div>
 
             {/* Micro Trust Indicators */}

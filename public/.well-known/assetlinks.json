@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "id.web.monefin.app",
+      "sha256_cert_fingerprints": [
+        "54:A6:FA:AC:04:CC:A0:D5:35:A4:6C:EC:A2:55:C0:9D:52:6E:87:DB:CE:C8:89:EC:F3:58:E3:A6:05:C0:E0:C7"
+      ]
+    }
+  }
+]
