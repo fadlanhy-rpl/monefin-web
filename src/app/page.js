@@ -1,41 +1,37 @@
-"use client";
+import { LandingClient } from "@/components/landing/LandingClient";
+import idLocale from "@/locales/id.json";
 
-import { useState, useEffect } from "react";
-import { getAuthToken } from "../lib/api";
+export const metadata = {
+  title:
+    "MoneFin — Aplikasi Manajemen Keuangan Pribadi, 50/30/20 & AI Scan Struk",
+  description:
+    "Kelola keuangan pribadi otomatis dengan aturan 50/30/20, multi-mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja Panjang (1–8 Foto), Split Bill cerdas, dan AI Financial Advisor BYOK gratis.",
+  alternates: {
+    canonical: "https://www.monefin.web.id",
+  },
+};
 
-import { Navbar } from "@/components/landing/Navbar";
-import { Hero } from "@/components/landing/Hero";
-import { HeroPerspectiveDeck } from "@/components/landing/HeroPerspectiveDeck";
-import { StatsOverview } from "@/components/landing/StatsOverview";
-import { Features } from "@/components/landing/Features";
-import { WealthSimulator } from "@/components/landing/WealthSimulator";
-import { Comparison } from "@/components/landing/Comparison";
-import { Testimonials } from "@/components/landing/Testimonials";
-import { Faq } from "@/components/landing/Faq";
-import { CtaBanner } from "@/components/landing/CtaBanner";
-import { Footer } from "@/components/landing/Footer";
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [1, 2, 3, 4, 5, 6].map((idx) => ({
+    "@type": "Question",
+    name: idLocale.faq[`q${idx}`],
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: idLocale.faq[`a${idx}`],
+    },
+  })),
+};
 
 export default function LandingPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const token = getAuthToken();
-    setIsLoggedIn(!!token);
-  }, []);
-
   return (
-    <div className="min-h-screen text-slate-900 font-sans selection:bg-brand-600 selection:text-white overflow-x-hidden relative max-w-[100vw]">
-      <Navbar isLoggedIn={isLoggedIn} />
-      <Hero isLoggedIn={isLoggedIn} />
-      <HeroPerspectiveDeck />
-      <StatsOverview />
-      <Features />
-      <WealthSimulator isLoggedIn={isLoggedIn} />
-      <Comparison />
-      <Testimonials />
-      <Faq />
-      <CtaBanner isLoggedIn={isLoggedIn} />
-      <Footer isLoggedIn={isLoggedIn} />
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <LandingClient />
+    </>
   );
 }

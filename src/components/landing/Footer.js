@@ -28,7 +28,10 @@ export const Footer = ({ isLoggedIn }) => {
           {isLoggedIn ? (
             <Link href="/dashboard" className="hover:text-brand-600 transition-colors text-brand-600 font-bold">{t("nav.dashboard")}</Link>
           ) : (
-            <Link href="/login" className="hover:text-brand-600 transition-colors">{t("nav.login")}</Link>
+            <>
+              <Link href="/login" className="hover:text-brand-600 transition-colors">{t("nav.login")}</Link>
+              <Link href="/register" className="hover:text-brand-600 transition-colors text-brand-700 font-bold">{t("nav.register")}</Link>
+            </>
           )}
         </div>
 

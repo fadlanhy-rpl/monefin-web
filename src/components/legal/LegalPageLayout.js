@@ -38,6 +38,15 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
+const DOC_ICON_MAP = {
+  terms: FileText,
+  privacy: Lock,
+  security: ShieldCheck,
+  "/terms": FileText,
+  "/privacy": Lock,
+  "/security": ShieldCheck,
+};
+
 export default function LegalPageLayout({
   docKey,
   data,
@@ -45,9 +54,11 @@ export default function LegalPageLayout({
   categoryEn = "Terms of Service",
   badge = "Kepatuhan Hukum",
   badgeEn = "Legal Compliance",
-  icon: IconComponent = FileText,
+  icon,
   relatedDocs = [],
 }) {
+  const IconComponent =
+    typeof icon === "function" ? icon : DOC_ICON_MAP[docKey] || FileText;
   const { language, changeLanguage } = useLanguage();
   const isId = language === "id";
   const pathname = usePathname();
@@ -842,7 +853,10 @@ export default function LegalPageLayout({
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {relatedDocs.map((item) => {
-                    const DocIcon = item.icon || FileText;
+                    const DocIcon =
+                      typeof item.icon === "function"
+                        ? item.icon
+                        : DOC_ICON_MAP[item.href] || FileText;
                     return (
                       <Link
                         key={item.href}

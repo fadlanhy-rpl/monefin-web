@@ -62,15 +62,18 @@ export const Faq = () => {
                     </svg>
                   </span>
                 </button>
-                {isOpen && (
-                  <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 mt-1">
+                  <div
+                    hidden={!isOpen}
+                    className={`${
+                      isOpen ? "block" : "hidden"
+                    } px-4 pb-4 sm:px-5 sm:pb-5 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 mt-1`}
+                  >
                     {faq.a}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                </div>
+              );
+            })}
+          </div>
 
       </div>
     </section>

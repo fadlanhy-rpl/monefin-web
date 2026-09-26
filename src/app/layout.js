@@ -13,56 +13,66 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata = {
   metadataBase: new URL("https://www.monefin.web.id"),
   title: {
-    default: "MoneFin - Platform Manajemen Keuangan Pribadi & AI Advisor",
+    default: "MoneFin — Aplikasi Manajemen Keuangan Pribadi, 50/30/20 & AI Scan Struk",
     template: "%s | MoneFin",
   },
   description:
-    "Kelola keuangan pribadi dengan cerdas: catat pemasukan dan pengeluaran harian, pantau arus kas, rancang anggaran, kelola hutang piutang, dan raih kebebasan finansial bersama MoneFin.",
+    "Kelola keuangan pribadi otomatis dengan aturan 50/30/20, multi-mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja Panjang (1–8 Foto), Split Bill cerdas, dan AI Financial Advisor BYOK gratis.",
+  applicationName: "MoneFin",
   keywords: [
+    "monefin",
     "aplikasi keuangan pribadi",
     "catat keuangan harian",
-    "manajemen keuangan",
-    "aplikasi pengatur uang",
+    "manajemen keuangan pribadi",
+    "aturan 50/30/20",
+    "scan struk belanja ai",
+    "aplikasi split bill",
+    "multi currency finance tracker",
     "financial tracker indonesia",
-    "monefin",
     "ai financial advisor",
     "catat pemasukan dan pengeluaran",
     "budgeting indonesia",
-    "split bill",
   ],
   authors: [{ name: "MoneFin Team", url: "https://www.monefin.web.id" }],
   creator: "MoneFin",
   publisher: "MoneFin",
+  category: "finance",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   alternates: {
-    canonical: "https://www.monefin.web.id",
+    canonical: "./",
+    languages: {
+      "id-ID": "https://www.monefin.web.id",
+      "en-US": "https://www.monefin.web.id",
+      "x-default": "https://www.monefin.web.id",
+    },
   },
   openGraph: {
     type: "website",
     locale: "id_ID",
+    alternateLocale: ["en_US"],
     url: "https://www.monefin.web.id",
-    title: "MoneFin - Platform Manajemen Keuangan Pribadi Cerdas",
+    title: "MoneFin — Platform Manajemen Keuangan Pribadi, 50/30/20 & AI Vision",
     description:
-      "Aplikasi pencatatan keuangan harian, analisis arus kas otomatis, dan asisten finansial AI cerdas untuk merencanakan masa depan keuangan Anda.",
+      "Otomatisasi alokasi gaji 50/30/20, pantau kekayaan bersih di 4 mata uang (IDR, USD, EUR, SGD), scan struk belanja panjang 1–8 foto dengan Gemini 3.6 Vision, dan Split Bill instan.",
     siteName: "MoneFin",
     images: [
       {
         url: "/images/logo-monefin-app-icon.png",
         width: 800,
         height: 800,
-        alt: "Logo MoneFin",
+        alt: "MoneFin — Platform Manajemen Keuangan Pribadi Cerdas",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MoneFin - Manajemen Keuangan Pribadi & AI Financial Advisor",
+    title: "MoneFin — Manajemen Keuangan Pribadi, 50/30/20 & AI Scan Struk",
     description:
-      "Kelola keuangan pribadi lebih mudah dan terarah dengan MoneFin. Gratis dan aman.",
+      "Kelola keuangan pribadi lebih terarah: Alokasi 50/30/20 otomatis, Multi-Mata Uang (IDR/USD/EUR/SGD), AI Scan Struk 1–8 Foto, dan Split Bill. 100% Gratis & Aman.",
     images: ["/images/logo-monefin-app-icon.png"],
   },
   robots: {
@@ -90,10 +100,38 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "WebSite",
+      "@id": "https://www.monefin.web.id/#website",
+      url: "https://www.monefin.web.id",
+      name: "MoneFin",
+      alternateName: ["MoneFin Indonesia", "MoneFin Personal Finance"],
+      description:
+        "Platform Manajemen Keuangan Pribadi dengan Alokasi 50/30/20 Otomatis, Multi-Mata Uang (IDR, USD, EUR, SGD), AI Scan Struk 1–8 Foto, dan Smart Split Bill.",
+      inLanguage: ["id-ID", "en-US"],
+      publisher: {
+        "@id": "https://www.monefin.web.id/#organization",
+      },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.monefin.web.id/#organization",
+      name: "MoneFin",
+      url: "https://www.monefin.web.id",
+      email: "monefin.techapp@gmail.com",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://www.monefin.web.id/images/logo-monefin-app-icon.png",
+        width: 800,
+        height: 800,
+      },
+      sameAs: [],
+    },
+    {
       "@type": "SoftwareApplication",
+      "@id": "https://www.monefin.web.id/#app",
       name: "MoneFin",
       applicationCategory: "FinanceApplication",
-      operatingSystem: "Web",
+      operatingSystem: "Web, Android, iOS",
       url: "https://www.monefin.web.id",
       offers: {
         "@type": "Offer",
@@ -101,21 +139,15 @@ const jsonLd = {
         priceCurrency: "IDR",
       },
       description:
-        "Platform pencatatan dan pengelolaan keuangan pribadi pintar dengan analisis arus kas, budgeting cerdas, dan AI financial advisor.",
+        "Aplikasi pencatatan dan manajemen keuangan pribadi cerdas dengan alokasi 50/30/20 otomatis, konversi kurs 4 mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja Panjang (1–8 Foto), dan Smart Split Bill.",
       featureList: [
-        "Pencatatan Pemasukan & Pengeluaran",
-        "Kategori Dinamis & Anggaran Realistis",
-        "AI Financial Advisor BYOK",
-        "Pelacak Hutang & Tabungan Target",
-        "Multi-Wallet & Rekonsiliasi Saldo",
+        "Alokasi Anggaran 50/30/20 Otomatis & Kustom",
+        "Multi-Akun & Konversi Kurs 4 Mata Uang (IDR, USD, EUR, SGD)",
+        "AI Scan Struk Belanja Panjang & Gabungan (1–8 Foto sekaligus dengan Gemini 3.6 Vision BYOK)",
+        "Smart Split Bill & Tagihan Grup WhatsApp",
+        "Target Tabungan (Sinking Funds) & Pelacak Tagihan Rutin",
+        "Ekspor Laporan Keuangan CSV & Kepatuhan Privasi UU PDP No. 27/2022",
       ],
-    },
-    {
-      "@type": "Organization",
-      name: "MoneFin",
-      url: "https://www.monefin.web.id",
-      logo: "https://www.monefin.web.id/images/logo-monefin-app-icon.png",
-      sameAs: [],
     },
   ],
 };
