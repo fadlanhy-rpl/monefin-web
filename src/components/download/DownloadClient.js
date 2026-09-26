@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "../../context/LanguageContext";
 import { Navbar } from "../landing/Navbar";
 import { Footer } from "../landing/Footer";
+import { ApkLaunchPhonePreview } from "../mobile/AppLaunchOverlay";
 import { getAuthToken } from "../../lib/api";
 import {
   Download,
@@ -481,6 +482,109 @@ export function DownloadClient() {
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span>{isEn ? "Camera Receipt Scan" : "Kamera Scan Struk"}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2B. INTERACTIVE APK LAUNCH ANIMATION PREVIEW (HERO-INSPIRED & UI/UX LAWS COMPLIANT) */}
+        <section className="bg-gradient-to-br from-[#041714] via-[#06241F] to-[#041512] rounded-3xl sm:rounded-[2.5rem] border border-emerald-500/30 shadow-2xl p-6 sm:p-10 text-white relative overflow-hidden">
+          <div className="absolute -top-28 -left-28 w-80 h-80 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-28 -right-28 w-80 h-80 rounded-full bg-teal-400/15 blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Left: Interactive Smartphone Frame Running the APK Boot Animation */}
+            <div className="lg:col-span-5 flex justify-center">
+              <ApkLaunchPhonePreview />
+            </div>
+
+            {/* Right: UI/UX Laws Breakdown & Why Not Just a Static Logo */}
+            <div className="lg:col-span-7 space-y-5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>
+                  {isEn
+                    ? "Interactive Launch Experience • UI/UX Laws"
+                    : "Pengalaman Saat APK Dibuka • Sesuai UI/UX Laws"}
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
+                {isEn
+                  ? "More Than a Static Logo: Hero-Caliber Fintech Cockpit Awakening"
+                  : "Bukan Sekadar Logo Statis: Animasi Live Financial Cockpit Saat APK Dibuka"}
+              </h2>
+
+              <p className="text-xs sm:text-sm text-emerald-100/85 leading-relaxed">
+                {isEn
+                  ? "When you open MoneFin on Android (.APK) or iOS (Home Screen App), you are greeted by a 60fps choreographed launch sequence inspired by the landing page Hero section — engineered strictly around 4 core UI/UX Laws:"
+                  : "Saat Anda membuka aplikasi MoneFin di HP (baik versi .APK Android maupun Web App iOS), aplikasi menampilkan animasi interaktif 60fps bernuansa Hero Section — dirancang khusus mengikuti 4 hukum utama UI/UX:"}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1.5 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-emerald-300">
+                      1. Doherty Threshold (&lt; 400ms)
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200">
+                      1.8s Total
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {isEn
+                      ? "Zero blank white screen. 60fps emerald streamlines awaken in <100ms while Chrome TWA / Skipper API warms up in the background, finishing in 1.8s (or tap anywhere to skip)."
+                      : "Tanpa layar putih kosong. Gelombang kanvas 60fps langsung aktif dalam <100ms sembari menghubungkan sesi ke server di latar belakang, selesai dalam 1,8 detik (atau ketuk layar untuk lewati)."}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1.5 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-emerald-300">
+                      2. Miller&apos;s Law (4 Visual Chunks)
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200">
+                      Zero Clutter
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {isEn
+                      ? "Visual elements are chunked into 4 clean groups: Brand Pill, Net Worth + 50/30/20 Cockpit Card, 2 Floating Satellite Badges (Cashflow & Health Score), and Sync Bar."
+                      : "Elemen visual dikelompokkan tepat menjadi 4 fokus utama: Identitas Brand, Kartu Kokpit Kekayaan Bersih + Bar 50/30/20, 2 Kartu Satelit Melayang, dan Indikator Sinkronisasi."}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1.5 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-emerald-300">
+                      3. Peak-End Rule &amp; Trust
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200">
+                      256-Bit Vault
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {isEn
+                      ? "Instead of a lifeless icon, live counting Net Worth and 50/30/20 bar progression communicate security, precision, and financial control from the very first second."
+                      : "Alih-alih ikon kaku, animasi penghitungan saldo dan pengisian bar 50/30/20 memberikan rasa aman, presisi, dan kendali finansial sejak detik pertama aplikasi dibuka."}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1.5 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-emerald-300">
+                      4. Jakob&apos;s Law (Native Feel)
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200">
+                      60 FPS Native
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {isEn
+                      ? "Compiled natively inside MoneFin.apk (Android Canvas + Hardware Acceleration) and mirrored on iOS Standalone Web App for a unified flagship fintech feel."
+                      : "Dikompilasi langsung secara native di dalam MoneFin.apk (Android Canvas 60fps) serta Web App iOS sehingga transisi menuju Dashboard terasa mulus seperti aplikasi bank digital."}
+                  </p>
                 </div>
               </div>
             </div>

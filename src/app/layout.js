@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { LanguageProvider } from "../context/LanguageContext";
 import { BalancePrivacyProvider } from "../context/BalancePrivacyContext";
+import { AppLaunchOverlay } from "../components/mobile/AppLaunchOverlay";
 import { Toaster } from "react-hot-toast";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -181,6 +182,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <LanguageProvider>
             <BalancePrivacyProvider>
+              <AppLaunchOverlay />
               {children}
               <Toaster
               position="top-right"
