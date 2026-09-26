@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CatalisButton } from "../ui/CatalisButton";
-import { LanguageSwitcher } from "../ui/LanguageSwitcher";
 import { CurrencySwitcher, CurrencySwitcherPill } from "../ui/CurrencySwitcher";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -31,7 +30,7 @@ export const Navbar = ({ isLoggedIn }) => {
             : "bg-white/50 backdrop-blur-xl border border-white/60 shadow-sm hover:bg-white/80"
         }`}
       >
-        {/* Logo */}
+        {/* 1. Logo */}
         <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
           <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-brand-600 p-0.5 shadow-md shadow-brand-600/30 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
             <img src="/images/logo-monefin-white.svg" alt="MoneFin Logo" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -41,7 +40,7 @@ export const Navbar = ({ isLoggedIn }) => {
           </span>
         </Link>
 
-        {/* Desktop Nav Links */}
+        {/* 2–6. Desktop Nav Links (5 items) */}
         <div className="hidden lg:flex items-center gap-3.5 xl:gap-6 text-xs xl:text-sm font-bold text-slate-800">
           <a href="#features" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.features")}</a>
           <a href="#simulator" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.simulator")}</a>
@@ -50,10 +49,9 @@ export const Navbar = ({ isLoggedIn }) => {
           <a href="#faq" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.faq")}</a>
         </div>
 
-        {/* Desktop Actions */}
+        {/* 7–9. Desktop Actions (Unified Locale/Currency + Sign In + Get Started = 3 items, total 9 in Navbar row) */}
         <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 shrink-0">
           <CurrencySwitcher />
-          <LanguageSwitcher />
           {isLoggedIn ? (
             <CatalisButton href="/dashboard" variant="primary" size="sm">
               <span className="whitespace-nowrap">{t("nav.dashboard")}</span>
@@ -76,7 +74,6 @@ export const Navbar = ({ isLoggedIn }) => {
         {/* Mobile / Tablet Right Actions & Hamburger */}
         <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden">
           <CurrencySwitcher />
-          <LanguageSwitcher />
           {!isLoggedIn && (
             <Link
               href="/login"

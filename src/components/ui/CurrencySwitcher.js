@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Coins, ChevronDown, Check } from "lucide-react";
+import { Globe, ChevronDown, Check } from "lucide-react";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -12,12 +12,17 @@ export const CURRENCY_OPTIONS = [
   { code: "SGD", symbol: "S$", nameId: "Dolar Singapura",  nameEn: "Singapore Dollar",  flag: "🇸🇬" },
 ];
 
+const LANG_OPTIONS = [
+  { code: "id", short: "ID", label: "Indonesia", flag: "🇮🇩" },
+  { code: "en", short: "EN", label: "English",   flag: "🇺🇸" },
+];
+
 /**
- * Compact Dropdown Currency Switcher for Navbar & Headers
+ * Unified Language & Currency Switcher for Navbar (Miller's Law: keeps Navbar row to 9 elements)
  */
 export function CurrencySwitcher() {
   const { currencyCode, changeCurrency, rates } = useCurrency();
-  const { language } = useLanguage();
+  const { language, changeLanguage } = useLanguage();
   const isEn = language === "en";
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -31,6 +36,7 @@ export function CurrencySwitcher() {
   }, []);
 
   const current = CURRENCY_OPTIONS.find((c) => c.code === currencyCode) || CURRENCY_OPTIONS[0];
+  const currentLang = LANG_OPTIONS.find((l) => l.code === language) || LANG_OPTIONS[0];
 
   const getRateHint = (code) => {
     const idrPerUsd = rates?.IDR || 15500;
@@ -52,69 +58,112 @@ export function CurrencySwitcher() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1 bg-slate-100/80 hover:bg-white px-2.5 py-1 rounded-full border border-slate-200/70 hover:border-brand-300 text-[10px] sm:text-[11px] font-extrabold text-slate-800 hover:text-brand-700 transition-all cursor-pointer shadow-2xs select-none"
+        className="flex items-center gap-1.5 bg-slate-100/85 hover:bg-white px-3 py-1.5 rounded-full border border-slate-200/80 hover:border-brand-300 text-[11px] font-extrabold text-slate-800 hover:text-brand-700 transition-all cursor-pointer shadow-2xs select-none"
         aria-expanded={open}
-        aria-haspopup="listbox"
-        title={isEn ? "Switch Display Currency (Live Rate)" : "Ganti Mata Uang Tampilan (Kurs Live)"}
+        aria-haspopup="dialog"
+        title={
+          isEn
+            ? "Switch Language & Display Currency"
+            : "Ganti Bahasa & Mata Uang Tampilan"
+        }
       >
-        <Coins className="w-3 h-3 text-brand-600 shrink-0" />
+        <Globe className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+        <span className="uppercase tracking-wider text-slate-900">{currentLang.short}</span>
+        <span className="text-slate-300 font-normal">•</span>
         <span className="text-brand-700">{current.symbol}</span>
         <span>{current.code}</span>
-        <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {open && (
         <div
-          role="listbox"
-          className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 py-2 z-50 animate-popIn"
+          role="dialog"
+          aria-label={isEn ? "Language and Currency Preferences" : "Preferensi Bahasa dan Mata Uang"}
+          className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 p-2.5 z-50 animate-popIn space-y-2.5"
         >
-          <div className="px-3.5 py-1.5 border-b border-slate-100 flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-              {isEn ? "Multi-Currency (Live)" : "Multi-Mata Uang (Live)"}
-            </span>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Auto FX
-            </span>
+          {/* Section 1: Language Switcher */}
+          <div>
+            <div className="px-1.5 pb-1.5 flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                {isEn ? "Language / Bahasa" : "Bahasa Tampilan"}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70">
+              {LANG_OPTIONS.map((langOpt) => {
+                const activeLang = language === langOpt.code;
+                return (
+                  <button
+                    key={langOpt.code}
+                    type="button"
+                    onClick={() => changeLanguage(langOpt.code)}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                      activeLang
+                        ? "bg-white text-brand-700 shadow-xs border border-slate-200/60"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span className="text-xs leading-none">{langOpt.flag}</span>
+                    <span>{langOpt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="py-1">
-            {CURRENCY_OPTIONS.map((opt) => {
-              const isActive = currencyCode === opt.code;
-              return (
-                <button
-                  key={opt.code}
-                  role="option"
-                  aria-selected={isActive}
-                  type="button"
-                  onClick={() => {
-                    changeCurrency(opt.code);
-                    setOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 text-left transition-colors cursor-pointer ${
-                    isActive
-                      ? "bg-brand-50/90 text-brand-800"
-                      : "text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 flex items-center justify-center font-black text-[11px] text-slate-800 shrink-0">
-                      {opt.symbol}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-black leading-tight flex items-center gap-1.5">
-                        <span>{opt.code}</span>
-                        <span className="text-[10px] font-semibold text-slate-500 truncate">
-                          {isEn ? opt.nameEn : opt.nameId}
-                        </span>
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-medium tabular-nums truncate">
-                        {getRateHint(opt.code)}
-                      </p>
+
+          <div className="border-t border-slate-100" />
+
+          {/* Section 2: Multi-Currency Switcher */}
+          <div>
+            <div className="px-1.5 pb-1 flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                {isEn ? "Display Currency (Live)" : "Mata Uang (Kurs Live)"}
+              </span>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Auto FX
+              </span>
+            </div>
+            <div className="space-y-0.5">
+              {CURRENCY_OPTIONS.map((opt) => {
+                const isActive = currencyCode === opt.code;
+                return (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    onClick={() => {
+                      changeCurrency(opt.code);
+                      setOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                      isActive
+                        ? "bg-brand-50/90 text-brand-800"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 flex items-center justify-center font-black text-[11px] text-slate-800 shrink-0">
+                        {opt.symbol}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-black leading-tight flex items-center gap-1.5">
+                          <span>{opt.code}</span>
+                          <span className="text-[10px] font-semibold text-slate-500 truncate">
+                            {isEn ? opt.nameEn : opt.nameId}
+                          </span>
+                        </p>
+                        <p className="text-[10px] text-slate-400 font-medium tabular-nums truncate">
+                          {getRateHint(opt.code)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  {isActive && <Check className="w-3.5 h-3.5 text-brand-600 shrink-0" />}
-                </button>
-              );
-            })}
+                    {isActive && <Check className="w-3.5 h-3.5 text-brand-600 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
