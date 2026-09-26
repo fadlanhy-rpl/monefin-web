@@ -12,9 +12,9 @@
     "register_mobile": "Mulai Gratis — 100% Free"
   },
   "hero": {
-    "badge": "Aplikasi Finansial Personal #1 Gratis & Praktis",
+    "badge": "Platform Manajemen Keuangan Pribadi Gratis #1",
     "title": "Kuasai Keuanganmu, Bangun Kekayaan Nyata.",
-    "subtitle": "MoneFin menyatukan pencatatan multi-rekening & multi-mata uang (IDR, USD, EUR, SGD), pindai struk panjang multi-foto (1–8 foto) bertenaga AI, kalkulator split bill cerdas, serta alokasi anggaran otomatis dalam satu ekosistem modern.",
+    "subtitle": "MoneFin adalah platform manajemen keuangan pribadi gratis yang menyatukan pencatatan multi-rekening & 4 mata uang (IDR, USD, EUR, SGD), pindai struk panjang multi-foto (1–8 foto) bertenaga AI, kalkulator split bill cerdas, serta alokasi anggaran 50/30/20 otomatis.",
     "cta_primary_loggedin": "Buka Dashboard",
     "cta_primary": "Mulai Gratis Sekarang",
     "cta_secondary": "Coba Simulasi Keuangan",
@@ -119,8 +119,8 @@
   "faq": {
     "badge": "Pertanyaan Umum",
     "title": "Pertanyaan yang Sering Diajukan",
-    "q1": "Apakah aplikasi MoneFin benar-benar 100% gratis?",
-    "a1": "Ya! MoneFin dapat digunakan 100% gratis tanpa biaya tersembunyi, tanpa versi Pro terpisah, dan tanpa batasan jumlah transaksi maupun jumlah akun saldo.",
+    "q1": "Apakah MoneFin benar-benar platform manajemen keuangan pribadi gratis 100%?",
+    "a1": "Ya! MoneFin adalah platform manajemen keuangan pribadi gratis 100% tanpa biaya langganan tersembunyi, tanpa iklan, dan tanpa batasan jumlah transaksi maupun jumlah akun rekening atau e-wallet.",
     "q2": "Bagaimana cara kerja Scan Struk Panjang Multi-Foto (1–8 Foto) & AI gratis di MoneFin?",
     "a2": "MoneFin menggunakan konsep BYOK (Bring Your Own Key) dengan Google Gemini 3.6 Flash Vision dari Google AI Studio yang 100% gratis. Anda dapat memotret 1 struk cepat, memotret struk belanja panjang dalam 2–8 foto bersambung (otomatis digabung tanpa baris ganda/duplikat), atau menggabungkan hingga 8 struk berbeda ke dalam 1 transaksi sekaligus.",
     "q3": "Apakah MoneFin mendukung fitur Ganti Mata Uang (Multi-Currency) dan aman tanpa PIN bank?",

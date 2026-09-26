@@ -3,9 +3,9 @@ import idLocale from "@/locales/id.json";
 
 export const metadata = {
   title:
-    "MoneFin — Aplikasi Manajemen Keuangan Pribadi, 50/30/20 & AI Scan Struk",
+    "MoneFin — Platform Manajemen Keuangan Pribadi Gratis & AI Advisor",
   description:
-    "Kelola keuangan pribadi otomatis dengan aturan 50/30/20, multi-mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja Panjang (1–8 Foto), Split Bill cerdas, dan AI Financial Advisor BYOK gratis.",
+    "MoneFin adalah platform manajemen keuangan pribadi gratis di Indonesia untuk mencatat pemasukan & pengeluaran harian, alokasi gaji 50/30/20 otomatis, multi-mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja (1–8 Foto), dan Split Bill cerdas.",
   alternates: {
     canonical: "https://www.monefin.web.id",
   },

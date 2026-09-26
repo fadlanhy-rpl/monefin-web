@@ -13,25 +13,27 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata = {
   metadataBase: new URL("https://www.monefin.web.id"),
   title: {
-    default: "MoneFin — Aplikasi Manajemen Keuangan Pribadi, 50/30/20 & AI Scan Struk",
-    template: "%s | MoneFin",
+    default:
+      "MoneFin — Platform Manajemen Keuangan Pribadi Gratis & AI Advisor",
+    template: "%s | MoneFin — Platform Manajemen Keuangan Pribadi Gratis",
   },
   description:
-    "Kelola keuangan pribadi otomatis dengan aturan 50/30/20, multi-mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja Panjang (1–8 Foto), Split Bill cerdas, dan AI Financial Advisor BYOK gratis.",
+    "MoneFin adalah platform manajemen keuangan pribadi gratis di Indonesia. Catat pemasukan & pengeluaran harian, alokasi gaji 50/30/20 otomatis, multi-mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja (1–8 Foto), dan Split Bill cerdas.",
   applicationName: "MoneFin",
   keywords: [
-    "monefin",
-    "aplikasi keuangan pribadi",
-    "catat keuangan harian",
+    "platform manajemen keuangan pribadi gratis",
+    "aplikasi manajemen keuangan pribadi gratis",
+    "aplikasi keuangan pribadi gratis",
     "manajemen keuangan pribadi",
+    "catat keuangan harian gratis",
+    "aplikasi pengatur keuangan pribadi",
     "aturan 50/30/20",
     "scan struk belanja ai",
-    "aplikasi split bill",
+    "aplikasi split bill gratis",
     "multi currency finance tracker",
-    "financial tracker indonesia",
-    "ai financial advisor",
-    "catat pemasukan dan pengeluaran",
-    "budgeting indonesia",
+    "financial tracker indonesia gratis",
+    "ai financial advisor indonesia",
+    "monefin",
   ],
   authors: [{ name: "MoneFin Team", url: "https://www.monefin.web.id" }],
   creator: "MoneFin",
@@ -55,24 +57,26 @@ export const metadata = {
     locale: "id_ID",
     alternateLocale: ["en_US"],
     url: "https://www.monefin.web.id",
-    title: "MoneFin — Platform Manajemen Keuangan Pribadi, 50/30/20 & AI Vision",
+    title:
+      "MoneFin — Platform Manajemen Keuangan Pribadi Gratis & AI Financial Advisor",
     description:
-      "Otomatisasi alokasi gaji 50/30/20, pantau kekayaan bersih di 4 mata uang (IDR, USD, EUR, SGD), scan struk belanja panjang 1–8 foto dengan Gemini 3.6 Vision, dan Split Bill instan.",
+      "Platform manajemen keuangan pribadi gratis untuk mencatat arus kas harian, otomatisasi alokasi gaji 50/30/20, konversi 4 mata uang (IDR, USD, EUR, SGD), AI Scan Struk 1–8 foto, dan Split Bill.",
     siteName: "MoneFin",
     images: [
       {
         url: "/images/logo-monefin-app-icon.png",
         width: 800,
         height: 800,
-        alt: "MoneFin — Platform Manajemen Keuangan Pribadi Cerdas",
+        alt: "MoneFin — Platform Manajemen Keuangan Pribadi Gratis",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MoneFin — Manajemen Keuangan Pribadi, 50/30/20 & AI Scan Struk",
+    title:
+      "MoneFin — Platform Manajemen Keuangan Pribadi Gratis & AI Scan Struk",
     description:
-      "Kelola keuangan pribadi lebih terarah: Alokasi 50/30/20 otomatis, Multi-Mata Uang (IDR/USD/EUR/SGD), AI Scan Struk 1–8 Foto, dan Split Bill. 100% Gratis & Aman.",
+      "Platform manajemen keuangan pribadi gratis dengan Alokasi 50/30/20 otomatis, Multi-Mata Uang (IDR/USD/EUR/SGD), AI Scan Struk 1–8 Foto, dan Split Bill.",
     images: ["/images/logo-monefin-app-icon.png"],
   },
   robots: {
@@ -103,10 +107,14 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": "https://www.monefin.web.id/#website",
       url: "https://www.monefin.web.id",
-      name: "MoneFin",
-      alternateName: ["MoneFin Indonesia", "MoneFin Personal Finance"],
+      name: "MoneFin — Platform Manajemen Keuangan Pribadi Gratis",
+      alternateName: [
+        "MoneFin",
+        "MoneFin Indonesia",
+        "Platform Manajemen Keuangan Pribadi Gratis MoneFin",
+      ],
       description:
-        "Platform Manajemen Keuangan Pribadi dengan Alokasi 50/30/20 Otomatis, Multi-Mata Uang (IDR, USD, EUR, SGD), AI Scan Struk 1–8 Foto, dan Smart Split Bill.",
+        "MoneFin adalah platform manajemen keuangan pribadi gratis di Indonesia dengan Alokasi 50/30/20 Otomatis, Multi-Mata Uang (IDR, USD, EUR, SGD), AI Scan Struk 1–8 Foto, dan Smart Split Bill.",
       inLanguage: ["id-ID", "en-US"],
       publisher: {
         "@id": "https://www.monefin.web.id/#organization",
@@ -129,18 +137,22 @@ const jsonLd = {
     {
       "@type": "SoftwareApplication",
       "@id": "https://www.monefin.web.id/#app",
-      name: "MoneFin",
+      name: "MoneFin — Platform Manajemen Keuangan Pribadi Gratis",
       applicationCategory: "FinanceApplication",
+      applicationSubCategory: "Personal Finance Management",
       operatingSystem: "Web, Android, iOS",
       url: "https://www.monefin.web.id",
+      isAccessibleForFree: true,
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "IDR",
+        description: "100% Gratis Selamanya Tanpa Iklan",
       },
       description:
-        "Aplikasi pencatatan dan manajemen keuangan pribadi cerdas dengan alokasi 50/30/20 otomatis, konversi kurs 4 mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja Panjang (1–8 Foto), dan Smart Split Bill.",
+        "Platform manajemen keuangan pribadi gratis untuk mencatat pemasukan & pengeluaran, alokasi 50/30/20 otomatis, konversi kurs 4 mata uang (IDR, USD, EUR, SGD), AI Scan Struk Belanja Panjang (1–8 Foto), dan Smart Split Bill.",
       featureList: [
+        "Platform Manajemen Keuangan Pribadi Gratis 100% Tanpa Iklan",
         "Alokasi Anggaran 50/30/20 Otomatis & Kustom",
         "Multi-Akun & Konversi Kurs 4 Mata Uang (IDR, USD, EUR, SGD)",
         "AI Scan Struk Belanja Panjang & Gabungan (1–8 Foto sekaligus dengan Gemini 3.6 Vision BYOK)",
