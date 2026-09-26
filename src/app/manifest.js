@@ -9,8 +9,8 @@ export default function manifest() {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#f4f7f6",
-    theme_color: "#00685F",
+    background_color: "#041714",
+    theme_color: "#041714",
     categories: ["finance", "productivity", "utilities"],
     icons: [
       {

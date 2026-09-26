@@ -106,6 +106,7 @@ export function AuthProvider({ children }) {
           if (parsedUser) {
             setUser((prev) => prev || parsedUser);
             setIsAuthenticated(true);
+            setLoading(false);
           }
         } catch {
           localStorage.removeItem("user_data");

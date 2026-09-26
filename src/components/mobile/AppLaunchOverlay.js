@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import {
   ArrowUpRight,
@@ -11,26 +11,13 @@ import {
   Play,
 } from "lucide-react";
 
-function subscribeNoop() {
-  return () => {};
-}
-
-function getStandaloneModeSnapshot() {
-  if (typeof window === "undefined") return false;
-  if (window.sessionStorage.getItem("monefin_launch_shown") === "1") {
-    return false;
-  }
-  const isStandaloneDisplay =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-  const params = new URLSearchParams(window.location.search);
-  const forceLaunch = params.get("launch") === "1" || params.get("source") === "apk";
-  return Boolean(isStandaloneDisplay || forceLaunch);
-}
+// Module-level flag so internal route changes (/dashboard -> /transactions -> /dashboard)
+// never replay the splash once the initial cold boot has completed.
+let hasCompletedColdBoot = false;
 
 /**
  * 60fps Lightweight Financial Streamline Canvas for the Mobile Launch Screen
- * Mirrors HeroInteractiveCanvas.js aesthetic while optimized for mobile viewports.
+ * Mirrors HeroInteractiveCanvas.js aesthetic while optimized for mobile GPU compositing.
  */
 function LaunchStreamlineCanvas() {
   const canvasRef = useRef(null);
@@ -46,18 +33,18 @@ function LaunchStreamlineCanvas() {
     let height = 0;
 
     const lines = [
-      { ratio: 0.2, amp: 24, freq: 0.004, speed: 0.0018, phase: 0, color: "rgba(16, 185, 129, 0.25)", w: 1.5 },
-      { ratio: 0.38, amp: 32, freq: 0.0032, speed: 0.0014, phase: 1.7, color: "rgba(45, 212, 191, 0.28)", w: 1.8 },
-      { ratio: 0.56, amp: 28, freq: 0.0038, speed: 0.0021, phase: 3.1, color: "rgba(0, 240, 160, 0.22)", w: 1.4 },
-      { ratio: 0.74, amp: 34, freq: 0.0029, speed: 0.0016, phase: 4.4, color: "rgba(16, 185, 129, 0.2)", w: 1.6 },
-      { ratio: 0.88, amp: 20, freq: 0.0045, speed: 0.0023, phase: 5.2, color: "rgba(45, 212, 191, 0.16)", w: 1.2 },
+      { ratio: 0.2, amp: 22, freq: 0.004, speed: 0.0018, phase: 0, color: "rgba(16, 185, 129, 0.24)", w: 1.5 },
+      { ratio: 0.38, amp: 30, freq: 0.0032, speed: 0.0014, phase: 1.7, color: "rgba(45, 212, 191, 0.26)", w: 1.8 },
+      { ratio: 0.56, amp: 26, freq: 0.0038, speed: 0.0021, phase: 3.1, color: "rgba(0, 240, 160, 0.2)", w: 1.4 },
+      { ratio: 0.74, amp: 32, freq: 0.0029, speed: 0.0016, phase: 4.4, color: "rgba(16, 185, 129, 0.18)", w: 1.6 },
+      { ratio: 0.88, amp: 18, freq: 0.0045, speed: 0.0023, phase: 5.2, color: "rgba(45, 212, 191, 0.15)", w: 1.2 },
     ];
 
     const pulses = [
-      { lineIdx: 0, progress: 0.15, speed: 0.0045, r: 3.5 },
-      { lineIdx: 1, progress: 0.55, speed: 0.0055, r: 4 },
-      { lineIdx: 2, progress: 0.3, speed: 0.005, r: 3.5 },
-      { lineIdx: 3, progress: 0.75, speed: 0.004, r: 4 },
+      { lineIdx: 0, progress: 0.18, speed: 0.0045, r: 3.5 },
+      { lineIdx: 1, progress: 0.58, speed: 0.0055, r: 4 },
+      { lineIdx: 2, progress: 0.34, speed: 0.005, r: 3.5 },
+      { lineIdx: 3, progress: 0.76, speed: 0.004, r: 4 },
     ];
 
     const resize = () => {
@@ -81,7 +68,7 @@ function LaunchStreamlineCanvas() {
         ctx.strokeStyle = line.color;
         ctx.lineWidth = line.w;
         const baseY = height * line.ratio;
-        for (let x = 0; x <= width; x += 8) {
+        for (let x = 0; x <= width; x += 10) {
           const y =
             baseY +
             Math.sin(x * line.freq + time * line.speed + line.phase) * line.amp +
@@ -137,32 +124,30 @@ function LaunchStreamlineCanvas() {
 }
 
 /**
- * Shared Inner Visual Scene for both Fullscreen Standalone Launch & Interactive Phone Preview
- * Follows UI/UX Laws:
- * 1. Doherty Threshold (< 400ms initial response, ~1.8s choreographed completion)
- * 2. Miller's Law (Chunked into 4 clear visual focal points: Brand Core, Cockpit Card, 2 Satellite Pills, Sync Bar)
- * 3. Peak-End Rule & Labor Illusion (Live counting Net Worth + 50/30/20 allocation fill + security verification)
+ * Shared Inner Visual Scene for both Fullscreen Boot Splash & Interactive Phone Preview.
+ * Rendered immediately at Frame 0 (including SSR) so it appears right after the OS MoneFin logo
+ * without any intermediate spinner.
  */
-export function HeroLaunchScene({ progress = 100, isEn = false, compact = false }) {
+export function HeroLaunchScene({ progress = 20, isEn = false, compact = false }) {
+  const clamped = Math.max(15, Math.min(100, progress));
   const targetBalance = 48750000;
-  const animatedBalance = Math.round(
-    targetBalance * Math.min(1, Math.pow(progress / 85, 0.85))
-  );
+  // Smooth ease-out curve for the Net Worth counter
+  const normalized = Math.min(1, Math.max(0, (clamped - 15) / 78));
+  const eased = 1 - Math.pow(1 - normalized, 3);
+  const animatedBalance = Math.round(targetBalance * (0.18 + 0.82 * eased));
 
-  const formatIdr = (val) =>
-    "Rp " + val.toLocaleString("id-ID");
+  const formatIdr = (val) => "Rp " + val.toLocaleString("id-ID");
 
-  const splitReady = progress >= 25;
-  const needsWidth = splitReady ? Math.min(50, ((progress - 20) / 65) * 50) : 0;
-  const wantsWidth = splitReady ? Math.min(30, ((progress - 25) / 65) * 30) : 0;
-  const savingsWidth = splitReady ? Math.min(20, ((progress - 30) / 65) * 20) : 0;
+  const needsWidth = Math.min(50, (0.25 + 0.75 * eased) * 50);
+  const wantsWidth = Math.min(30, (0.2 + 0.8 * eased) * 30);
+  const savingsWidth = Math.min(20, (0.15 + 0.85 * eased) * 20);
 
   const statusLabel =
-    progress < 38
+    clamped < 45
       ? isEn
         ? "Initializing 256-Bit Encrypted Vault..."
         : "Menginisialisasi Brankas Enkripsi 256-Bit..."
-      : progress < 82
+      : clamped < 88
       ? isEn
         ? "Syncing 50/30/20 Allocation & Multi-Currency..."
         : "Menyinkronkan Alokasi 50/30/20 & Multi-Mata Uang..."
@@ -180,7 +165,11 @@ export function HeroLaunchScene({ progress = 100, isEn = false, compact = false 
       <div className="absolute bottom-10 -right-16 w-64 h-64 rounded-full bg-teal-400/15 blur-3xl pointer-events-none" />
 
       {/* Top Status & Brand Header (Focal Point 1) */}
-      <div className={`relative z-10 px-4 ${compact ? "pt-5" : "pt-8 sm:pt-10"} flex flex-col items-center text-center`}>
+      <div
+        className={`relative z-10 px-4 ${
+          compact ? "pt-5" : "pt-8 sm:pt-10"
+        } flex flex-col items-center text-center`}
+      >
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-emerald-400/30 backdrop-blur-md shadow-lg">
           <div className="w-6 h-6 rounded-full bg-brand-600 flex items-center justify-center shadow-sm shadow-emerald-500/40">
             <img
@@ -201,10 +190,9 @@ export function HeroLaunchScene({ progress = 100, isEn = false, compact = false 
       <div className="relative z-10 px-4 my-auto space-y-2.5 max-w-sm mx-auto w-full">
         {/* Satellite Pill 1: Live Cashflow In (Top-Left Floating) */}
         <div
-          className="flex items-center gap-2.5 bg-white/95 text-slate-900 rounded-2xl px-3 py-2 shadow-xl border border-emerald-200/80 max-w-[235px] transition-all duration-500"
+          className="flex items-center gap-2.5 bg-white/95 text-slate-900 rounded-2xl px-3 py-2 shadow-xl border border-emerald-200/80 max-w-[235px] animate-float-subtle"
           style={{
-            opacity: progress >= 15 ? 1 : 0,
-            transform: `translateY(${progress >= 15 ? 0 : 12}px)`,
+            willChange: "transform, opacity",
           }}
         >
           <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
@@ -226,12 +214,11 @@ export function HeroLaunchScene({ progress = 100, isEn = false, compact = false 
           </div>
         </div>
 
-        {/* Central Hero Cockpit Console Card */}
+        {/* Central Hero Cockpit Console Card (Visible from Frame 0 right after MoneFin logo) */}
         <div
-          className="bg-white/95 backdrop-blur-2xl text-slate-900 rounded-3xl p-4 shadow-2xl border-2 border-emerald-400/40 space-y-3 transition-all duration-500"
+          className="bg-white/95 backdrop-blur-2xl text-slate-900 rounded-3xl p-4 shadow-2xl border-2 border-emerald-400/40 space-y-3"
           style={{
-            opacity: progress >= 5 ? 1 : 0,
-            transform: `scale(${progress >= 5 ? 1 : 0.95})`,
+            willChange: "transform, opacity",
           }}
         >
           {/* Cockpit Header */}
@@ -307,15 +294,15 @@ export function HeroLaunchScene({ progress = 100, isEn = false, compact = false 
             </div>
             <div className="w-full h-2 rounded-full overflow-hidden flex bg-slate-200">
               <div
-                className="bg-brand-600 h-full transition-all duration-150"
+                className="bg-brand-600 h-full"
                 style={{ width: `${needsWidth}%` }}
               />
               <div
-                className="bg-emerald-500 h-full transition-all duration-150"
+                className="bg-emerald-500 h-full"
                 style={{ width: `${wantsWidth}%` }}
               />
               <div
-                className="bg-amber-500 h-full transition-all duration-150"
+                className="bg-amber-500 h-full"
                 style={{ width: `${savingsWidth}%` }}
               />
             </div>
@@ -335,10 +322,9 @@ export function HeroLaunchScene({ progress = 100, isEn = false, compact = false 
 
         {/* Satellite Pill 2: Financial Health Score (Bottom-Right Floating) */}
         <div
-          className="ml-auto flex items-center gap-2.5 bg-[#091A17]/95 text-white rounded-2xl px-3 py-2 shadow-xl border border-emerald-500/40 max-w-[225px] transition-all duration-500"
+          className="ml-auto flex items-center gap-2.5 bg-[#091A17]/95 text-white rounded-2xl px-3 py-2 shadow-xl border border-emerald-500/40 max-w-[225px] animate-float-subtle-reverse"
           style={{
-            opacity: progress >= 35 ? 1 : 0,
-            transform: `translateY(${progress >= 35 ? 0 : 12}px)`,
+            willChange: "transform, opacity",
           }}
         >
           <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
@@ -356,22 +342,26 @@ export function HeroLaunchScene({ progress = 100, isEn = false, compact = false 
         </div>
       </div>
 
-      {/* Bottom Progress & Security Telemetry (Focal Point 4 — Labor Illusion & Doherty Threshold) */}
-      <div className={`relative z-10 px-5 ${compact ? "pb-5" : "pb-8 sm:pb-10"} max-w-sm mx-auto w-full space-y-2`}>
+      {/* Bottom Progress & Security Telemetry (Focal Point 4) */}
+      <div
+        className={`relative z-10 px-5 ${
+          compact ? "pb-5" : "pb-8 sm:pb-10"
+        } max-w-sm mx-auto w-full space-y-2`}
+      >
         <div className="flex items-center justify-between text-[11px] font-bold text-emerald-200/90">
           <span className="flex items-center gap-1.5 truncate">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span className="truncate">{statusLabel}</span>
           </span>
           <span className="font-black text-emerald-400 tabular-nums shrink-0 ml-2">
-            {Math.min(100, Math.round(progress))}%
+            {Math.min(100, Math.round(clamped))}%
           </span>
         </div>
 
         <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-brand-500 via-emerald-400 to-teal-300 transition-all duration-75"
-            style={{ width: `${Math.min(100, progress)}%` }}
+            className="h-full rounded-full bg-gradient-to-r from-brand-500 via-emerald-400 to-teal-300"
+            style={{ width: `${Math.min(100, clamped)}%` }}
           />
         </div>
       </div>
@@ -386,17 +376,17 @@ export function HeroLaunchScene({ progress = 100, isEn = false, compact = false 
 export function ApkLaunchPhonePreview() {
   const { language } = useLanguage();
   const isEn = language === "en";
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(18);
   const [runId, setRunId] = useState(0);
 
   useEffect(() => {
     let raf = null;
-    const duration = 1850; // Doherty Threshold & NN/g optimal 1.85s choreographed boot
+    const duration = 1600;
     const start = performance.now();
 
     const step = (now) => {
       const elapsed = now - start;
-      const pct = Math.min(100, (elapsed / duration) * 100);
+      const pct = Math.min(100, 18 + (elapsed / duration) * 82);
       setProgress(pct);
       if (pct < 100) {
         raf = requestAnimationFrame(step);
@@ -410,7 +400,7 @@ export function ApkLaunchPhonePreview() {
   }, [runId]);
 
   const handleReplay = useCallback(() => {
-    setProgress(0);
+    setProgress(18);
     setRunId((prev) => prev + 1);
   }, []);
 
@@ -442,7 +432,7 @@ export function ApkLaunchPhonePreview() {
         </div>
       </div>
 
-      {/* Controls & UI/UX Law Caption Below Phone */}
+      {/* Controls Below Phone */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
         <button
           onClick={handleReplay}
@@ -451,8 +441,8 @@ export function ApkLaunchPhonePreview() {
           <Play className="w-3.5 h-3.5 fill-emerald-400 text-emerald-400" />
           <span>
             {isEn
-              ? "Replay APK Startup Animation (1.8s)"
-              : "Putar Ulang Animasi Saat APK Dibuka (1.8 dtk)"}
+              ? "Replay APK Startup Animation"
+              : "Putar Ulang Animasi Saat APK Dibuka"}
           </span>
         </button>
       </div>
@@ -461,47 +451,55 @@ export function ApkLaunchPhonePreview() {
 }
 
 /**
- * Fullscreen Standalone Launch Overlay for Installed APK / iOS Home Screen Web App
- * Triggers once per session on standalone cold start, adhering to Doherty Threshold (~1.8s)
- * and allowing instant tap-to-skip (User Control & Freedom).
+ * Unified Boot Splash Overlay rendered directly by DashboardLayout from SSR Frame 0.
+ * Eliminates the old "Memuat dashboard..." spinner before the splash, pre-renders the
+ * dashboard underneath while animating, and executes a silky 550ms cubic-bezier cross-fade.
  */
-export function AppLaunchOverlay() {
+export function DashboardBootSplash({ isReady, onComplete }) {
   const { language } = useLanguage();
   const isEn = language === "en";
-  const isStandalone = useSyncExternalStore(
-    subscribeNoop,
-    getStandaloneModeSnapshot,
-    () => false
-  );
-
-  const [dismissed, setDismissed] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [fadingOut, setFadingOut] = useState(false);
+  const [progress, setProgress] = useState(22);
+  const [exiting, setExiting] = useState(false);
+  const isReadyRef = useRef(isReady);
 
   useEffect(() => {
-    if (!isStandalone || typeof window === "undefined") return undefined;
+    isReadyRef.current = isReady;
+  }, [isReady]);
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    const duration = prefersReducedMotion ? 400 : 1800;
+  useEffect(() => {
+    if (hasCompletedColdBoot) {
+      if (onComplete) onComplete();
+      return undefined;
+    }
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const minDuration = prefersReducedMotion ? 350 : 1250;
+    const maxWait = 2400;
     const start = performance.now();
     let raf = null;
-    let fadeTimer = null;
+    let exitTimer = null;
 
     const tick = (now) => {
       const elapsed = now - start;
-      const pct = Math.min(100, (elapsed / duration) * 100);
-      setProgress(pct);
+      const rawPct = 22 + (elapsed / minDuration) * 78;
 
-      if (pct < 100) {
+      if (elapsed < minDuration) {
+        setProgress(Math.min(96, rawPct));
+        raf = requestAnimationFrame(tick);
+      } else if (!isReadyRef.current && elapsed < maxWait) {
+        // Hold smoothly at 97-99% while waiting for Auth/Dashboard ready
+        const holdPct = Math.min(99, 96 + ((elapsed - minDuration) / (maxWait - minDuration)) * 3);
+        setProgress(holdPct);
         raf = requestAnimationFrame(tick);
       } else {
-        setFadingOut(true);
-        window.sessionStorage.setItem("monefin_launch_shown", "1");
-        fadeTimer = setTimeout(() => {
-          setDismissed(true);
-        }, 320);
+        setProgress(100);
+        setExiting(true);
+        hasCompletedColdBoot = true;
+        exitTimer = setTimeout(() => {
+          if (onComplete) onComplete();
+        }, 520);
       }
     };
 
@@ -509,18 +507,18 @@ export function AppLaunchOverlay() {
 
     return () => {
       if (raf) cancelAnimationFrame(raf);
-      if (fadeTimer) clearTimeout(fadeTimer);
+      if (exitTimer) clearTimeout(exitTimer);
     };
-  }, [isStandalone]);
-
-  if (!isStandalone || dismissed) return null;
+  }, [onComplete]);
 
   const handleSkip = () => {
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("monefin_launch_shown", "1");
-    }
-    setFadingOut(true);
-    setTimeout(() => setDismissed(true), 200);
+    if (!isReadyRef.current) return;
+    setProgress(100);
+    setExiting(true);
+    hasCompletedColdBoot = true;
+    setTimeout(() => {
+      if (onComplete) onComplete();
+    }, 350);
   };
 
   return (
@@ -528,11 +526,22 @@ export function AppLaunchOverlay() {
       onClick={handleSkip}
       role="status"
       aria-label="MoneFin Live Financial Cockpit Launching"
-      className={`fixed inset-0 z-[9999] transition-opacity duration-300 ${
-        fadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
+      style={{
+        transition:
+          "opacity 520ms cubic-bezier(0.22, 1, 0.36, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1)",
+        willChange: "opacity, transform",
+      }}
+      className={`fixed inset-0 z-[9999] ${
+        exiting
+          ? "opacity-0 scale-[1.035] pointer-events-none"
+          : "opacity-100 scale-100"
       }`}
     >
       <HeroLaunchScene progress={progress} isEn={isEn} />
     </div>
   );
+}
+
+export function isColdBootCompleted() {
+  return hasCompletedColdBoot;
 }

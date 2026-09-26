@@ -42,11 +42,11 @@ export const Navbar = ({ isLoggedIn }) => {
 
         {/* 2–6. Desktop Nav Links (5 items) */}
         <div className="hidden lg:flex items-center gap-3.5 xl:gap-6 text-xs xl:text-sm font-bold text-slate-800">
-          <a href="#features" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.features")}</a>
-          <a href="#simulator" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.simulator")}</a>
-          <a href="#comparison" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.comparison")}</a>
-          <a href="#testimonials" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.testimonials")}</a>
-          <a href="#faq" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.faq")}</a>
+          <Link href="/#features" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.features")}</Link>
+          <Link href="/#simulator" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.simulator")}</Link>
+          <Link href="/#comparison" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.comparison")}</Link>
+          <Link href="/#testimonials" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.testimonials")}</Link>
+          <Link href="/#faq" className="hover:text-brand-600 transition-colors whitespace-nowrap">{t("nav.faq")}</Link>
         </div>
 
         {/* 7–9. Desktop Actions (Unified Locale/Currency + Sign In + Get Started = 3 items, total 9 in Navbar row) */}
@@ -97,11 +97,11 @@ export const Navbar = ({ isLoggedIn }) => {
       {/* Mobile / Tablet Dropdown */}
       {mobileMenuOpen && (
         <div className="pointer-events-auto lg:hidden mt-2 bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-3 animate-popIn text-sm">
-          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.features")}</a>
-          <a href="#simulator" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.simulator")}</a>
-          <a href="#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.comparison")}</a>
-          <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.testimonials")}</a>
-          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.faq")}</a>
+          <Link href="/#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.features")}</Link>
+          <Link href="/#simulator" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.simulator")}</Link>
+          <Link href="/#comparison" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.comparison")}</Link>
+          <Link href="/#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.testimonials")}</Link>
+          <Link href="/#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-800 hover:text-brand-600 font-bold py-2 border-b border-slate-100 transition-colors">{t("nav.faq")}</Link>
           <Link
             href="/download"
             onClick={() => setMobileMenuOpen(false)}
