@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { aiInsights } from "../../services/ai.service";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
+import { useCurrency } from "../../hooks/useCurrency";
 import ScoreGauge from "./health/ScoreGauge";
 import InsightTipItem from "./health/InsightTipItem";
 import HealthDetailModal from "./health/HealthDetailModal";
@@ -23,6 +24,7 @@ export default function AiInsightsCard() {
   const { user } = useAuth();
   const router = useRouter();
   const { language } = useLanguage();
+  const { replaceInlineCurrency } = useCurrency();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -206,7 +208,8 @@ export default function AiInsightsCard() {
 
   const score = data?.health_score ?? 50;
   const label = data?.score_label ?? (score >= 60 ? (language === "en" ? "Healthy" : "Sehat") : (language === "en" ? "Fair" : "Cukup"));
-  const summary = data?.weekly_summary ?? (language === "id" ? "Kondisi keuangan Anda dalam keadaan stabil. Pertahankan pencatatan rutin!" : "Your financial status is stable. Keep up regular tracking!");
+  const rawSummary = data?.weekly_summary ?? (language === "id" ? "Kondisi keuangan Anda dalam keadaan stabil. Pertahankan pencatatan rutin!" : "Your financial status is stable. Keep up regular tracking!");
+  const summary = replaceInlineCurrency(rawSummary);
 
   const isEn = language === "en";
   const defaultTips = [
@@ -250,8 +253,12 @@ export default function AiInsightsCard() {
       }
     }
   }
-  const tips = rawTips.slice(0, 3);
-  const positive = data?.positive_note;
+  const tips = rawTips.slice(0, 3).map((tip) => ({
+    ...tip,
+    title: replaceInlineCurrency(tip.title),
+    body: replaceInlineCurrency(tip.body),
+  }));
+  const positive = replaceInlineCurrency(data?.positive_note);
 
   return (
     <>

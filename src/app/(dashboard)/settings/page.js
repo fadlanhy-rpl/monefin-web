@@ -11,12 +11,14 @@ import AiSettingsSection from "../../../components/settings/AiSettingsSection";
 import { CheckCircle2, AlertCircle, X, Settings, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../hooks/useCurrency";
 import { useSearchParams } from "next/navigation";
 import { getAvatarUrl } from "../../../lib/avatar";
 
 function SettingsContent() {
   const { user, updatePassword, updateProfile, deleteAccount } = useAuth();
   const { changeLanguage, language: currentGlobalLang, t } = useLanguage();
+  const { changeCurrency, currencyCode: currentGlobalCurrency } = useCurrency();
   const searchParams = useSearchParams();
   const isVisible = true;
   const tabParam = searchParams.get("tab");
@@ -47,7 +49,7 @@ function SettingsContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Form State - Preferences
-  const [currency, setCurrency] = useState(user?.preferences?.currency || "IDR");
+  const [currency, setCurrency] = useState(currentGlobalCurrency || user?.preferences?.currency || "IDR");
   const [language, setLanguage] = useState(currentGlobalLang || user?.preferences?.language || "id");
   const [emailNotif, setEmailNotif] = useState(user?.preferences?.emailNotif ?? true);
   const [txAlert, setTxAlert] = useState(user?.preferences?.txAlert ?? true);
@@ -71,7 +73,8 @@ function SettingsContent() {
       setAvatarUrl(resolvedPhotoUrl);
       
       if (user.preferences) {
-        setCurrency(user.preferences.currency || "IDR");
+        const activeCurr = currentGlobalCurrency || user.preferences.currency || "IDR";
+        setCurrency(activeCurr);
         const activeLang = currentGlobalLang || user.preferences.language || "id";
         setLanguage(activeLang);
         setEmailNotif(user.preferences.emailNotif ?? true);
@@ -83,11 +86,17 @@ function SettingsContent() {
     }
   }
 
-  // Sync state if global language changes
+  // Sync state if global language or currency changes
   const [prevGlobalLang, setPrevGlobalLang] = useState(currentGlobalLang);
   if (currentGlobalLang && currentGlobalLang !== prevGlobalLang) {
     setPrevGlobalLang(currentGlobalLang);
     setLanguage(currentGlobalLang);
+  }
+
+  const [prevGlobalCurrency, setPrevGlobalCurrency] = useState(currentGlobalCurrency);
+  if (currentGlobalCurrency && currentGlobalCurrency !== prevGlobalCurrency) {
+    setPrevGlobalCurrency(currentGlobalCurrency);
+    setCurrency(currentGlobalCurrency);
   }
 
   // Modal & Toast State
@@ -112,7 +121,8 @@ function SettingsContent() {
       setAvatarUrl(resolvedPhotoUrl);
       
       if (user.preferences) {
-        setCurrency(user.preferences.currency || "IDR");
+        const activeCurr = currentGlobalCurrency || user.preferences.currency || "IDR";
+        setCurrency(activeCurr);
         const activeLang = currentGlobalLang || user.preferences.language || "id";
         setLanguage(activeLang);
         setEmailNotif(user.preferences.emailNotif ?? true);
@@ -163,6 +173,7 @@ function SettingsContent() {
 
       const result = await updateProfile(formData);
       if (result.success) {
+        changeCurrency(currency, { syncBackend: false });
         setAvatarFile(null);
         // Sync nama dari hasil save agar avatar fallback langsung benar
         if (result.user?.name) {
@@ -260,8 +271,9 @@ function SettingsContent() {
 
       const result = await updateProfile(formData);
       if (result.success) {
-        // Apply the language globally only after saving
+        // Apply the language & currency globally immediately after saving
         changeLanguage(language);
+        changeCurrency(currency, { syncBackend: false });
         showToast(language === 'en' ? "Application preferences successfully saved." : "Preferensi aplikasi berhasil disimpan.");
       } else {
         showToast(result.error || (language === 'en' ? "Failed to save preferences." : "Gagal menyimpan preferensi."));

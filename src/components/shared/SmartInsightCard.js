@@ -5,6 +5,7 @@ import { Sparkles, Settings2, Lightbulb, TrendingUp, Target, AlertTriangle, Pigg
 import { useRouter } from "next/navigation";
 import { getSmartInsight } from "../../services/smart-insight.service";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const TYPE_CONFIG = {
   saving:  { icon: PiggyBank,    color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -25,6 +26,7 @@ const TYPE_CONFIG = {
 export default function SmartInsightCard({ page, className = "", onActionClick }) {
   const router = useRouter();
   const { language } = useLanguage();
+  const { replaceInlineCurrency } = useCurrency();
   const [insight, setInsight]   = useState(null);
   const [loading, setLoading]   = useState(true);
 
@@ -156,10 +158,10 @@ export default function SmartInsightCard({ page, className = "", onActionClick }
         </div>
 
         <h4 className="font-extrabold text-xl sm:text-2xl tracking-tight leading-tight">
-          {insight.title}
+          {replaceInlineCurrency(insight.title)}
         </h4>
         <p className="text-white/95 mt-3 text-xs sm:text-sm leading-relaxed font-medium">
-          {insight.body}
+          {replaceInlineCurrency(insight.body)}
         </p>
 
       </div>

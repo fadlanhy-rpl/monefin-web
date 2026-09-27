@@ -21,7 +21,7 @@ import { useCurrency } from "../../hooks/useCurrency";
 
 export default function SmartInsight({ status = null, savings = 0 }) {
   const { t, language } = useLanguage();
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, replaceInlineCurrency } = useCurrency();
   const [isVisible, setIsVisible] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -122,7 +122,7 @@ export default function SmartInsight({ status = null, savings = 0 }) {
 
               {/* Message / Description */}
               <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed font-medium">
-                {status?.message || t("dashboard.smart_insight_empty") || 'Silakan atur uang saku terlebih dahulu di halaman Transaksi Rutin atau simulasi.'}
+                {replaceInlineCurrency(status?.message) || t("dashboard.smart_insight_empty") || 'Silakan atur uang saku terlebih dahulu di halaman Transaksi Rutin atau simulasi.'}
               </p>
 
               {/* Learn More Link for Empty State */}
