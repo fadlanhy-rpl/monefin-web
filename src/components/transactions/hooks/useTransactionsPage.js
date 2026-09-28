@@ -11,6 +11,7 @@ import {
 } from "../../../services/transaction.service";
 import { getCategories } from "../../../services/category.service";
 import { getAccounts } from "../../../services/account.service";
+import { getBootstrapSnapshot } from "../../../services/bootstrap.service";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useCurrency } from "../../../hooks/useCurrency";
 import { formatDate } from "../../../lib/utils";
@@ -18,9 +19,20 @@ import { formatDate } from "../../../lib/utils";
 function formatDateInput(dateStr) {
   if (!dateStr) return "";
   if (dateStr.includes("-")) {
-    return dateStr.split(" ")[0];
+    return dateStr.split(" ")[0].split("T")[0];
   }
   return dateStr;
+}
+
+/**
+ * Format Date object to YYYY-MM-DD in the user's LOCAL timezone (e.g. WIB / UTC+7),
+ * avoiding the UTC shift bug of toISOString() between 00:00 and 07:00 WIB.
+ */
+function toLocalDateString(date = new Date()) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 export function useTransactionsPage() {
@@ -39,11 +51,17 @@ export function useTransactionsPage() {
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   
-  // Data State
+  // Data State (hydrated synchronously from bootstrap snapshot if available)
   const [transactions, setTransactions] = useState([]);
   const [paginationMeta, setPaginationMeta] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const [categories, setCategories] = useState(() => {
+    const snap = getBootstrapSnapshot();
+    return Array.isArray(snap?.categories) && snap.categories.length > 0 ? snap.categories : [];
+  });
+  const [accounts, setAccounts] = useState(() => {
+    const snap = getBootstrapSnapshot();
+    return Array.isArray(snap?.accounts) && snap.accounts.length > 0 ? snap.accounts : [];
+  });
   const [stats, setStats] = useState({ income: 0, expense: 0, net: 0 });
 
   // Modal & Confirm States
@@ -61,7 +79,7 @@ export function useTransactionsPage() {
   const [formAmount, setFormAmount] = useState("");
   const [formCategoryId, setFormCategoryId] = useState("");
   const [formAccountId, setFormAccountId] = useState("");
-  const [formDate, setFormDate] = useState("");
+  const [formDate, setFormDate] = useState(() => toLocalDateString());
   const [formNote, setFormNote] = useState("");
 
   const isVisible = true;
@@ -105,32 +123,81 @@ export function useTransactionsPage() {
     return () => window.removeEventListener("header-search", handleHeaderSearch);
   }, []);
 
-  // Fetch Categories and Accounts on mount
-  useEffect(() => {
-    let ignore = false;
-    const fetchDropdownData = async () => {
-      try {
-        const [catRes, accRes] = await Promise.all([
-          getCategories(),
-          getAccounts(),
-        ]);
-        if (!ignore) {
-          if (catRes.data) setCategories(catRes.data);
-          if (accRes.data) setAccounts(accRes.data);
-        }
-      } catch (error) {
-        if (!ignore && error?.status !== 401) {
-          console.error("Error fetching categories or accounts:", error.message || error);
-        }
+  // Resilient fetcher for Categories and Accounts (with automatic force-refresh fallback when empty)
+  const fetchDropdownData = useCallback(async (force = false) => {
+    try {
+      const [catSettled, accSettled] = await Promise.allSettled([
+        getCategories("", force).then(async (res) => {
+          if (!force && (!Array.isArray(res?.data) || res.data.length === 0)) {
+            return await getCategories("", true);
+          }
+          return res;
+        }),
+        getAccounts(force).then(async (res) => {
+          if (!force && (!Array.isArray(res?.data) || res.data.length === 0)) {
+            return await getAccounts(true);
+          }
+          return res;
+        }),
+      ]);
+
+      if (catSettled.status === "fulfilled" && Array.isArray(catSettled.value?.data) && catSettled.value.data.length > 0) {
+        setCategories(catSettled.value.data);
       }
-    };
-    fetchDropdownData();
-    return () => {
-      ignore = true;
-    };
+      if (accSettled.status === "fulfilled" && Array.isArray(accSettled.value?.data) && accSettled.value.data.length > 0) {
+        setAccounts(accSettled.value.data);
+      }
+    } catch (error) {
+      if (error?.status !== 401) {
+        console.error("Error fetching categories or accounts:", error?.message || error);
+      }
+    }
   }, []);
 
-  // Compute date range based on dateFilter
+  // Fetch Categories and Accounts on mount + listen to /api/bootstrap completion
+  useEffect(() => {
+    fetchDropdownData(false);
+
+    const handleBootstrapReady = (e) => {
+      const bundle = e?.detail || getBootstrapSnapshot();
+      if (Array.isArray(bundle?.categories) && bundle.categories.length > 0) {
+        setCategories(bundle.categories);
+      }
+      if (Array.isArray(bundle?.accounts) && bundle.accounts.length > 0) {
+        setAccounts(bundle.accounts);
+      }
+    };
+
+    window.addEventListener("monefin:bootstrap-ready", handleBootstrapReady);
+    return () => {
+      window.removeEventListener("monefin:bootstrap-ready", handleBootstrapReady);
+    };
+  }, [fetchDropdownData]);
+
+  // Auto-populate default Category (matching formType) and Account when modal is open or data arrives on cold start
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    if (accounts.length > 0) {
+      const accountExists = accounts.some((a) => String(a.id) === String(formAccountId));
+      if (!formAccountId || !accountExists) {
+        setFormAccountId(accounts[0].id);
+      }
+    }
+
+    if (categories.length > 0) {
+      const matchingCategories = categories.filter((c) =>
+        formType === "expense" ? c.type === "expense" || !c.type : c.type === "income" || !c.type
+      );
+      const pool = matchingCategories.length > 0 ? matchingCategories : categories;
+      const currentInPool = pool.some((c) => String(c.id) === String(formCategoryId));
+      if (!formCategoryId || (modalMode === "add" && !currentInPool)) {
+        setFormCategoryId(pool[0].id);
+      }
+    }
+  }, [isModalOpen, modalMode, formType, categories, accounts, formCategoryId, formAccountId]);
+
+  // Compute date range based on dateFilter using LOCAL timezone (fixes 00:00–07:00 WIB UTC bug)
   const getDateRange = useCallback(() => {
     const today = new Date();
     let start_date = null;
@@ -139,21 +206,21 @@ export function useTransactionsPage() {
     if (dateFilter === "last_7_days") {
       const lastWeek = new Date(today);
       lastWeek.setDate(today.getDate() - 7);
-      start_date = lastWeek.toISOString().split("T")[0];
-      end_date = today.toISOString().split("T")[0];
+      start_date = toLocalDateString(lastWeek);
+      end_date = toLocalDateString(today);
     } else if (dateFilter === "last_30_days") {
       const lastMonth = new Date(today);
       lastMonth.setDate(today.getDate() - 30);
-      start_date = lastMonth.toISOString().split("T")[0];
-      end_date = today.toISOString().split("T")[0];
+      start_date = toLocalDateString(lastMonth);
+      end_date = toLocalDateString(today);
     } else if (dateFilter === "this_month") {
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-      start_date = firstDay.toISOString().split("T")[0];
-      end_date = today.toISOString().split("T")[0];
+      start_date = toLocalDateString(firstDay);
+      end_date = toLocalDateString(today);
     } else if (dateFilter === "this_year") {
       const firstDay = new Date(today.getFullYear(), 0, 1);
-      start_date = firstDay.toISOString().split("T")[0];
-      end_date = today.toISOString().split("T")[0];
+      start_date = toLocalDateString(firstDay);
+      end_date = toLocalDateString(today);
     }
     
     return { start_date, end_date };
@@ -242,35 +309,43 @@ export function useTransactionsPage() {
   }, [getDateRange, page, categoryIdFilter, accountFilter, searchQuery, language]);
 
   // Action Triggers
-  const openAddModal = (initialType = "expense") => {
+  const openAddModal = useCallback((initialType = "expense") => {
+    const resolvedType = initialType === "income" ? "income" : "expense";
     setModalMode("add");
     setEditingTransaction(null);
-    setFormType(initialType === "income" ? "income" : "expense");
+    setFormType(resolvedType);
     setFormAmount("");
     setFormNote("");
-    
-    setFormCategoryId(categories.length > 0 ? categories[0].id : "");
+
+    const matchingCats = categories.filter((c) =>
+      resolvedType === "expense" ? c.type === "expense" || !c.type : c.type === "income" || !c.type
+    );
+    const defaultCat = matchingCats[0] || categories[0];
+    setFormCategoryId(defaultCat ? defaultCat.id : "");
     setFormAccountId(accounts.length > 0 ? accounts[0].id : "");
-    
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    setFormDate(`${yyyy}-${mm}-${dd}`);
-    
+    setFormDate(toLocalDateString());
     setIsModalOpen(true);
-  };
+
+    // Ensure accounts & categories are fetched immediately if still empty on cold start
+    if (categories.length === 0 || accounts.length === 0) {
+      fetchDropdownData(true);
+    }
+  }, [categories, accounts, fetchDropdownData]);
 
   const openEditModal = (t) => {
     setModalMode("edit");
     setEditingTransaction(t);
     setFormType(t.type);
     setFormAmount(String(Math.abs(t.amount)));
-    setFormCategoryId(t.category_id);
-    setFormAccountId(t.account_id);
+    setFormCategoryId(t.category_id || t.category?.id || "");
+    setFormAccountId(t.account_id || t.account?.id || "");
     setFormDate(formatDateInput(t.transaction_date));
     setFormNote(t.description || "");
     setIsModalOpen(true);
+
+    if (categories.length === 0 || accounts.length === 0) {
+      fetchDropdownData(true);
+    }
   };
 
   const closeAddEditModal = () => {
@@ -291,9 +366,23 @@ export function useTransactionsPage() {
     if (!deletingId) return;
     try {
       setIsDeleting(true);
+      const targetTx = transactions.find((tx) => String(tx.id) === String(deletingId));
       await deleteTransaction(deletingId);
+
+      // Instant UI update (0ms perceived delay)
+      setTransactions((prev) => prev.filter((tx) => String(tx.id) !== String(deletingId)));
+      if (targetTx) {
+        const amt = Math.abs(parseFloat(targetTx.amount) || 0);
+        setStats((prev) => {
+          const income = targetTx.type === "income" ? Math.max(0, prev.income - amt) : prev.income;
+          const expense = targetTx.type === "expense" ? Math.max(0, prev.expense - amt) : prev.expense;
+          return { income, expense, net: income - expense };
+        });
+      }
+
       toast.success(language === "en" ? "Transaction successfully deleted!" : "Transaksi berhasil dihapus!");
-      fetchTransactionsData(true); // bypass cache after delete
+      fetchTransactionsData(true);
+      fetchDropdownData(true);
     } catch {
       toast.error(language === "en" ? "Failed to delete transaction." : "Gagal menghapus transaksi.");
     } finally {
@@ -307,7 +396,7 @@ export function useTransactionsPage() {
     e.preventDefault();
     if (isSubmitting) return;
 
-    const amt = parseFloat(formAmount.replace(/\D/g, ""));
+    const amt = parseFloat(String(formAmount).replace(/\D/g, ""));
     if (isNaN(amt) || amt <= 0) {
       toast.error(language === "en" ? "Transaction amount must be a positive number!" : "Jumlah transaksi harus angka positif!");
       return;
@@ -339,15 +428,65 @@ export function useTransactionsPage() {
 
     try {
       setIsSubmitting(true);
+      const selectedCatObj = categories.find((c) => String(c.id) === String(formCategoryId)) || null;
+      const selectedAccObj = accounts.find((a) => String(a.id) === String(formAccountId)) || null;
+
       if (modalMode === "add") {
-        await createTransaction(payload);
+        const res = await createTransaction(payload);
+        const createdTx = res?.data
+          ? {
+              ...res.data,
+              category: res.data.category || selectedCatObj,
+              account: res.data.account || selectedAccObj,
+            }
+          : {
+              id: `temp_${Date.now()}`,
+              ...payload,
+              category: selectedCatObj,
+              account: selectedAccObj,
+            };
+
+        // Instant UI update (Doherty Threshold < 100ms): prepend immediately to list & stats
+        setTransactions((prev) => [createdTx, ...prev.filter((tx) => String(tx.id) !== String(createdTx.id))]);
+        setPaginationMeta((prev) => (prev ? { ...prev, total: (prev.total || 0) + 1 } : prev));
+        setStats((prev) => {
+          const income = formType === "income" ? prev.income + amt : prev.income;
+          const expense = formType === "expense" ? prev.expense + amt : prev.expense;
+          return { income, expense, net: income - expense };
+        });
+        setAccounts((prev) =>
+          prev.map((acc) => {
+            if (String(acc.id) !== String(formAccountId)) return acc;
+            const delta = formType === "income" ? amt : -amt;
+            return { ...acc, balance: Number(acc.balance || 0) + delta };
+          })
+        );
+
         toast.success(language === "en" ? "Transaction successfully added!" : "Transaksi berhasil ditambahkan!");
       } else {
-        await updateTransaction(editingTransaction.id, payload);
+        const res = await updateTransaction(editingTransaction.id, payload);
+        const updatedTx = res?.data
+          ? {
+              ...res.data,
+              category: res.data.category || selectedCatObj,
+              account: res.data.account || selectedAccObj,
+            }
+          : {
+              ...editingTransaction,
+              ...payload,
+              category: selectedCatObj,
+              account: selectedAccObj,
+            };
+
+        setTransactions((prev) =>
+          prev.map((tx) => (String(tx.id) === String(editingTransaction.id) ? updatedTx : tx))
+        );
         toast.success(language === "en" ? "Transaction successfully updated!" : "Transaksi berhasil diperbarui!");
       }
       setIsModalOpen(false);
-      fetchTransactionsData(true); // bypass cache after create/update
+      // Revalidate in background for full server consistency
+      fetchTransactionsData(true);
+      fetchDropdownData(true);
     } catch (error) {
       toast.error(error.message || (language === "en" ? "Failed to save transaction." : "Gagal menyimpan transaksi."));
     } finally {
@@ -489,7 +628,7 @@ export function useTransactionsPage() {
 
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = toLocalDateString();
     link.setAttribute("download", `Laporan_Transaksi_MoneFin_${todayStr}.csv`);
     document.body.appendChild(link);
     link.click();

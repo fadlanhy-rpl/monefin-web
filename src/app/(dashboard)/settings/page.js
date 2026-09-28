@@ -49,8 +49,8 @@ function SettingsContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Form State - Preferences
-  const [currency, setCurrency] = useState(currentGlobalCurrency || user?.preferences?.currency || "IDR");
-  const [language, setLanguage] = useState(currentGlobalLang || user?.preferences?.language || "id");
+  const [currency, setCurrency] = useState(user?.preferences?.currency || currentGlobalCurrency || "IDR");
+  const [language, setLanguage] = useState(user?.preferences?.language || currentGlobalLang || "id");
   const [emailNotif, setEmailNotif] = useState(user?.preferences?.emailNotif ?? true);
   const [txAlert, setTxAlert] = useState(user?.preferences?.txAlert ?? true);
   const [budgetAlert, setBudgetAlert] = useState(user?.preferences?.budgetAlert ?? true);
@@ -73,9 +73,9 @@ function SettingsContent() {
       setAvatarUrl(resolvedPhotoUrl);
       
       if (user.preferences) {
-        const activeCurr = currentGlobalCurrency || user.preferences.currency || "IDR";
+        const activeCurr = user.preferences.currency || currentGlobalCurrency || "IDR";
         setCurrency(activeCurr);
-        const activeLang = currentGlobalLang || user.preferences.language || "id";
+        const activeLang = user.preferences.language || currentGlobalLang || "id";
         setLanguage(activeLang);
         setEmailNotif(user.preferences.emailNotif ?? true);
         setTxAlert(user.preferences.txAlert ?? true);
@@ -86,7 +86,7 @@ function SettingsContent() {
     }
   }
 
-  // Sync state if global language or currency changes
+  // Sync state if global language or currency changes externally
   const [prevGlobalLang, setPrevGlobalLang] = useState(currentGlobalLang);
   if (currentGlobalLang && currentGlobalLang !== prevGlobalLang) {
     setPrevGlobalLang(currentGlobalLang);
@@ -121,9 +121,9 @@ function SettingsContent() {
       setAvatarUrl(resolvedPhotoUrl);
       
       if (user.preferences) {
-        const activeCurr = currentGlobalCurrency || user.preferences.currency || "IDR";
+        const activeCurr = user.preferences.currency || currentGlobalCurrency || "IDR";
         setCurrency(activeCurr);
-        const activeLang = currentGlobalLang || user.preferences.language || "id";
+        const activeLang = user.preferences.language || currentGlobalLang || "id";
         setLanguage(activeLang);
         setEmailNotif(user.preferences.emailNotif ?? true);
         setTxAlert(user.preferences.txAlert ?? true);
@@ -171,9 +171,12 @@ function SettingsContent() {
       };
       formData.append("preferences", JSON.stringify(prefs));
 
+      // Lock optimistic local currency & language before awaiting backend
+      changeCurrency(currency, { syncBackend: false });
+      changeLanguage(language, { syncBackend: false });
+
       const result = await updateProfile(formData);
       if (result.success) {
-        changeCurrency(currency, { syncBackend: false });
         setAvatarFile(null);
         // Sync nama dari hasil save agar avatar fallback langsung benar
         if (result.user?.name) {
@@ -269,11 +272,14 @@ function SettingsContent() {
       };
       formData.append("preferences", JSON.stringify(prefs));
 
+      // Apply local currency & language state first without triggering a duplicate POST /auth/profile
+      changeCurrency(currency, { syncBackend: false });
+      changeLanguage(language, { syncBackend: false });
+
       const result = await updateProfile(formData);
       if (result.success) {
-        // Apply the language & currency globally immediately after saving
-        changeLanguage(language);
         changeCurrency(currency, { syncBackend: false });
+        changeLanguage(language, { syncBackend: false });
         showToast(language === 'en' ? "Application preferences successfully saved." : "Preferensi aplikasi berhasil disimpan.");
       } else {
         showToast(result.error || (language === 'en' ? "Failed to save preferences." : "Gagal menyimpan preferensi."));
@@ -562,7 +568,7 @@ function SettingsContent() {
 
       {/* Dynamic Toast Popup */}
       {toastState.message && (
-        <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm bg-slate-900/95 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-bottom-5 duration-300 z-50 border border-slate-800">
+        <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] md:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm bg-slate-900/95 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-bottom-5 duration-300 z-[60] border border-slate-800">
           {toastState.type === "error" ? (
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
           ) : (

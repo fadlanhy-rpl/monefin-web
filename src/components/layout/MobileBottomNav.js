@@ -31,8 +31,11 @@ export default function MobileBottomNav({ setMobileOpen }) {
     return pathname.startsWith(path);
   };
 
-  const handleQuickAction = (route) => {
+  const handleQuickAction = (route, actionType = null) => {
     setIsQuickActionOpen(false);
+    if (actionType && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("monefin:quick-action", { detail: actionType }));
+    }
     router.push(route);
   };
 
@@ -65,7 +68,7 @@ export default function MobileBottomNav({ setMobileOpen }) {
           <div className="grid grid-cols-1 gap-2.5">
             <button
               type="button"
-              onClick={() => handleQuickAction("/transactions")}
+              onClick={() => handleQuickAction("/transactions?action=add", "add")}
               className="flex items-center justify-between p-3.5 rounded-2xl bg-rose-50/60 hover:bg-rose-50 border border-rose-100 text-left transition active:scale-98 cursor-pointer"
             >
               <div className="flex items-center gap-3">
@@ -86,7 +89,7 @@ export default function MobileBottomNav({ setMobileOpen }) {
 
             <button
               type="button"
-              onClick={() => handleQuickAction("/transactions")}
+              onClick={() => handleQuickAction("/transactions?action=scan", "scan")}
               className="flex items-center justify-between p-3.5 rounded-2xl bg-teal-50/60 hover:bg-teal-50 border border-teal-100 text-left transition active:scale-98 cursor-pointer"
             >
               <div className="flex items-center gap-3">

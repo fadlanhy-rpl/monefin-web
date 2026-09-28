@@ -187,7 +187,7 @@ function ReportsPageContent() {
 
       {/* Toast Notification */}
       {toast.message && (
-        <div className={`fixed bottom-6 right-6 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-bottom-5 duration-300 z-50 border ${
+        <div className={`fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] md:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-bottom-5 duration-300 z-[60] border ${
           toast.type === "error"
             ? "bg-red-900/95 border-red-800"
             : "bg-slate-900/95 border-slate-800"
@@ -195,7 +195,7 @@ function ReportsPageContent() {
           {toast.type === "error"
             ? <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
             : <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
-          <span>{toast.message}</span>
+          <span className="leading-snug">{toast.message}</span>
         </div>
       )}
     </DashboardLayout>

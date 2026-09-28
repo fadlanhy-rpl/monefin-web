@@ -4,7 +4,6 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import id from "../locales/id.json";
 import en from "../locales/en.json";
 import { useAuth } from "../hooks/useAuth";
-import { updateProfile } from "../services/auth.service";
 
 const MESSAGES = { id, en };
 const SUPPORTED_LOCALES = ["en", "id"];
@@ -36,8 +35,8 @@ function updateHtmlLang(lang) {
 }
 
 export function LanguageProvider({ children }) {
-  const { user } = useAuth();
-  const lastSyncedUserLang = useRef(null);
+  const { user, updateProfile } = useAuth();
+  const optimisticLangRef = useRef(null);
 
   // Always initialize with DEFAULT_LOCALE to guarantee 100% server/client HTML match during initial hydration
   const [language, setLanguage] = useState(DEFAULT_LOCALE);
@@ -67,53 +66,54 @@ export function LanguageProvider({ children }) {
     updateHtmlLang(language);
   }, [language]);
 
-  // Synchronize DB user preferences without overriding active session choice
+  // Single Source of Truth (SSOT):
+  // When user is authenticated, user.preferences.language is the authoritative source of truth
+  // and mirrors one-way to local cookie/localStorage without firing background updateProfile overwrites.
   useEffect(() => {
     if (!user) {
-      lastSyncedUserLang.current = null;
+      optimisticLangRef.current = null;
       return;
     }
 
-    const currentLocal = getCookieLocale() || (typeof localStorage !== "undefined" && localStorage.getItem("language"));
-
-    if (currentLocal && SUPPORTED_LOCALES.includes(currentLocal)) {
-      // User has an explicit active choice on this device
-      if (language !== currentLocal) {
-        applyLanguage(currentLocal);
+    const userLang = user.preferences?.language;
+    if (userLang && SUPPORTED_LOCALES.includes(userLang)) {
+      if (optimisticLangRef.current === userLang) {
+        optimisticLangRef.current = null;
       }
-
-      // If DB preference is outdated compared to active device choice, update DB in background
-      if (user.preferences?.language !== currentLocal && lastSyncedUserLang.current !== currentLocal) {
-        lastSyncedUserLang.current = currentLocal;
-        const newPrefs = { ...(user.preferences || {}), language: currentLocal };
-        const fd = new FormData();
-        fd.append("name", user.name || "");
-        fd.append("preferences", JSON.stringify(newPrefs));
-        updateProfile(fd).catch(err => console.warn("Background language preference sync error:", err));
+      const targetLang = optimisticLangRef.current || userLang;
+      if (language !== targetLang) {
+        applyLanguage(targetLang);
       }
-    } else if (user.preferences?.language && SUPPORTED_LOCALES.includes(user.preferences.language)) {
-      // First-time visit on fresh device: adopt DB preference
-      applyLanguage(user.preferences.language);
     }
   }, [user, language, applyLanguage]);
 
   /**
    * changeLanguage — instant switch (for Navbar, Landing, Sidebar, Header, Settings)
    */
-  const changeLanguage = useCallback((lang) => {
+  const changeLanguage = useCallback((lang, options = { syncBackend: true }) => {
     if (!SUPPORTED_LOCALES.includes(lang)) return;
+    if (user) {
+      optimisticLangRef.current = lang;
+    }
     applyLanguage(lang);
 
-    // If logged in, persist to backend user preferences
-    if (user) {
-      lastSyncedUserLang.current = lang;
+    // If logged in and explicitly requested, persist to backend user preferences
+    if (
+      options?.syncBackend !== false &&
+      user &&
+      typeof updateProfile === "function" &&
+      user.preferences?.language !== lang
+    ) {
       const newPrefs = { ...(user.preferences || {}), language: lang };
       const fd = new FormData();
       fd.append("name", user.name || "");
+      if (user.phone) fd.append("phone", user.phone);
+      if (user.occupation) fd.append("occupation", user.occupation);
+      if (user.bio) fd.append("bio", user.bio);
       fd.append("preferences", JSON.stringify(newPrefs));
       updateProfile(fd).catch(err => console.warn("Language preference update error:", err));
     }
-  }, [applyLanguage, user]);
+  }, [applyLanguage, user, updateProfile]);
 
   /**
    * t(key, fallback) — translate a dot-notated key e.g. "dashboard.title"

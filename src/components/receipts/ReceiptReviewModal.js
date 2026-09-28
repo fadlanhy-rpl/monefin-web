@@ -525,7 +525,11 @@ export default function ReceiptReviewModal({
     let ignore = false;
     // setState hanya di callback async (then) — aman dari set-state-in-effect
     Promise.all([
-      needAcc ? getAccounts().catch(() => null) : Promise.resolve(null),
+      needAcc
+        ? getAccounts()
+            .then((res) => (!res?.data || res.data.length === 0 ? getAccounts(true) : res))
+            .catch(() => null)
+        : Promise.resolve(null),
       needCat
         ? getCategories()
             .then((res) => (!res?.data || res.data.length === 0 ? getCategories("", true) : res))
@@ -549,11 +553,13 @@ export default function ReceiptReviewModal({
       setZoomLevel(1);
       setRotation(0);
       setMerchant(extractedData.merchant || (isEn ? "Store / Merchant" : "Toko Belanja"));
-      let initialDate = extractedData.date || new Date().toISOString().split("T")[0];
+      const nowLocal = new Date();
+      const todayLocalStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, "0")}-${String(nowLocal.getDate()).padStart(2, "0")}`;
+      let initialDate = extractedData.date || todayLocalStr;
       if (initialDate && initialDate.includes("-")) {
         const parts = initialDate.split("-");
         if (parts.length === 3 && (Number(parts[0]) < 2024 || Number(parts[0]) > 2030)) {
-          initialDate = `${new Date().getFullYear()}-${parts[1]}-${parts[2]}`;
+          initialDate = `${nowLocal.getFullYear()}-${parts[1]}-${parts[2]}`;
         }
       }
       setTransactionDate(initialDate);

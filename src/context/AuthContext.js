@@ -22,7 +22,7 @@ import {
   verify2fa as apiVerify2fa,
   toggle2fa as apiToggle2fa,
 } from "../services/auth.service";
-import { getAuthToken, setAuthToken, clearApiCache } from "../lib/api";
+import { getAuthToken, setAuthToken, clearApiCache, primeApiCache } from "../lib/api";
 import { getBootstrap } from "../services/bootstrap.service";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -344,6 +344,7 @@ export function AuthProvider({ children }) {
     try {
       const updatedUser = await apiUpdateProfile(formData);
       setUser(updatedUser);
+      primeApiCache("/auth/me", { user: updatedUser }, 300000);
       if (typeof window !== "undefined") {
         localStorage.setItem("user_data", JSON.stringify(updatedUser));
       }

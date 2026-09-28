@@ -10,9 +10,8 @@ const CURRENCY_COOKIE_NAME = "MONEFIN_CURRENCY";
 const CURRENCY_EVENT_NAME = "monefin:currency-change";
 const DEFAULT_CURRENCY = "IDR";
 
-// Module-level sync trackers to prevent duplicate background profile updates across hook instances
-let lastObservedUserPref = null;
-let lastSyncedUserCurr = null;
+// Module-level state to keep all hook instances in sync without race conditions
+let optimisticUserCurrency = null;
 let sharedRatesCache = { IDR: 15500, USD: 1, EUR: 0.92, SGD: 1.35 };
 
 function getCookieCurrency() {
@@ -48,10 +47,13 @@ function subscribeCurrencyStore(callback) {
 
 function getCurrencySnapshot() {
   if (typeof window === "undefined") return null;
-  const cookieVal = getCookieCurrency();
-  if (cookieVal) return cookieVal;
+  if (optimisticUserCurrency && SUPPORTED_CURRENCIES[optimisticUserCurrency]) {
+    return optimisticUserCurrency;
+  }
   const saved = localStorage.getItem(CURRENCY_STORAGE_KEY);
-  return saved && SUPPORTED_CURRENCIES[saved] ? saved : null;
+  if (saved && SUPPORTED_CURRENCIES[saved]) return saved;
+  const cookieVal = getCookieCurrency();
+  return cookieVal && SUPPORTED_CURRENCIES[cookieVal] ? cookieVal : null;
 }
 
 function getServerCurrencySnapshot() {
@@ -67,67 +69,48 @@ export function useCurrency() {
     getServerCurrencySnapshot
   );
 
-  // Bidirectional sync between local device choice (Landing/Navbar) and DB user.preferences.currency (Settings)
+  const validUserPref =
+    userCurrencyPref && SUPPORTED_CURRENCIES[userCurrencyPref] ? userCurrencyPref : null;
+
+  // Single Source of Truth (SSOT):
+  // When user is authenticated, user.preferences.currency is the authoritative source of truth
+  // and mirrors one-way to localStorage/cookie. It NEVER overwrites the backend from a stale cookie on refresh.
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     if (!user) {
-      lastObservedUserPref = null;
-      lastSyncedUserCurr = null;
+      optimisticUserCurrency = null;
       return;
     }
 
-    const validUserPref =
-      userCurrencyPref && SUPPORTED_CURRENCIES[userCurrencyPref] ? userCurrencyPref : null;
-    const cookieCurr = getCookieCurrency();
-
-    // Case 1: user.preferences.currency changed during an active session (e.g. saved in Settings)
-    if (
-      lastObservedUserPref !== null &&
-      validUserPref &&
-      validUserPref !== lastObservedUserPref
-    ) {
-      lastObservedUserPref = validUserPref;
-      lastSyncedUserCurr = validUserPref;
-      if (localCurrency !== validUserPref) {
-        applyLocalCurrency(validUserPref);
+    if (validUserPref) {
+      // Clear optimistic lock once backend user state catches up
+      if (optimisticUserCurrency === validUserPref) {
+        optimisticUserCurrency = null;
       }
-      return;
-    }
-
-    lastObservedUserPref = validUserPref;
-
-    // Case 2: User has an explicit cookie choice on this device (e.g. switched on Landing Page)
-    if (cookieCurr && SUPPORTED_CURRENCIES[cookieCurr]) {
-      if (localStorage.getItem(CURRENCY_STORAGE_KEY) !== cookieCurr) {
-        applyLocalCurrency(cookieCurr);
-      }
-      // Sync explicit device choice to backend if DB preference is different
+      const targetCurr = optimisticUserCurrency || validUserPref;
       if (
-        typeof updateProfile === "function" &&
-        validUserPref !== cookieCurr &&
-        lastSyncedUserCurr !== cookieCurr
+        localStorage.getItem(CURRENCY_STORAGE_KEY) !== targetCurr ||
+        getCookieCurrency() !== targetCurr
       ) {
-        lastSyncedUserCurr = cookieCurr;
-        const newPrefs = { ...(user.preferences || {}), currency: cookieCurr };
-        const fd = new FormData();
-        fd.append("name", user.name || "");
-        fd.append("preferences", JSON.stringify(newPrefs));
-        updateProfile(fd).catch(() => {});
-      }
-    } else if (validUserPref) {
-      // Case 3: No explicit cookie yet — adopt user's saved DB preference (e.g. from Settings or fresh login)
-      lastSyncedUserCurr = validUserPref;
-      if (localCurrency !== validUserPref || !cookieCurr) {
-        applyLocalCurrency(validUserPref);
+        applyLocalCurrency(targetCurr);
       }
     }
-  }, [user, userCurrencyPref, localCurrency, updateProfile]);
+  }, [user, validUserPref]);
 
-  const currencyPref =
-    (localCurrency && SUPPORTED_CURRENCIES[localCurrency] ? localCurrency : null) ||
-    (userCurrencyPref && SUPPORTED_CURRENCIES[userCurrencyPref] ? userCurrencyPref : null) ||
-    DEFAULT_CURRENCY;
+  // Hierarchy of Truth:
+  // 1. Explicit optimistic selection during in-flight save
+  // 2. Authenticated user's saved account preference (user.preferences.currency)
+  // 3. Guest/Landing Page session preference (localStorage / cookie)
+  // 4. Default (IDR)
+  const currencyPref = user
+    ? (optimisticUserCurrency && SUPPORTED_CURRENCIES[optimisticUserCurrency]
+        ? optimisticUserCurrency
+        : validUserPref ||
+          (localCurrency && SUPPORTED_CURRENCIES[localCurrency] ? localCurrency : null) ||
+          DEFAULT_CURRENCY)
+    : (localCurrency && SUPPORTED_CURRENCIES[localCurrency] ? localCurrency : null) ||
+      DEFAULT_CURRENCY;
 
   // rates menyimpan { IDR, USD, EUR, SGD } dalam unit per 1 USD
   const [rates, setRates] = useState(sharedRatesCache);
@@ -144,8 +127,9 @@ export function useCurrency() {
   const changeCurrency = useCallback(
     (nextCurr, options = { syncBackend: true }) => {
       if (!nextCurr || !SUPPORTED_CURRENCIES[nextCurr]) return;
-      lastObservedUserPref = nextCurr;
-      lastSyncedUserCurr = nextCurr;
+      if (user) {
+        optimisticUserCurrency = nextCurr;
+      }
       applyLocalCurrency(nextCurr);
 
       if (
@@ -157,6 +141,9 @@ export function useCurrency() {
         const newPrefs = { ...(user.preferences || {}), currency: nextCurr };
         const fd = new FormData();
         fd.append("name", user.name || "");
+        if (user.phone) fd.append("phone", user.phone);
+        if (user.occupation) fd.append("occupation", user.occupation);
+        if (user.bio) fd.append("bio", user.bio);
         fd.append("preferences", JSON.stringify(newPrefs));
         updateProfile(fd).catch(() => {});
       }

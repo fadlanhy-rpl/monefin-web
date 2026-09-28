@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import TransactionsStats from "../../../components/transactions/TransactionsStats";
@@ -23,6 +24,8 @@ const ReceiptReviewModal = dynamic(
 );
 
 function TransactionsPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const {
     t,
     language,
@@ -83,6 +86,35 @@ function TransactionsPageContent() {
   const [receiptPreviewUrl, setReceiptPreviewUrl] = useState(null);
   const [receiptImageFiles, setReceiptImageFiles] = useState([]);
   const [receiptPreviewUrls, setReceiptPreviewUrls] = useState([]);
+
+  const actionParam = searchParams.get("action");
+  useEffect(() => {
+    if (actionParam === "add") {
+      const t = setTimeout(() => {
+        openAddModal("expense");
+        router.replace("/transactions", { scroll: false });
+      }, 0);
+      return () => clearTimeout(t);
+    } else if (actionParam === "scan") {
+      const t = setTimeout(() => {
+        setIsReceiptScannerOpen(true);
+        router.replace("/transactions", { scroll: false });
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [actionParam, openAddModal, router]);
+
+  useEffect(() => {
+    const handleQuickActionEvent = (e) => {
+      if (e?.detail === "add") {
+        openAddModal("expense");
+      } else if (e?.detail === "scan") {
+        setIsReceiptScannerOpen(true);
+      }
+    };
+    window.addEventListener("monefin:quick-action", handleQuickActionEvent);
+    return () => window.removeEventListener("monefin:quick-action", handleQuickActionEvent);
+  }, [openAddModal]);
 
   const hasFilterActive = Boolean(
     (searchQuery && searchQuery.trim() !== "") ||

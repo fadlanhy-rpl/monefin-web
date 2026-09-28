@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { X, ChevronDown, Check, Sparkles } from "lucide-react";
+import { X, ChevronDown, Check, Sparkles, Loader2 } from "lucide-react";
 import DatePicker from "../ui/DatePicker";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 import { aiSuggestCategory } from "../../services/ai.service";
+import { getAccounts } from "../../services/account.service";
+import { getCategories } from "../../services/category.service";
+import { getBootstrapSnapshot } from "../../services/bootstrap.service";
 
 export default function TransactionModal({
   isOpen,
@@ -27,11 +30,25 @@ export default function TransactionModal({
   accounts = []
 }) {
   const { t, language } = useLanguage();
-  const { currencySymbol } = useCurrency();
+  const { currencySymbol, formatCurrency } = useCurrency();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
   const [aiSuggestNote, setAiSuggestNote] = useState("");
+
+  // Self-healing local fallback so modal never opens with empty accounts/categories on cold start
+  const [localAccounts, setLocalAccounts] = useState(() => {
+    const snap = getBootstrapSnapshot();
+    return Array.isArray(snap?.accounts) ? snap.accounts : [];
+  });
+  const [localCategories, setLocalCategories] = useState(() => {
+    const snap = getBootstrapSnapshot();
+    return Array.isArray(snap?.categories) ? snap.categories : [];
+  });
+  const [isLoadingMeta, setIsLoadingMeta] = useState(false);
+
+  const effAccounts = accounts && accounts.length > 0 ? accounts : localAccounts;
+  const effCategories = categories && categories.length > 0 ? categories : localCategories;
 
   const categoryRef = useRef(null);
   const accountRef = useRef(null);
@@ -50,6 +67,78 @@ export default function TransactionModal({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Self-fetch accounts & categories if modal is opened before parent page finishes loading
+  useEffect(() => {
+    if (!isOpen) return;
+    const snap = getBootstrapSnapshot();
+    const snapAcc = Array.isArray(snap?.accounts) && snap.accounts.length > 0 ? snap.accounts : null;
+    const snapCat = Array.isArray(snap?.categories) && snap.categories.length > 0 ? snap.categories : null;
+
+    const needAcc = (!accounts || accounts.length === 0) && localAccounts.length === 0 && !snapAcc;
+    const needCat = (!categories || categories.length === 0) && localCategories.length === 0 && !snapCat;
+
+    if (snapAcc && localAccounts.length === 0) {
+      Promise.resolve().then(() => setLocalAccounts(snapAcc));
+    }
+    if (snapCat && localCategories.length === 0) {
+      Promise.resolve().then(() => setLocalCategories(snapCat));
+    }
+
+    if (!needAcc && !needCat) return;
+
+    let ignore = false;
+    Promise.resolve().then(() => {
+      if (!ignore) setIsLoadingMeta(true);
+    });
+
+    Promise.all([
+      needAcc
+        ? getAccounts()
+            .then((res) => (!Array.isArray(res?.data) || res.data.length === 0 ? getAccounts(true) : res))
+            .catch(() => null)
+        : Promise.resolve(null),
+      needCat
+        ? getCategories()
+            .then((res) => (!Array.isArray(res?.data) || res.data.length === 0 ? getCategories("", true) : res))
+            .catch(() => null)
+        : Promise.resolve(null),
+    ])
+      .then(([accRes, catRes]) => {
+        if (ignore) return;
+        if (Array.isArray(accRes?.data) && accRes.data.length > 0) {
+          setLocalAccounts(accRes.data);
+        }
+        if (Array.isArray(catRes?.data) && catRes.data.length > 0) {
+          setLocalCategories(catRes.data);
+        }
+      })
+      .finally(() => {
+        if (!ignore) setIsLoadingMeta(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [isOpen, accounts, categories, localAccounts.length, localCategories.length]);
+
+  // Ensure default account & category are auto-selected as soon as effAccounts / effCategories are ready
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!formAccountId && effAccounts.length > 0) {
+      setFormAccountId(effAccounts[0].id);
+    }
+    if (effCategories.length > 0) {
+      const filtered = effCategories.filter((c) =>
+        formType === "expense" ? c.type === "expense" || !c.type : c.type === "income" || !c.type
+      );
+      const pool = filtered.length > 0 ? filtered : effCategories;
+      const validCurrent = pool.some((c) => String(c.id) === String(formCategoryId));
+      if (!formCategoryId || (modalMode === "add" && !validCurrent)) {
+        setFormCategoryId(pool[0].id);
+      }
+    }
+  }, [isOpen, modalMode, formType, effAccounts, effCategories, formAccountId, formCategoryId, setFormAccountId, setFormCategoryId]);
+
   if (!isOpen) return null;
 
   // Format thousand separator
@@ -65,8 +154,11 @@ export default function TransactionModal({
     setFormAmount(rawDigits);
   };
 
-  const selectedCategory = categories.find((c) => String(c.id) === String(formCategoryId));
-  const selectedAccount = accounts.find((a) => String(a.id) === String(formAccountId));
+  const filteredCategories = effCategories.filter((c) =>
+    formType === "expense" ? c.type === "expense" || !c.type : c.type === "income" || !c.type
+  );
+  const selectedCategory = effCategories.find((c) => String(c.id) === String(formCategoryId));
+  const selectedAccount = effAccounts.find((a) => String(a.id) === String(formAccountId));
 
   const handleAiSuggestCategory = async () => {
     if (!formNote.trim() || aiSuggestLoading) return;
@@ -180,31 +272,42 @@ export default function TransactionModal({
                 className={`w-full px-4 py-3.5 bg-slate-50 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer ${isCategoryOpen ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white" : "border-slate-100 hover:border-slate-200"}`}
               >
                 <span className={selectedCategory ? "text-slate-900" : "text-slate-400 font-medium"}>
-                  {selectedCategory ? selectedCategory.name : (t("transactions.select_category") || "Select Category")}
+                  {selectedCategory
+                    ? selectedCategory.name
+                    : isLoadingMeta && effCategories.length === 0
+                      ? (language === "en" ? "Loading categories..." : "Memuat kategori...")
+                      : (t("transactions.select_category") || "Select Category")}
                 </span>
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isCategoryOpen ? "rotate-180 text-[#00685F]" : ""}`} />
               </button>
               {isCategoryOpen && (
                 <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] max-h-56 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                  {categories.filter(c => formType === 'expense' ? c.type === 'expense' || !c.type : c.type === 'income' || !c.type).map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => {
-                        setFormCategoryId(cat.id);
-                        setIsCategoryOpen(false);
-                      }}
-                      className={`w-full px-3.5 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all text-left cursor-pointer ${String(cat.id) === String(formCategoryId) ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"}`}
-                    >
-                      <span>{cat.name}</span>
-                      {String(cat.id) === String(formCategoryId) && <Check className="w-4 h-4 text-[#00685F]" />}
-                    </button>
-                  ))}
+                  {filteredCategories.length === 0 ? (
+                    <div className="px-3.5 py-3 text-xs text-slate-400 flex items-center justify-center gap-2">
+                      {isLoadingMeta && <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00685F]" />}
+                      <span>{isLoadingMeta ? (language === "en" ? "Loading categories..." : "Memuat kategori...") : (language === "en" ? "No categories available" : "Kategori belum tersedia")}</span>
+                    </div>
+                  ) : (
+                    filteredCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setFormCategoryId(cat.id);
+                          setIsCategoryOpen(false);
+                        }}
+                        className={`w-full px-3.5 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all text-left cursor-pointer ${String(cat.id) === String(formCategoryId) ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"}`}
+                      >
+                        <span>{cat.name}</span>
+                        {String(cat.id) === String(formCategoryId) && <Check className="w-4 h-4 text-[#00685F]" />}
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Account Dropdown */}
+            {/* Account Dropdown (with Account Balance preview) */}
             <div className="space-y-1.5 relative" ref={accountRef}>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t("transactions.account") || "Account"}</label>
               <button
@@ -215,27 +318,50 @@ export default function TransactionModal({
                 }}
                 className={`w-full px-4 py-3.5 bg-slate-50 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer ${isAccountOpen ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white" : "border-slate-100 hover:border-slate-200"}`}
               >
-                <span className={selectedAccount ? "text-slate-900" : "text-slate-400 font-medium"}>
-                  {selectedAccount ? selectedAccount.name : (t("transactions.select_account") || "Select Account")}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isAccountOpen ? "rotate-180 text-[#00685F]" : ""}`} />
+                {selectedAccount ? (
+                  <div className="flex items-center justify-between w-full pr-2 min-w-0 gap-2">
+                    <span className="text-slate-900 truncate">{selectedAccount.name}</span>
+                    <span className="text-xs font-semibold text-[#00685F] bg-[#00685F]/10 px-2 py-0.5 rounded-lg shrink-0">
+                      {formatCurrency(selectedAccount.balance || 0)}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-slate-400 font-medium">
+                    {isLoadingMeta && effAccounts.length === 0
+                      ? (language === "en" ? "Loading accounts..." : "Memuat akun saldo...")
+                      : (t("transactions.select_account") || "Select Account")}
+                  </span>
+                )}
+                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isAccountOpen ? "rotate-180 text-[#00685F]" : ""}`} />
               </button>
               {isAccountOpen && (
                 <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] max-h-56 overflow-y-auto p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                  {accounts.map((acc) => (
-                    <button
-                      key={acc.id}
-                      type="button"
-                      onClick={() => {
-                        setFormAccountId(acc.id);
-                        setIsAccountOpen(false);
-                      }}
-                      className={`w-full px-3.5 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all text-left cursor-pointer ${String(acc.id) === String(formAccountId) ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"}`}
-                    >
-                      <span>{acc.name}</span>
-                      {String(acc.id) === String(formAccountId) && <Check className="w-4 h-4 text-[#00685F]" />}
-                    </button>
-                  ))}
+                  {effAccounts.length === 0 ? (
+                    <div className="px-3.5 py-3 text-xs text-slate-400 flex items-center justify-center gap-2">
+                      {isLoadingMeta && <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00685F]" />}
+                      <span>{isLoadingMeta ? (language === "en" ? "Loading accounts..." : "Memuat akun saldo...") : (language === "en" ? "No accounts available" : "Belum ada akun saldo")}</span>
+                    </div>
+                  ) : (
+                    effAccounts.map((acc) => (
+                      <button
+                        key={acc.id}
+                        type="button"
+                        onClick={() => {
+                          setFormAccountId(acc.id);
+                          setIsAccountOpen(false);
+                        }}
+                        className={`w-full px-3.5 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all text-left cursor-pointer ${String(acc.id) === String(formAccountId) ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"}`}
+                      >
+                        <div className="flex flex-col min-w-0 pr-2">
+                          <span className="truncate">{acc.name}</span>
+                          <span className="text-[11px] font-semibold text-slate-400">
+                            {language === "en" ? "Balance:" : "Saldo:"} {formatCurrency(acc.balance || 0)}
+                          </span>
+                        </div>
+                        {String(acc.id) === String(formAccountId) && <Check className="w-4 h-4 text-[#00685F] shrink-0" />}
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </div>

@@ -164,11 +164,13 @@ function deletePersistByPattern(pattern) {
 export function primeApiCache(endpoint, payloadData, ttl = 60000) {
   try {
     const token = getAuthToken();
+    const tokenSuffix = token ? token.slice(-12) : "anon";
     const activeLang =
       typeof window !== "undefined"
         ? Cookies.get("NEXT_LOCALE") || localStorage.getItem("language") || "en"
         : "en";
-    const cacheKey = `GET:${endpoint}:${token ? token.slice(-12) : "anon"}:${activeLang}`;
+    const langs = Array.from(new Set([activeLang, "id", "en"]));
+    const now = Date.now();
     const result = {
       success: true,
       data: payloadData,
@@ -176,8 +178,11 @@ export function primeApiCache(endpoint, payloadData, ttl = 60000) {
       meta: null,
       summary: null,
     };
-    memoryCache.set(cacheKey, { data: result, timestamp: Date.now(), ttl });
-    setPersistEntry(cacheKey, result, ttl);
+    for (const lang of langs) {
+      const cacheKey = `GET:${endpoint}:${tokenSuffix}:${lang}`;
+      memoryCache.set(cacheKey, { data: result, timestamp: now, ttl });
+      setPersistEntry(cacheKey, result, ttl);
+    }
   } catch {
     // priming gagal → bukan fatal, fetch normal tetap jalan
   }
