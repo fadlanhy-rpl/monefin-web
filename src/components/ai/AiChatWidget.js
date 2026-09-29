@@ -748,6 +748,7 @@ export default function AiChatWidget() {
 
   // Resizing state
   const DEFAULT_SIZE = { width: 380, height: 560 };
+  const panelRef = useRef(null);
   const [size, setSize] = useState(() => {
     if (typeof window !== "undefined") {
       try {
@@ -755,8 +756,8 @@ export default function AiChatWidget() {
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed.width && parsed.height) {
-            const clampedW = Math.max(340, Math.min(parsed.width, window.innerWidth - 24));
-            const clampedH = Math.max(420, Math.min(parsed.height, window.innerHeight - 110));
+            const clampedW = Math.max(320, Math.min(parsed.width, window.innerWidth - 40));
+            const clampedH = Math.max(380, Math.min(parsed.height, window.innerHeight - 110));
             return { width: clampedW, height: clampedH };
           }
         }
@@ -786,6 +787,11 @@ export default function AiChatWidget() {
 
   const [isDragging, setIsDragging] = useState(false);
   const prevSizeRef = useRef(size);
+  const liveSizeRef = useRef(size);
+
+  useEffect(() => {
+    liveSizeRef.current = size;
+  }, [size]);
 
   const saveSize = (newSize, maximized = false) => {
     try {
@@ -802,14 +808,16 @@ export default function AiChatWidget() {
     if (isMaximized) {
       const restored = prevSizeRef.current || DEFAULT_SIZE;
       setSize(restored);
+      liveSizeRef.current = restored;
       setIsMaximized(false);
       saveSize(restored, false);
     } else {
-      prevSizeRef.current = size;
-      const maxW = Math.min(760, typeof window !== "undefined" ? window.innerWidth - 24 : 760);
-      const maxH = Math.min(760, typeof window !== "undefined" ? window.innerHeight - 110 : 700);
+      prevSizeRef.current = liveSizeRef.current || size;
+      const maxW = Math.min(760, typeof window !== "undefined" ? window.innerWidth - 40 : 760);
+      const maxH = Math.min(720, typeof window !== "undefined" ? window.innerHeight - 120 : 700);
       const newSize = { width: maxW, height: maxH };
       setSize(newSize);
+      liveSizeRef.current = newSize;
       setIsMaximized(true);
       saveSize(newSize, true);
     }
@@ -817,63 +825,104 @@ export default function AiChatWidget() {
 
   const resetSize = () => {
     setSize(DEFAULT_SIZE);
+    liveSizeRef.current = DEFAULT_SIZE;
     prevSizeRef.current = DEFAULT_SIZE;
     setIsMaximized(false);
     saveSize(DEFAULT_SIZE, false);
   };
 
-  // Freeform pointer drag resizing (anchored at bottom-right)
+  // Zero-lag 60/120fps pointer drag resizing (direct DOM + rAF, commits React state on pointerup)
   const handlePointerDown = (e, direction) => {
+    if (isMobile) return;
     e.preventDefault();
     e.stopPropagation();
 
-    setIsDragging(true);
-    setIsMaximized(false);
+    const panelEl = panelRef.current;
+    const rect = panelEl ? panelEl.getBoundingClientRect() : null;
+    const startW = rect ? Math.round(rect.width) : size.width;
+    const startH = rect ? Math.round(rect.height) : size.height;
 
     const startX = e.clientX;
     const startY = e.clientY;
-    const startW = size.width;
-    const startH = size.height;
+
+    liveSizeRef.current = { width: startW, height: startH };
+
+    // Disable CSS transition immediately before first move frame to prevent rubber-band lag
+    if (panelEl) {
+      panelEl.style.transition = "none";
+      panelEl.style.width = `min(${startW}px, calc(100vw - 2.5rem))`;
+      panelEl.style.height = `min(${startH}px, calc(100vh - 7rem))`;
+    }
+
+    const cursorType =
+      direction === "both"
+        ? "nwse-resize"
+        : direction === "width"
+        ? "ew-resize"
+        : "ns-resize";
+    document.body.style.cursor = cursorType;
+    document.body.style.userSelect = "none";
+
+    setIsDragging(true);
+    if (isMaximized) {
+      setIsMaximized(false);
+    }
+
+    let rafId = null;
 
     const onPointerMove = (moveEvent) => {
       const deltaX = startX - moveEvent.clientX; // Drag left -> expand width
       const deltaY = startY - moveEvent.clientY; // Drag up -> expand height
 
-      // right: 24px is the card offset, so card occupies [right-side - width, right-side]
-      // max width = viewport - 24px (right gap) - 16px (safe left gap) = viewport - 40px
       const maxW = Math.min(880, window.innerWidth - 40);
-      // min width: never less than 280px, but also never wider than available space
-      const minW = Math.min(280, window.innerWidth - 40);
+      const minW = Math.min(320, maxW);
       const maxH = Math.min(860, window.innerHeight - 110);
-      const minH = 380;
+      const minH = Math.min(380, maxH);
 
       let newW = startW;
       let newH = startH;
 
       if (direction === "both" || direction === "width") {
-        newW = Math.max(minW, Math.min(maxW, startW + deltaX));
+        newW = Math.round(Math.max(minW, Math.min(maxW, startW + deltaX)));
       }
       if (direction === "both" || direction === "height") {
-        newH = Math.max(minH, Math.min(maxH, startH + deltaY));
+        newH = Math.round(Math.max(minH, Math.min(maxH, startH + deltaY)));
       }
 
-      setSize({ width: newW, height: newH });
-    };
+      liveSizeRef.current = { width: newW, height: newH };
 
-    const onPointerUp = () => {
-      setIsDragging(false);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-
-      setSize((curr) => {
-        saveSize(curr, false);
-        prevSizeRef.current = curr;
-        return curr;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (panelRef.current) {
+          panelRef.current.style.width = `min(${newW}px, calc(100vw - 2.5rem))`;
+          panelRef.current.style.height = `min(${newH}px, calc(100vh - 7rem))`;
+        }
       });
     };
 
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
+    const finishDrag = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", finishDrag);
+      window.removeEventListener("pointercancel", finishDrag);
+
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      if (panelRef.current) {
+        panelRef.current.style.transition = "";
+      }
+
+      const finalSize = liveSizeRef.current;
+      setIsDragging(false);
+      setSize(finalSize);
+      prevSizeRef.current = finalSize;
+      saveSize(finalSize, false);
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
   };
 
   // Derive from user preferences
@@ -1117,16 +1166,17 @@ export default function AiChatWidget() {
 
       {/* Adjustable Chat Panel */}
       <div
-        className={`fixed z-50 bg-white shadow-2xl border border-slate-100 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${
-          isDragging ? "select-none" : ""
+        ref={panelRef}
+        className={`fixed z-50 bg-white shadow-2xl border border-slate-100 flex flex-col overflow-hidden origin-bottom-right ${
+          isDragging
+            ? "transition-none select-none ring-2 ring-brand-500/30"
+            : "transition-[width,height,bottom,right,left,border-radius,transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[width,height,transform,opacity]"
         } ${
           isMobile
             ? isMaximized
-              ? "inset-0 rounded-none"
-              : "bottom-[4.5rem] inset-x-2.5 max-w-[420px] mx-auto rounded-2xl"
-            : isMaximized
-              ? "bottom-24 right-6 rounded-3xl"
-              : "bottom-24 right-6 rounded-3xl"
+              ? "inset-x-0 mx-auto rounded-none"
+              : "inset-x-0 mx-auto rounded-2xl"
+            : "bottom-24 right-6 rounded-3xl"
         } ${
           isOpen
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
@@ -1135,19 +1185,28 @@ export default function AiChatWidget() {
         style={
           isMobile
             ? isMaximized
-              ? { width: "100%", height: "100%", maxWidth: "100vw", maxHeight: "100dvh" }
+              ? {
+                  bottom: "0px",
+                  width: "100vw",
+                  height: "100dvh",
+                  maxWidth: "100vw",
+                  maxHeight: "100dvh",
+                }
               : {
-                  width: "calc(100vw - 1.25rem)",
+                  bottom: "4.5rem",
+                  width: "min(420px, calc(100vw - 1.25rem))",
                   maxWidth: "420px",
                   height: "min(500px, calc(100dvh - 5.5rem))",
                   maxHeight: "calc(100dvh - 5.5rem)",
                 }
             : isMaximized
               ? {
-                  width: `min(760px, calc(100vw - 3rem))`,
-                  height: `min(720px, calc(100vh - 8rem))`,
-                  maxWidth: "calc(100vw - 3rem)",
-                  maxHeight: "calc(100vh - 8rem)",
+                  width: "min(760px, calc(100vw - 2.5rem))",
+                  height: "min(720px, calc(100vh - 7.5rem))",
+                  maxWidth: "calc(100vw - 2.5rem)",
+                  maxHeight: "calc(100vh - 7.5rem)",
+                  minHeight: "380px",
+                  minWidth: "min(320px, calc(100vw - 2.5rem))",
                 }
               : {
                   width: `min(${size.width}px, calc(100vw - 2.5rem))`,
@@ -1155,7 +1214,7 @@ export default function AiChatWidget() {
                   maxWidth: "calc(100vw - 2.5rem)",
                   maxHeight: "calc(100vh - 6.5rem)",
                   minHeight: "380px",
-                  minWidth: "min(280px, calc(100vw - 2.5rem))",
+                  minWidth: "min(320px, calc(100vw - 2.5rem))",
                 }
         }
       >
@@ -1165,23 +1224,30 @@ export default function AiChatWidget() {
             {/* Top-Left Corner Drag Handle (resizes width & height) */}
             <div
               onPointerDown={(e) => handlePointerDown(e, "both")}
-              className="absolute top-0 left-0 w-6 h-6 cursor-nwse-resize z-20 flex items-start justify-start p-1.5 group touch-none"
+              className="absolute top-0 left-0 w-7 h-7 cursor-nwse-resize z-20 flex items-start justify-start p-2 group touch-none"
               title={language === "id" ? "Tarik untuk ubah ukuran (lebar & tinggi)" : "Drag to resize (width & height)"}
             >
-              <div className="w-2 h-2 border-t-2 border-l-2 border-white/60 group-hover:border-white rounded-tl-xs transition-colors" />
+              <div className="w-2.5 h-2.5 border-t-2 border-l-2 border-white/55 group-hover:border-white group-hover:scale-110 rounded-tl-md transition-all duration-150" />
             </div>
+
+            {/* Bottom-Left Corner Drag Handle (resizes width) */}
+            <div
+              onPointerDown={(e) => handlePointerDown(e, "width")}
+              className="absolute bottom-0 left-0 w-6 h-6 cursor-ew-resize z-20 touch-none"
+              title={language === "id" ? "Tarik untuk ubah lebar" : "Drag to resize width"}
+            />
 
             {/* Left Edge Handle (resizes width) */}
             <div
               onPointerDown={(e) => handlePointerDown(e, "width")}
-              className="absolute top-6 bottom-0 left-0 w-2 cursor-ew-resize hover:bg-brand-500/20 z-20 touch-none transition-colors"
+              className="absolute top-7 bottom-6 left-0 w-2.5 cursor-ew-resize hover:bg-brand-500/20 active:bg-brand-500/35 z-20 touch-none transition-colors"
               title={language === "id" ? "Tarik untuk ubah lebar" : "Drag to resize width"}
             />
 
             {/* Top Edge Handle (resizes height) */}
             <div
               onPointerDown={(e) => handlePointerDown(e, "height")}
-              className="absolute top-0 left-6 right-24 h-2 cursor-ns-resize hover:bg-brand-500/20 z-20 touch-none transition-colors"
+              className="absolute top-0 left-7 right-28 h-2.5 cursor-ns-resize hover:bg-white/20 active:bg-white/30 z-20 touch-none transition-colors"
               title={language === "id" ? "Tarik untuk ubah tinggi" : "Drag to resize height"}
             />
           </>
