@@ -122,7 +122,7 @@ function AccountsPageContent() {
     setModalMode("edit");
     setEditingAccount(acc);
     setFormName(acc.name);
-    setFormBalance(String(acc.balance));
+    setFormBalance(String(Math.round(Number(acc.balance) || 0)));
     setFormNumber(acc.account_number || "");
     setFormHolder(acc.account_holder || "");
     setFormType(acc.type);
@@ -157,7 +157,11 @@ function AccountsPageContent() {
   // Handle Form Submit
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const balanceVal = parseFloat(formBalance);
+    const cleanBalanceStr =
+      typeof formBalance === "number" || /^-?\d+\.\d{1,2}$/.test(String(formBalance).trim())
+        ? String(Math.round(Number(formBalance) || 0))
+        : String(formBalance).replace(/\D/g, "");
+    const balanceVal = parseFloat(cleanBalanceStr);
 
     if (isNaN(balanceVal) || balanceVal < 0) {
       toast.error(language === 'en' ? "Balance must be a positive number!" : "Saldo harus berupa angka positif!");

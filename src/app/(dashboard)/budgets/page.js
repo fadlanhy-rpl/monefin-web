@@ -130,7 +130,7 @@ export default function BudgetsPage() {
     setModalMode("add");
     setEditingBudget(null);
     setFormCategoryId(String(category_id));
-    setFormLimit(String(limit_amount));
+    setFormLimit(String(Math.round(Number(limit_amount) || 0)));
     setIsModalOpen(true);
   };
 
@@ -172,7 +172,7 @@ export default function BudgetsPage() {
     setModalMode("edit");
     setEditingBudget(b);
     setFormCategoryId(b.category_id);
-    setFormLimit(String(b.limit));
+    setFormLimit(String(Math.round(Number(b.limit) || 0)));
     setIsModalOpen(true);
   };
 

@@ -38,38 +38,84 @@ function TypingIndicator() {
   );
 }
 
-function parseInline(text, isUser) {
+function parseInline(text, isUser, depth = 0) {
   if (!text) return null;
+  if (depth > 3) return text;
+
+  // Normalize common LLM mismatched bold/italic pairs (e.g. "**Judul:*" or "*Judul:**")
+  const normalizedText = String(text)
+    .replace(/\*\*([^\n*]+?)\*(?!\*)/g, "**$1**")
+    .replace(/(?<!\*)\*([^\n*]+?)\*\*/g, "**$1**");
+
   const parts = [];
-  // Safe non-backtracking regex for markdown tokens: **bold**, *italic*, and `code`
-  const regex = /(\*\*[^\n*]+?\*\*|\*[^\n*]+?\*|`[^\n`]+?`)/g;
+  // Matches:
+  // 1) ***bold italic***
+  // 2) **bold** (allows single *italic* inside **bold**, e.g. "**Evaluasi Arus Kas *(Cash Flow)*:**")
+  // 3) __bold__
+  // 4) *italic*
+  // 5) `code`
+  // 6) Unclosed **bold at the end of a streaming line
+  const regex =
+    /(\*\*\*(?:[^\n*]|\*(?!\*\*))+?\*\*\*|\*\*(?:[^\n*]|\*(?!\*))+?\*\*|__[^\n_]+?__|\*[^\n*]+?\*|`[^\n`]+?`|\*\*[^\n*]{1,80}$)/g;
   let lastIndex = 0;
   let match;
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = regex.exec(normalizedText)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+      parts.push(normalizedText.slice(lastIndex, match.index));
     }
     const token = match[0];
-    if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
+    if (token.startsWith("***") && token.endsWith("***") && token.length >= 6) {
+      const inner = token.slice(3, -3);
       parts.push(
         <strong
-          key={match.index}
+          key={`${depth}-${match.index}`}
+          className={`italic ${isUser ? "font-black" : "font-extrabold text-slate-900"}`}
+        >
+          {parseInline(inner, isUser, depth + 1)}
+        </strong>
+      );
+    } else if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
+      const inner = token.slice(2, -2);
+      parts.push(
+        <strong
+          key={`${depth}-${match.index}`}
           className={isUser ? "font-black" : "font-extrabold text-slate-900"}
         >
-          {token.slice(2, -2)}
+          {parseInline(inner, isUser, depth + 1)}
+        </strong>
+      );
+    } else if (token.startsWith("__") && token.endsWith("__") && token.length >= 4) {
+      const inner = token.slice(2, -2);
+      parts.push(
+        <strong
+          key={`${depth}-${match.index}`}
+          className={isUser ? "font-black" : "font-extrabold text-slate-900"}
+        >
+          {parseInline(inner, isUser, depth + 1)}
+        </strong>
+      );
+    } else if (token.startsWith("**") && !token.endsWith("**") && token.length > 2) {
+      // Unclosed ** at end of streaming line
+      const inner = token.slice(2);
+      parts.push(
+        <strong
+          key={`${depth}-${match.index}`}
+          className={isUser ? "font-black" : "font-extrabold text-slate-900"}
+        >
+          {inner}
         </strong>
       );
     } else if (token.startsWith("*") && token.endsWith("*") && token.length >= 2) {
       parts.push(
-        <em key={match.index} className="italic">
+        <em key={`${depth}-${match.index}`} className="italic">
           {token.slice(1, -1)}
         </em>
       );
     } else if (token.startsWith("`") && token.endsWith("`") && token.length >= 2) {
       parts.push(
         <code
-          key={match.index}
+          key={`${depth}-${match.index}`}
           className={`px-1.5 py-0.5 rounded text-xs font-mono ${
             isUser ? "bg-white/20" : "bg-slate-100 text-[#00685F]"
           }`}
@@ -84,11 +130,22 @@ function parseInline(text, isUser) {
     }
   }
 
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
+  if (lastIndex < normalizedText.length) {
+    parts.push(normalizedText.slice(lastIndex));
   }
 
-  return parts.length > 0 ? parts : text;
+  return parts.length > 0 ? parts : normalizedText;
+}
+
+function isTableLine(trimmedLine) {
+  return trimmedLine.startsWith("|") && trimmedLine.indexOf("|", 1) !== -1;
+}
+
+function isTableDividerRow(cells) {
+  return (
+    cells.length > 0 &&
+    cells.every((c) => c === "" || /^:?-+:?$/.test(c))
+  );
 }
 
 function parseMarkdownBlocks(rawText) {
@@ -119,7 +176,14 @@ function parseMarkdownBlocks(rawText) {
       continue;
     }
 
-    // 2. Headings (#, ##, ###, ####)
+    // 2. Horizontal Divider (---, ***, ___)
+    if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+      blocks.push({ type: "divider" });
+      i++;
+      continue;
+    }
+
+    // 3. Headings (#, ##, ###, ####)
     const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
     if (headingMatch) {
       blocks.push({
@@ -131,12 +195,12 @@ function parseMarkdownBlocks(rawText) {
       continue;
     }
 
-    // 3. Markdown Tables (| Col 1 | Col 2 |)
-    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+    // 4. Markdown Tables (| Col 1 | Col 2 | — supports streaming rows even before closing |)
+    if (isTableLine(trimmed)) {
       const tableLines = [];
       while (i < lines.length) {
         const tLine = lines[i].trim();
-        if (tLine.startsWith("|") && tLine.endsWith("|")) {
+        if (isTableLine(tLine) || (tLine.startsWith("|") && tableLines.length > 0)) {
           tableLines.push(tLine);
           i++;
         } else if (tLine === "") {
@@ -144,11 +208,7 @@ function parseMarkdownBlocks(rawText) {
           while (lookAhead < lines.length && lines[lookAhead].trim() === "") {
             lookAhead++;
           }
-          if (
-            lookAhead < lines.length &&
-            lines[lookAhead].trim().startsWith("|") &&
-            lines[lookAhead].trim().endsWith("|")
-          ) {
+          if (lookAhead < lines.length && isTableLine(lines[lookAhead].trim())) {
             i = lookAhead;
           } else {
             break;
@@ -158,20 +218,18 @@ function parseMarkdownBlocks(rawText) {
         }
       }
 
-      const cleanRows = tableLines.map((line) =>
-        line
-          .split("|")
-          .slice(1, -1)
-          .map((cell) => cell.trim())
-      );
+      const cleanRows = tableLines
+        .map((line) => {
+          const stripped = line.replace(/^\|/, "").replace(/\|$/, "");
+          return stripped.split("|").map((cell) => cell.trim());
+        })
+        .filter((cells) => cells.some((c) => c !== ""));
 
       if (cleanRows.length > 0) {
         const headers = cleanRows[0];
-        let dataRows = cleanRows.slice(1);
-        // Filter out divider line like |---|---|
-        if (dataRows.length > 0 && dataRows[0].every((c) => /^:?-+:?$/.test(c))) {
-          dataRows = dataRows.slice(1);
-        }
+        const dataRows = cleanRows
+          .slice(1)
+          .filter((row) => !isTableDividerRow(row));
         blocks.push({
           type: "table",
           headers,
@@ -181,7 +239,7 @@ function parseMarkdownBlocks(rawText) {
       continue;
     }
 
-    // 4. Numbered list items (e.g. "1. Item" or "1.\nItem")
+    // 5. Numbered list items (e.g. "1. Item" or "1.\nItem" with multi-line continuation)
     const numberMatch = trimmed.match(/^(\d+)[\.\)]\s*(.*)$/);
     if (numberMatch) {
       const num = numberMatch[1];
@@ -232,6 +290,16 @@ function parseMarkdownBlocks(rawText) {
           }
           items.push({ num: nextNum, text: nextText });
           i++;
+        } else if (
+          !nextTrimmed.startsWith("#") &&
+          !isTableLine(nextTrimmed) &&
+          !/^(?:-{3,}|\*{3,}|_{3,})$/.test(nextTrimmed) &&
+          !nextTrimmed.match(/^[\*\-•]\s+/)
+        ) {
+          // Multi-line continuation of the current numbered item
+          const lastItem = items[items.length - 1];
+          lastItem.text = lastItem.text ? `${lastItem.text} ${nextTrimmed}` : nextTrimmed;
+          i++;
         } else {
           break;
         }
@@ -241,7 +309,7 @@ function parseMarkdownBlocks(rawText) {
       continue;
     }
 
-    // 5. Standard bullet items (* Item or - Item or • Item)
+    // 6. Standard bullet items (* Item or - Item or • Item)
     const bulletMatch = trimmed.match(/^[\*\-•]\s+(.*)$/);
     if (bulletMatch) {
       const items = [bulletMatch[1].trim()];
@@ -260,7 +328,7 @@ function parseMarkdownBlocks(rawText) {
       continue;
     }
 
-    // 6. Callouts / Notes (Note:, Catatan:, Tips:, Tip:, Penting:, Warning:)
+    // 7. Callouts / Notes (Note:, Catatan:, Tips:, Tip:, Penting:, Warning:)
     const calloutMatch = trimmed.match(/^(Note|Catatan|Tips?|Penting|Warning|Perhatian):\s*(.*)$/i);
     if (calloutMatch) {
       blocks.push({
@@ -272,7 +340,7 @@ function parseMarkdownBlocks(rawText) {
       continue;
     }
 
-    // 7. Key: Value lines (e.g. "Total balance: Rp 112.5 M across all accounts")
+    // 8. Key: Value lines (e.g. "Total balance: Rp 112.5 M across all accounts")
     const kvMatch = trimmed.match(/^([A-Za-z0-9\s\/&]{2,35}):\s+(.+)$/);
     if (kvMatch && !trimmed.startsWith("http:") && !trimmed.startsWith("https:")) {
       blocks.push({
@@ -284,7 +352,7 @@ function parseMarkdownBlocks(rawText) {
       continue;
     }
 
-    // 8. Normal paragraph
+    // 9. Normal paragraph
     blocks.push({
       type: "paragraph",
       text: rawLine,
@@ -303,6 +371,17 @@ function FormattedContent({ content, isUser }) {
   return (
     <div className="space-y-1.5 text-xs sm:text-[13px] leading-relaxed min-w-0 break-words overflow-hidden">
       {blocks.map((block, i) => {
+        if (block.type === "divider") {
+          return (
+            <hr
+              key={i}
+              className={`my-2.5 border-0 border-t ${
+                isUser ? "border-white/20" : "border-slate-200/90"
+              }`}
+            />
+          );
+        }
+
         if (block.type === "heading") {
           return (
             <div
@@ -332,7 +411,7 @@ function FormattedContent({ content, isUser }) {
                   : "border-slate-200/90 bg-white"
               }`}
             >
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-[11px] sm:text-xs border-collapse">
                 <thead>
                   <tr
                     className={`border-b ${
@@ -344,7 +423,7 @@ function FormattedContent({ content, isUser }) {
                     {block.headers.map((h, idx) => (
                       <th
                         key={idx}
-                        className="px-3 py-2 font-bold whitespace-nowrap"
+                        className="px-2.5 py-2 font-bold align-top break-words"
                       >
                         {parseInline(h, isUser)}
                       </th>
@@ -367,16 +446,19 @@ function FormattedContent({ content, isUser }) {
                           : ""
                       }
                     >
-                      {row.map((cell, cIdx) => (
-                        <td
-                          key={cIdx}
-                          className={`px-3 py-2 whitespace-nowrap ${
-                            isUser ? "text-white/90" : "text-slate-700"
-                          }`}
-                        >
-                          {parseInline(cell, isUser)}
-                        </td>
-                      ))}
+                      {block.headers.map((_, cIdx) => {
+                        const cell = row[cIdx] ?? "";
+                        return (
+                          <td
+                            key={cIdx}
+                            className={`px-2.5 py-2 align-top break-words ${
+                              isUser ? "text-white/90" : "text-slate-700"
+                            }`}
+                          >
+                            {parseInline(cell, isUser)}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>

@@ -58,43 +58,63 @@ export function useAiStream() {
       }
 
       const decoder = new TextDecoder();
+      let sseBuffer = "";
+      let streamDone = false;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      const processLine = (rawLine) => {
+        const line = rawLine.trim();
+        if (!line.startsWith("data:")) return;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
+        const dataStr = line.slice(5).trim();
+        if (!dataStr) return;
+        if (dataStr === "[DONE]") {
+          streamDone = true;
+          return;
+        }
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const dataStr = line.slice(6).trim();
-            if (dataStr === "[DONE]") {
-              break;
+        try {
+          const parsed = JSON.parse(dataStr);
+          if (parsed.error) {
+            throw new Error(parsed.error);
+          }
+          if (parsed.text) {
+            // Backend menandai error stream dengan prefix "ERROR:<kode>| pesan"
+            // agar tidak dirender sebagai jawaban AI.
+            if (parsed.text.startsWith("ERROR:")) {
+              throw new Error(parsed.text.slice(6).trim());
             }
-            try {
-              const parsed = JSON.parse(dataStr);
-              if (parsed.error) {
-                throw new Error(parsed.error);
-              }
-              if (parsed.text) {
-                // Backend menandai error stream dengan prefix "ERROR:<kode>| pesan"
-                // agar tidak dirender sebagai jawaban AI.
-                if (parsed.text.startsWith("ERROR:")) {
-                  throw new Error(parsed.text.slice(6).trim());
-                }
-                accumulated += parsed.text;
-                setOutput(accumulated);
-                if (onChunk) onChunk(parsed.text, accumulated);
-              }
-            } catch (jsonErr) {
-              if (jsonErr instanceof SyntaxError) {
-                // Ignore partial atau unparseable chunks
-              } else {
-                throw jsonErr;
-              }
+            accumulated += parsed.text;
+            setOutput(accumulated);
+            if (onChunk) onChunk(parsed.text, accumulated);
+          }
+        } catch (jsonErr) {
+          if (!(jsonErr instanceof SyntaxError)) {
+            throw jsonErr;
+          }
+        }
+      };
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) {
+          sseBuffer += decoder.decode();
+          if (sseBuffer.trim()) {
+            for (const remLine of sseBuffer.split("\n")) {
+              processLine(remLine);
+              if (streamDone) break;
             }
           }
+          break;
+        }
+
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split("\n");
+        // Keep the last (potentially incomplete) line in buffer until the next "\n" arrives
+        sseBuffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          processLine(line);
+          if (streamDone) break;
         }
       }
 

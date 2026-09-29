@@ -160,8 +160,8 @@ export function useGoalsPage() {
     setEditingGoal(g);
     setFormTitle(g.name);
     setFormSubtitle(g.description || "");
-    setFormTarget(String(g.target_amount));
-    setFormCurrent(String(g.current_amount));
+    setFormTarget(String(Math.round(Number(g.target_amount) || 0)));
+    setFormCurrent(String(Math.round(Number(g.current_amount) || 0)));
     setFormDeadlineDate(g.deadline || "");
     setFormType(g.layout_type || "linear");
     setFormTag(g.color || "blue");

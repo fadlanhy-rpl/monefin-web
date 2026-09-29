@@ -39,10 +39,15 @@ export default function DepositModal({
 
   const selectedAccount = accounts.find((acc) => String(acc.id) === String(selectedAccountId)) || accounts[0];
 
-  // Format thousand separator
+  // Format thousand separator (guards against SQL decimal strings)
   const formatThousand = (val) => {
     if (val === undefined || val === null || val === "") return "";
-    const raw = String(val).replace(/\D/g, "");
+    const str = String(val).trim();
+    const normalized =
+      typeof val === "number" || /^-?\d+\.\d{1,2}$/.test(str)
+        ? String(Math.round(Number(val) || 0))
+        : str;
+    const raw = normalized.replace(/\D/g, "");
     if (!raw) return "";
     return new Intl.NumberFormat("id-ID").format(raw);
   };

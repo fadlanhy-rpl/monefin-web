@@ -336,7 +336,7 @@ export function useTransactionsPage() {
     setModalMode("edit");
     setEditingTransaction(t);
     setFormType(t.type);
-    setFormAmount(String(Math.abs(t.amount)));
+    setFormAmount(String(Math.round(Math.abs(Number(t.amount) || 0))));
     setFormCategoryId(t.category_id || t.category?.id || "");
     setFormAccountId(t.account_id || t.account?.id || "");
     setFormDate(formatDateInput(t.transaction_date));
@@ -396,7 +396,11 @@ export function useTransactionsPage() {
     e.preventDefault();
     if (isSubmitting) return;
 
-    const amt = parseFloat(String(formAmount).replace(/\D/g, ""));
+    const cleanAmtStr =
+      typeof formAmount === "number" || /^-?\d+\.\d{1,2}$/.test(String(formAmount).trim())
+        ? String(Math.round(Number(formAmount) || 0))
+        : String(formAmount).replace(/\D/g, "");
+    const amt = parseFloat(cleanAmtStr);
     if (isNaN(amt) || amt <= 0) {
       toast.error(language === "en" ? "Transaction amount must be a positive number!" : "Jumlah transaksi harus angka positif!");
       return;

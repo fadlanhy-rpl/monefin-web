@@ -35,7 +35,12 @@ export default function BudgetModal({
   // Format raw number into Indonesian thousand separator string (e.g. 1000000 -> 1.000.000)
   const formatThousand = (val) => {
     if (val === undefined || val === null || val === "") return "";
-    const raw = String(val).replace(/\D/g, "");
+    const str = String(val).trim();
+    const normalized =
+      typeof val === "number" || /^-?\d+\.\d{1,2}$/.test(str)
+        ? String(Math.round(Number(val) || 0))
+        : str;
+    const raw = normalized.replace(/\D/g, "");
     if (!raw) return "";
     return new Intl.NumberFormat("id-ID").format(raw);
   };
