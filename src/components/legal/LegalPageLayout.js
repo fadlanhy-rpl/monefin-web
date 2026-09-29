@@ -35,8 +35,12 @@ import {
   Database,
   UserX,
   Award,
+  History,
+  Globe,
+  RefreshCw,
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { COMPLIANCE_FACTS } from "../../lib/compliance-facts";
 
 const DOC_ICON_MAP = {
   terms: FileText,
@@ -61,6 +65,7 @@ export default function LegalPageLayout({
     typeof icon === "function" ? icon : DOC_ICON_MAP[docKey] || FileText;
   const { language, changeLanguage } = useLanguage();
   const isId = language === "id";
+  const langKey = isId ? "id" : "en";
   const pathname = usePathname();
 
   // Resolve current localized document data
@@ -166,7 +171,9 @@ export default function LegalPageLayout({
     const q = searchQuery.toLowerCase();
     return doc.sections.filter((s) => {
       const matchTitle = s.title?.toLowerCase().includes(q);
-      const matchParagraphs = s.paragraphs?.some((p) => p.toLowerCase().includes(q));
+      const matchParagraphs = s.paragraphs?.some((p) =>
+        p.toLowerCase().includes(q)
+      );
       const matchCallout = s.callout?.text?.toLowerCase().includes(q);
       const matchBullets = s.bullets?.some((b) => b.toLowerCase().includes(q));
       return matchTitle || matchParagraphs || matchCallout || matchBullets;
@@ -198,28 +205,56 @@ export default function LegalPageLayout({
     },
   ];
 
-  // Official contact email
-  const contactEmail = "monefin.techapp@gmail.com";
+  // Primary functional contact per document (Rule B8 & Finding #10)
+  const primaryContact = useMemo(() => {
+    if (docKey === "security") return COMPLIANCE_FACTS.contacts.security;
+    if (docKey === "privacy") return COMPLIANCE_FACTS.contacts.privacy;
+    return COMPLIANCE_FACTS.contacts.legal;
+  }, [docKey]);
 
-  // Dedicated takeaway icons based on docKey and index
+  const allContacts = useMemo(
+    () => [
+      { key: "security", ...COMPLIANCE_FACTS.contacts.security },
+      { key: "privacy", ...COMPLIANCE_FACTS.contacts.privacy },
+      { key: "legal", ...COMPLIANCE_FACTS.contacts.legal },
+      { key: "support", ...COMPLIANCE_FACTS.contacts.support },
+    ],
+    []
+  );
+
+  // Dedicated takeaway icons based on docKey and index (supports up to 5 summary points per Rule B3)
   const getTakeawayIcon = (index) => {
     if (docKey === "terms") {
       if (index === 0) return Scale;
-      if (index === 1) return Receipt;
-      return KeyRound;
+      if (index === 1) return UserCheck;
+      if (index === 2) return Cpu;
+      if (index === 3) return ShieldCheck;
+      return Receipt;
     }
     if (docKey === "privacy") {
       if (index === 0) return ShieldCheck;
       if (index === 1) return Cpu;
-      return UserCheck;
+      if (index === 2) return Server;
+      if (index === 3) return UserCheck;
+      return Clock;
     }
     if (docKey === "security") {
-      if (index === 0) return Server;
-      if (index === 1) return ShieldCheck;
-      return KeyRound;
+      if (index === 0) return ShieldCheck;
+      if (index === 1) return KeyRound;
+      if (index === 2) return Lock;
+      if (index === 3) return Database;
+      return Server;
     }
     return Shield;
   };
+
+  const securityControls = COMPLIANCE_FACTS.securityControls[langKey] || [];
+  const securityHeaders = COMPLIANCE_FACTS.securityHeaders || [];
+  const dataCategories = COMPLIANCE_FACTS.dataCategoriesTable[langKey] || [];
+  const subProcessors = COMPLIANCE_FACTS.subProcessorsTable[langKey] || [];
+  const cookiesAndStorage =
+    COMPLIANCE_FACTS.cookiesAndStorageTable[langKey] || [];
+  const changelogList = COMPLIANCE_FACTS.changelog[langKey] || [];
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans selection:bg-brand-600/20 selection:text-brand-600">
@@ -228,20 +263,26 @@ export default function LegalPageLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
           {/* Brand Logo & Title */}
           <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center p-1 shadow-md shadow-brand-600/20 group-hover:scale-105 transition-transform duration-200">
-                <Image src="/images/logo-monefin-white.svg" alt="MoneFin Logo" width={16} height={16} className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center p-1 shadow-md shadow-brand-600/20 group-hover:scale-105 transition-transform duration-200">
+              <Image
+                src="/images/logo-monefin-white.svg"
+                alt="MoneFin Logo"
+                width={16}
+                height={16}
+                className="w-4 h-4"
+              />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">
+                  MoneFin
+                </span>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 dark:bg-teal-950/60 dark:text-teal-300 border border-brand-200/60 dark:border-teal-800/40">
+                  Trust Center
+                </span>
               </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">
-                    MoneFin
-                  </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 dark:bg-teal-950/60 dark:text-teal-300 border border-brand-200/60 dark:border-teal-800/40">
-                    Trust Center
-                  </span>
-                </div>
-              </div>
-            </Link>
+            </div>
+          </Link>
 
           {/* Center Tabs Switcher (Desktop) */}
           <nav className="hidden md:flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/70 dark:border-slate-800">
@@ -299,7 +340,11 @@ export default function LegalPageLayout({
               type="button"
               onClick={handlePrint}
               className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
-              title={isId ? "Cetak dokumen / Unduh PDF" : "Print document / Download PDF"}
+              title={
+                isId
+                  ? "Cetak dokumen / Unduh PDF"
+                  : "Print document / Download PDF"
+              }
             >
               <Printer className="w-4 h-4" />
             </button>
@@ -311,7 +356,11 @@ export default function LegalPageLayout({
               className="lg:hidden p-2 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl cursor-pointer"
               title={isId ? "Daftar Isi" : "Table of Contents"}
             >
-              {mobileTocOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              {mobileTocOpen ? (
+                <X className="w-4 h-4" />
+              ) : (
+                <Menu className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -341,7 +390,7 @@ export default function LegalPageLayout({
       {/* Hero Section */}
       <section className="relative border-b border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-teal-50/50 via-white to-[#f8fafc] dark:from-teal-950/20 dark:via-slate-900 dark:to-slate-950 py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
+          <div className="max-w-4xl">
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2.5 mb-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-50 text-brand-700 dark:bg-teal-950 dark:text-teal-300 border border-brand-200/60 dark:border-teal-800/50">
@@ -362,35 +411,53 @@ export default function LegalPageLayout({
               {doc.subtitle}
             </p>
 
-            {/* Metadata Bar */}
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-slate-500 dark:text-slate-400 pt-5 border-t border-slate-200/80 dark:border-slate-800">
+            {/* Metadata Bar (Aturan B1 & B7) */}
+            <div className="flex flex-wrap items-center gap-y-2.5 gap-x-4 text-xs text-slate-500 dark:text-slate-400 pt-5 border-t border-slate-200/80 dark:border-slate-800">
+              <div>
+                <span>
+                  {isId ? "Versi:" : "Version:"}{" "}
+                  <strong className="text-slate-800 dark:text-slate-200 font-semibold font-mono">
+                    {doc.version || COMPLIANCE_FACTS.versionLabel[langKey]}
+                  </strong>
+                </span>
+              </div>
+              <span>•</span>
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-brand-600" />
                 <span>
-                  {isId ? "Terakhir Diperbarui:" : "Last Updated:"}{" "}
+                  {isId ? "Tanggal Efektif:" : "Effective Date:"}{" "}
                   <strong className="text-slate-800 dark:text-slate-200 font-semibold">
-                    {doc.updatedDate || "6 September 2026"}
+                    {doc.effectiveDate ||
+                      COMPLIANCE_FACTS.effectiveDate[langKey]}
                   </strong>
                 </span>
               </div>
               <span>•</span>
               <div>
                 <span>
-                  {isId ? "Versi:" : "Version:"}{" "}
+                  {isId ? "Terakhir Diperbarui:" : "Last Updated:"}{" "}
                   <strong className="text-slate-800 dark:text-slate-200 font-semibold">
-                    {doc.version || "Versi 2.4"}
+                    {doc.updatedDate || COMPLIANCE_FACTS.updatedDate[langKey]}
                   </strong>
                 </span>
               </div>
               <span>•</span>
               <div className="flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                <span>{isId ? "Yurisdiksi: Republik Indonesia" : "Jurisdiction: Republic of Indonesia"}</span>
+                <span>
+                  {isId ? "Penanggung Jawab:" : "Document Owner:"}{" "}
+                  <strong className="text-slate-800 dark:text-slate-200 font-semibold">
+                    {doc.documentOwner ||
+                      COMPLIANCE_FACTS.documentOwner[langKey]}
+                  </strong>
+                </span>
               </div>
               <span>•</span>
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-brand-600" />
-                <span>{isId ? "Waktu Baca: ~5 menit" : "Reading Time: ~5 min"}</span>
+                <RefreshCw className="w-3.5 h-3.5 text-brand-600" />
+                <span>
+                  {doc.reviewCycle || COMPLIANCE_FACTS.reviewCycle[langKey]}
+                </span>
               </div>
               <span className="hidden sm:inline">•</span>
               <button
@@ -406,30 +473,50 @@ export default function LegalPageLayout({
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>{isId ? "Salin Tautan Halaman" : "Copy Page Link"}</span>
+                    <span>
+                      {isId ? "Salin Tautan Halaman" : "Copy Page Link"}
+                    </span>
                   </>
                 )}
               </button>
+            </div>
+
+            {/* Governing Language Banner (Aturan B3) */}
+            <div className="mt-4 p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300">
+              <Globe className="w-4 h-4 text-brand-600 dark:text-teal-400 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                {doc.governingLanguageNotice ||
+                  COMPLIANCE_FACTS.governingLanguageNotice[langKey]}
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Key Highlights ("Poin Kunci Transparansi - Ringkasan 30 Detik") */}
+      {/* Key Highlights ("Ringkasan 30 Detik" — Aturan B3, Maks. 5 Poin) */}
       {doc.summaryPoints && doc.summaryPoints.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 mb-8 print:hidden relative z-10">
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="w-7 h-7 rounded-xl bg-brand-50 dark:bg-teal-950 flex items-center justify-center text-brand-600 dark:text-teal-400">
-                <Clock className="w-4 h-4" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-brand-50 dark:bg-teal-950 flex items-center justify-center text-brand-600 dark:text-teal-400">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  {isId
+                    ? "Poin Kunci Transparansi (Ringkasan 30 Detik)"
+                    : "Key Transparency Highlights (30-Second Summary)"}
+                </h2>
               </div>
-              <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                {isId ? "Poin Kunci Transparansi (Ringkasan 30 Detik)" : "Key Transparency Highlights (30-Second Summary)"}
-              </h2>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                {isId
+                  ? "Ringkasan ini membantu pemahaman cepat dan tidak menggantikan isi dokumen lengkap di bawah."
+                  : "This summary aids quick understanding and does not replace the full legal text below."}
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {doc.summaryPoints.map((point, idx) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {doc.summaryPoints.slice(0, 5).map((point, idx) => {
                 const TakeawayIcon = getTakeawayIcon(idx);
                 return (
                   <div
@@ -473,7 +560,9 @@ export default function LegalPageLayout({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={isId ? "Cari pasal atau topik..." : "Search sections..."}
+                  placeholder={
+                    isId ? "Cari pasal atau topik..." : "Search sections..."
+                  }
                   className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-brand-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
                 />
                 {searchQuery && (
@@ -488,10 +577,12 @@ export default function LegalPageLayout({
               </div>
 
               {/* Section Buttons */}
-              <nav className="space-y-1 max-h-[calc(100vh-320px)] overflow-y-auto pr-1 text-sm no-scrollbar">
+              <nav className="space-y-1 max-h-[calc(100vh-380px)] overflow-y-auto pr-1 text-sm no-scrollbar">
                 {filteredSections.length === 0 ? (
                   <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400">
-                    {isId ? "Tidak ada topik yang cocok dengan pencarian." : "No sections match your search."}
+                    {isId
+                      ? "Tidak ada topik yang cocok dengan pencarian."
+                      : "No sections match your search."}
                   </div>
                 ) : (
                   filteredSections.map((section, idx) => {
@@ -516,7 +607,9 @@ export default function LegalPageLayout({
                         >
                           {section.number || String(idx + 1).padStart(2, "0")}
                         </span>
-                        <span className="flex-1 leading-snug">{section.title}</span>
+                        <span className="flex-1 leading-snug">
+                          {section.title}
+                        </span>
                       </button>
                     );
                   })
@@ -524,33 +617,76 @@ export default function LegalPageLayout({
               </nav>
             </div>
 
-            {/* Contact / Inquiries Box */}
-            <div className="p-5 rounded-3xl bg-gradient-to-br from-teal-50/70 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-850 border border-teal-100/90 dark:border-slate-800 shadow-2xs">
-              <div className="flex items-center gap-2.5 mb-2">
+            {/* Official Functional Contacts Box (Aturan B8 & Temuan #10) */}
+            <div className="p-5 rounded-3xl bg-gradient-to-br from-teal-50/70 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-850 border border-teal-100/90 dark:border-slate-800 shadow-2xs space-y-3.5">
+              <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-brand-50 dark:bg-teal-500/20 flex items-center justify-center text-brand-600 dark:text-teal-400">
                   <Mail className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  {common.contactTitle || (isId ? "Pertanyaan atau Bantuan?" : "Questions or Inquiries?")}
-                </h4>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                    {common.contactTitle ||
+                      (isId
+                        ? "Kontak Resmi Sesuai Fungsi"
+                        : "Official Functional Contacts")}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {primaryContact.role[langKey]}
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
-                {common.contactDesc ||
-                  (isId
-                    ? "Tim kepatuhan dan keamanan MoneFin siap membantu klarifikasi klausul atau penanganan data pribadi."
-                    : "MoneFin's legal & security team is ready to clarify any clause or data handling procedures.")}
-              </p>
-              <div className="space-y-1.5">
+
+              {/* Highlighted Primary Contact for Active Document */}
+              <div className="p-3 rounded-2xl bg-white dark:bg-slate-800/90 border border-brand-200/70 dark:border-teal-800/60 space-y-1">
                 <a
-                  href={`mailto:${contactEmail}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 dark:text-teal-400 hover:underline"
+                  href={`mailto:${primaryContact.email}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 dark:text-teal-400 hover:underline font-mono"
                 >
-                  <span>{contactEmail}</span>
+                  <span>{primaryContact.email}</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {common.responseTime || (isId ? "Respon: < 24 jam kerja" : "Response: < 24 business hours")}
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <strong>SLA:</strong> {primaryContact.sla[langKey]}
                 </p>
+              </div>
+
+              {/* All 4 Official Channels Summary */}
+              <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 space-y-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  {isId
+                    ? "Saluran Resmi MoneFin (@monefin.web.id)"
+                    : "Official Channels (@monefin.web.id)"}
+                </p>
+                {allContacts.map((c) => (
+                  <div
+                    key={c.key}
+                    className="flex items-center justify-between text-[11px] gap-2"
+                  >
+                    <span className="text-slate-500 dark:text-slate-400 truncate">
+                      {c.key === "security"
+                        ? isId
+                          ? "Keamanan / CSIRT"
+                          : "Security / CSIRT"
+                        : c.key === "privacy"
+                        ? isId
+                          ? "Privasi / DPO"
+                          : "Privacy / DPO"
+                        : c.key === "legal"
+                        ? isId
+                          ? "Hukum & Banding"
+                          : "Legal & Appeals"
+                        : isId
+                        ? "Bantuan Umum"
+                        : "General Support"}
+                    </span>
+                    <a
+                      href={`mailto:${c.email}`}
+                      className="font-mono font-semibold text-slate-700 dark:text-slate-200 hover:text-brand-600 dark:hover:text-teal-400"
+                    >
+                      {c.email}
+                    </a>
+                  </div>
+                ))}
               </div>
             </div>
           </aside>
@@ -578,7 +714,11 @@ export default function LegalPageLayout({
                     type="button"
                     onClick={() => handleCopySectionLink(section.id)}
                     className="p-1.5 text-slate-400 hover:text-brand-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
-                    title={isId ? "Salin tautan bagian ini" : "Copy link to section"}
+                    title={
+                      isId
+                        ? "Salin tautan bagian ini"
+                        : "Copy link to section"
+                    }
                   >
                     {copiedSectionId === section.id ? (
                       <Check className="w-4 h-4 text-emerald-600" />
@@ -591,7 +731,6 @@ export default function LegalPageLayout({
                 {/* Section Content */}
                 <div className="space-y-4 text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
                   {section.paragraphs?.map((paragraph, pIdx) => {
-                    // Check if paragraph is a bullet point starting with • or - or 1.
                     const isBullet =
                       paragraph.startsWith("• ") ||
                       paragraph.startsWith("- ") ||
@@ -599,10 +738,15 @@ export default function LegalPageLayout({
 
                     if (isBullet) {
                       return (
-                        <div key={pIdx} className="flex items-start gap-2.5 pl-1 my-2">
+                        <div
+                          key={pIdx}
+                          className="flex items-start gap-2.5 pl-1 my-2"
+                        >
                           <span className="w-1.5 h-1.5 rounded-full bg-brand-600 mt-2.5 shrink-0" />
                           <p className="flex-1 font-medium text-slate-800 dark:text-slate-200">
-                            {paragraph.replace(/^[•\-]\s*/, "").replace(/^[0-9]+\.\s*/, "")}
+                            {paragraph
+                              .replace(/^[•\-]\s*/, "")
+                              .replace(/^[0-9]+\.\s*/, "")}
                           </p>
                         </div>
                       );
@@ -649,150 +793,298 @@ export default function LegalPageLayout({
                             {section.callout.title}
                           </h4>
                         )}
-                        <p className="leading-relaxed">{section.callout.text}</p>
+                        <p className="leading-relaxed">
+                          {section.callout.text}
+                        </p>
                       </div>
                     </div>
                   )}
 
                   {/* ========================================================================= */}
-                  {/* SPECIAL ENHANCEMENTS FOR SECURITY PAGE */}
+                  {/* STRUCTURED TABLES FROM SINGLE SOURCE OF TRUTH (COMPLIANCE_FACTS)          */}
                   {/* ========================================================================= */}
-                  {/* IDOR Protection Controller Grid */}
-                  {section.id === "idor-protection" && (
-                    <div className="mt-5 p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 space-y-3">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                        <CheckCircle2 className="w-4 h-4 text-brand-600" />
-                        <span>
+
+                  {/* 1. Standar Keamanan #2: Tabel Kontrol Keamanan (Kontrol | Deskripsi | Standar | Status) */}
+                  {section.id === "scope-principles" &&
+                    securityControls.length > 0 && (
+                      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+                              <th className="p-3.5">
+                                {isId ? "Kontrol Keamanan" : "Security Control"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Deskripsi Singkat"
+                                  : "Brief Description"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Standar Acuan" : "Reference Standard"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Status" : "Status"}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            {securityControls.map((row, rIdx) => {
+                              const isRoadmap = row.status
+                                .toLowerCase()
+                                .includes("roadmap");
+                              const isPartial =
+                                row.status.toLowerCase().includes("sebagian") ||
+                                row.status.toLowerCase().includes("partial");
+                              return (
+                                <tr key={rIdx}>
+                                  <td className="p-3.5 font-bold text-slate-900 dark:text-white align-top">
+                                    {row.control}
+                                  </td>
+                                  <td className="p-3.5 leading-relaxed align-top">
+                                    {row.description}
+                                  </td>
+                                  <td className="p-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 align-top">
+                                    {row.standard}
+                                  </td>
+                                  <td className="p-3.5 align-top whitespace-nowrap">
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold text-[11px] ${
+                                        isPartial
+                                          ? "bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                          : isRoadmap
+                                          ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                          : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                      }`}
+                                    >
+                                      <span
+                                        className={`w-1.5 h-1.5 rounded-full ${
+                                          isPartial
+                                            ? "bg-amber-500"
+                                            : isRoadmap
+                                            ? "bg-slate-400"
+                                            : "bg-emerald-500"
+                                        }`}
+                                      />
+                                      {row.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                  {/* 2. Standar Keamanan #6: Tabel HTTP Security Headers (Tanpa X-XSS-Protection, Konsisten dengan Teks) */}
+                  {section.id === "api-security-headers" &&
+                    securityHeaders.length > 0 && (
+                      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+                              <th className="p-3.5">HTTP Header</th>
+                              <th className="p-3.5">
+                                {isId ? "Nilai Kebijakan" : "Policy Value"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Cakupan Penerapan"
+                                  : "Enforcement Scope"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Tujuan Proteksi"
+                                  : "Protection Purpose"}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            {securityHeaders.map((item, hIdx) => (
+                              <tr key={hIdx}>
+                                <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white align-top whitespace-nowrap">
+                                  {item.header}
+                                </td>
+                                <td className="p-3.5 font-mono text-brand-600 dark:text-teal-400 font-bold align-top">
+                                  {item.value}
+                                </td>
+                                <td className="p-3.5 text-slate-600 dark:text-slate-400 align-top">
+                                  {item.scope[langKey]}
+                                </td>
+                                <td className="p-3.5 align-top">
+                                  {item.purpose[langKey]}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                  {/* 3. Standar Keamanan #9 & Kebijakan Privasi #5: Tabel Sub-Prosesor Pihak Ketiga */}
+                  {(section.id === "vendor-security" ||
+                    section.id === "subprocessors") &&
+                    subProcessors.length > 0 && (
+                      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Pemroses / Sub-Prosesor"
+                                  : "Processor / Sub-Processor"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Peran & Tujuan" : "Role & Purpose"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Lokasi Pemrosesan"
+                                  : "Processing Location"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Jaminan Pelindungan"
+                                  : "Security & Privacy Safeguards"}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            {subProcessors.map((sp, spIdx) => (
+                              <tr key={spIdx}>
+                                <td className="p-3.5 font-bold text-slate-900 dark:text-white align-top">
+                                  {sp.name}
+                                </td>
+                                <td className="p-3.5 leading-relaxed align-top">
+                                  {sp.role}
+                                </td>
+                                <td className="p-3.5 text-slate-600 dark:text-slate-400 align-top">
+                                  {sp.location}
+                                </td>
+                                <td className="p-3.5 leading-relaxed align-top">
+                                  {sp.safeguard}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                  {/* 4. Standar Keamanan #11: Tautan RFC 9116 /.well-known/security.txt */}
+                  {section.id === "vulnerability-disclosure" && (
+                    <div className="mt-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2.5">
+                        <ShieldCheck className="w-4 h-4 text-brand-600 dark:text-teal-400 shrink-0" />
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {isId
-                            ? "Endpoint & Controller yang Divalidasi Kepemilikan Baris (Row-Level Scoping):"
-                            : "Protected Controllers with Strict Row-Level Scoping:"}
+                            ? "Berkas Standar RFC 9116 (security.txt):"
+                            : "RFC 9116 Standard File (security.txt):"}
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        {[
-                          { name: "TransactionController", scope: "User ID + Account Ownership Check" },
-                          { name: "BudgetController", scope: "Category Tenant Scoping" },
-                          { name: "SplitBillController", scope: "Owner & Participant Authorization" },
-                          { name: "GoalController", scope: "User Scoped Savings Simulation" },
-                          { name: "AccountController", scope: "Wallet & Bank Isolation" },
-                          { name: "IncomeSettingController", scope: "Single User Recurring Scoping" },
-                        ].map((item, cIdx) => (
-                          <div
-                            key={cIdx}
-                            className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700"
-                          >
-                            <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
-                              {item.name}
-                            </span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                              {item.scope}
-                            </span>
-                          </div>
-                        ))}
+                      <a
+                        href="/.well-known/security.txt"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-mono font-bold text-brand-600 dark:text-teal-400 hover:underline"
+                      >
+                        <span>/.well-known/security.txt</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  )}
+
+                  {/* 5. Kebijakan Privasi #2: Tabel Kategori Data, Tujuan, Dasar Hukum, & Retensi */}
+                  {section.id === "data-collected" &&
+                    dataCategories.length > 0 && (
+                      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+                              <th className="p-3.5">
+                                {isId ? "Kategori Data" : "Data Category"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Rincian Data" : "Data Elements"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Tujuan Pemrosesan"
+                                  : "Processing Purpose"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Dasar Hukum (UU PDP)"
+                                  : "Legal Basis (UU PDP / GDPR)"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Masa Retensi" : "Retention Period"}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            {dataCategories.map((dc, dcIdx) => (
+                              <tr key={dcIdx}>
+                                <td className="p-3.5 font-bold text-slate-900 dark:text-white align-top">
+                                  {dc.category}
+                                </td>
+                                <td className="p-3.5 leading-relaxed align-top">
+                                  {dc.items}
+                                </td>
+                                <td className="p-3.5 leading-relaxed align-top">
+                                  {dc.purpose}
+                                </td>
+                                <td className="p-3.5 leading-relaxed align-top text-slate-600 dark:text-slate-400">
+                                  {dc.legalBasis}
+                                </td>
+                                <td className="p-3.5 leading-relaxed align-top">
+                                  {dc.retention}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Security Headers Table */}
-                  {section.id === "security-headers" && (
-                    <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead>
-                          <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
-                            <th className="p-3.5">{isId ? "HTTP Header" : "HTTP Header"}</th>
-                            <th className="p-3.5">{isId ? "Nilai / Kebijakan" : "Value / Policy"}</th>
-                            <th className="p-3.5">{isId ? "Status & Proteksi" : "Status & Purpose"}</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                          <tr>
-                            <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">X-Frame-Options</td>
-                            <td className="p-3.5 font-mono text-brand-600 font-bold">DENY</td>
-                            <td className="p-3.5">
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                {isId ? "Cegah Clickjacking luar" : "Prevents Clickjacking"}
-                              </span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">X-Content-Type-Options</td>
-                            <td className="p-3.5 font-mono text-brand-600 font-bold">nosniff</td>
-                            <td className="p-3.5">
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                {isId ? "Cegah MIME-sniffing exploit" : "Blocks MIME-sniffing"}
-                              </span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">X-XSS-Protection</td>
-                            <td className="p-3.5 font-mono text-brand-600 font-bold">1; mode=block</td>
-                            <td className="p-3.5">
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                {isId ? "Filter XSS peramban bawaan" : "Browser-level XSS filter"}
-                              </span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">Referrer-Policy</td>
-                            <td className="p-3.5 font-mono text-brand-600 font-bold">strict-origin-when-cross-origin</td>
-                            <td className="p-3.5">
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                {isId ? "Isolasi URL rute internal" : "Strict referrer isolation"}
-                              </span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">Content-Security-Policy</td>
-                            <td className="p-3.5 font-mono text-brand-600 font-bold">default-src &apos;self&apos; + SSE</td>
-                            <td className="p-3.5">
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                {isId ? "Isolasi script & pass AI SSE" : "Script isolation & AI SSE pass"}
-                              </span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* ========================================================================= */}
-                  {/* SPECIAL ENHANCEMENTS FOR PRIVACY PAGE */}
-                  {/* ========================================================================= */}
-                  {/* Data Subject Rights Matrix */}
+                  {/* 6. Kebijakan Privasi #7: Matriks Hak Subjek Data (UU PDP Pasal 5–13) */}
                   {section.id === "data-subject-rights" && (
                     <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {[
                         {
-                          title: isId ? "Hak Akses & Portabilitas" : "Access & Data Portability",
+                          title: isId
+                            ? "Hak Informasi, Akses & Portabilitas"
+                            : "Right to Information, Access & Portability",
                           desc: isId
-                            ? "Unduh riwayat transaksi dalam format CSV/Excel kapan pun."
-                            : "Download transaction logs in CSV/Excel formats whenever required.",
+                            ? "Lihat seluruh data keuangan Anda dan unduh salinan riwayat transaksi dalam format CSV/Excel kapan pun."
+                            : "Inspect your financial records and export transaction logs in machine-readable CSV/Excel formats.",
                           icon: Database,
                         },
                         {
-                          title: isId ? "Hak Koreksi & Rektifikasi" : "Rectification & Updates",
+                          title: isId
+                            ? "Hak Koreksi & Pembaruan Data"
+                            : "Right to Rectification & Updates",
                           desc: isId
-                            ? "Koreksi saldo, nama rekening, dan catatan pengeluaran langsung."
-                            : "Edit wallet labels, amounts, and category mappings freely.",
+                            ? "Perbaiki atau perbarui profil, saldo dompet, kategori, dan rincian transaksi secara langsung di aplikasi."
+                            : "Edit profile details, wallet balances, categories, and transaction records directly in the app.",
                           icon: CheckCircle2,
                         },
                         {
-                          title: isId ? "Hak Penghapusan (Right to Erasure)" : "Permanent Erasure",
+                          title: isId
+                            ? "Hak Penghapusan (Right to Erasure)"
+                            : "Right to Permanent Erasure",
                           desc: isId
-                            ? "Hapus akun permanen dengan verifikasi kata sandi di Pengaturan Profil."
-                            : "Irreversibly purge account and data via Profile Settings.",
+                            ? "Hapus akun beserta seluruh data di sistem aktif melalui Pengaturan Profil (cadangan dibersihkan maks. 30 hari)."
+                            : "Delete your account and active records via Profile Settings (encrypted backups purged within 30 days).",
                           icon: UserX,
                         },
                         {
-                          title: isId ? "Hak Revokasi Sesi Perangkat" : "Device Session Revocation",
+                          title: isId
+                            ? "Hak Penarikan Persetujuan & Revokasi Sesi"
+                            : "Right to Withdraw Consent & Revoke Sessions",
                           desc: isId
-                            ? "Putus sesi login perangkat lain dari jarak jauh kapan saja."
-                            : "Remotely terminate active logins across older devices.",
+                            ? "Hapus kunci API BYOK, cabut sesi perangkat jarak jauh, atau ajukan keberatan/pembatasan ke privacy@monefin.web.id."
+                            : "Remove BYOK API keys, remotely terminate active sessions, or submit requests to privacy@monefin.web.id.",
                           icon: KeyRound,
                         },
                       ].map((item, rIdx) => {
@@ -819,10 +1111,58 @@ export default function LegalPageLayout({
                     </div>
                   )}
 
-                  {/* ========================================================================= */}
-                  {/* SPECIAL ENHANCEMENTS FOR TERMS PAGE */}
-                  {/* ========================================================================= */}
-                  {/* Gamification Non-Monetary Card */}
+                  {/* 7. Kebijakan Privasi #12: Tabel Cookie, Token, & Penyimpanan Lokal */}
+                  {section.id === "cookies-tokens" &&
+                    cookiesAndStorage.length > 0 && (
+                      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+                              <th className="p-3.5">
+                                {isId
+                                  ? "Nama Cookie / Key"
+                                  : "Cookie / Storage Key"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Jenis" : "Storage Type"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Tujuan Penggunaan" : "Purpose"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Durasi / Retensi" : "Duration / TTL"}
+                              </th>
+                              <th className="p-3.5">
+                                {isId ? "Sifat" : "Necessity"}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            {cookiesAndStorage.map((ck, ckIdx) => (
+                              <tr key={ckIdx}>
+                                <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white align-top">
+                                  {ck.name}
+                                </td>
+                                <td className="p-3.5 font-mono text-[11px] text-brand-600 dark:text-teal-400 align-top">
+                                  {ck.type}
+                                </td>
+                                <td className="p-3.5 leading-relaxed align-top">
+                                  {ck.purpose}
+                                </td>
+                                <td className="p-3.5 text-slate-600 dark:text-slate-400 align-top">
+                                  {ck.duration}
+                                </td>
+                                <td className="p-3.5 font-semibold align-top">
+                                  {ck.required}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                  {/* 8. Syarat & Ketentuan #7: Kartu Gamifikasi Non-Moneter */}
                   {section.id === "gamification" && (
                     <div className="mt-5 p-4 sm:p-5 rounded-2xl bg-brand-50/60 dark:bg-teal-950/40 border border-brand-200/60 dark:border-teal-800/50 flex items-start gap-3.5">
                       <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 text-brand-600 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
@@ -830,12 +1170,14 @@ export default function LegalPageLayout({
                       </div>
                       <div className="text-xs leading-relaxed space-y-1">
                         <h4 className="font-bold text-brand-900 dark:text-teal-200">
-                          {isId ? "Status Virtual XP & Lencana MoneFin" : "Virtual XP & Badge Status"}
+                          {isId
+                            ? "Status Non-Moneter Virtual XP & Lencana MoneFin"
+                            : "Non-Monetary Status of Virtual XP & Badges"}
                         </h4>
                         <p className="text-slate-700 dark:text-slate-300">
                           {isId
-                            ? "Poin pengalaman (XP), target streaks, dan level profil dirancang murni untuk memotivasi kebiasaan keuangan sehat. Poin ini tidak memiliki padanan nilai mata uang fiat dan tidak dapat ditukarkan dengan uang tunai."
-                            : "Experience points (XP), saving streaks, and profile badges are motivational mechanics for healthy money habits. They carry zero cash equivalent and cannot be cashed out."}
+                            ? "Poin pengalaman (XP), target streaks, dan level profil dirancang murni untuk memotivasi kebiasaan pencatatan keuangan sehat. Poin ini bukan uang elektronik, tidak memiliki nilai tukar mata uang fiat, tidak dapat ditransfer, dan tidak dapat diuangkan."
+                            : "Experience points (XP), saving streaks, and profile badges are motivational mechanics for healthy financial tracking. They are not e-money, carry zero fiat currency value, are non-transferable, and cannot be cashed out."}
                         </p>
                       </div>
                     </div>
@@ -844,12 +1186,80 @@ export default function LegalPageLayout({
               </article>
             ))}
 
+            {/* Public Changelog Section (Aturan B1 & Temuan #12) */}
+            {changelogList.length > 0 && (
+              <section
+                id="changelog"
+                className="scroll-mt-28 p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-5"
+              >
+                <div className="flex items-center justify-between gap-4 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-brand-50 dark:bg-teal-950 text-brand-600 dark:text-teal-400 flex items-center justify-center shrink-0 border border-brand-200/60 dark:border-teal-800/50">
+                      <History className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        {isId
+                          ? "Riwayat Perubahan Dokumen (Changelog Publik)"
+                          : "Document Revision History (Public Changelog)"}
+                      </h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {isId
+                          ? "Penomoran versi menggunakan Semantic Versioning (MAJOR.MINOR.PATCH)"
+                          : "Version numbering follows Semantic Versioning (MAJOR.MINOR.PATCH)"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {changelogList.map((entry, cIdx) => (
+                    <div
+                      key={entry.version}
+                      className={`p-4 sm:p-5 rounded-2xl border ${
+                        cIdx === 0
+                          ? "bg-teal-50/40 dark:bg-teal-950/20 border-brand-200/70 dark:border-teal-800/50"
+                          : "bg-slate-50/70 dark:bg-slate-850/50 border-slate-200/70 dark:border-slate-800"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-md font-mono text-xs font-bold bg-brand-600 text-white">
+                            v{entry.version}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            {entry.type}
+                          </span>
+                        </div>
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          {entry.date}
+                        </span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 pl-1">
+                        {entry.changes.map((chg, chgIdx) => (
+                          <li
+                            key={chgIdx}
+                            className="flex items-start gap-2.5 leading-relaxed"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-600 mt-2 shrink-0" />
+                            <span>{chg}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Related Legal Documents Section */}
             {relatedDocs && relatedDocs.length > 0 && (
               <div className="pt-8 border-t border-slate-200 dark:border-slate-800 print:hidden">
                 <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-brand-600" />
-                  {isId ? "Dokumen Kepatuhan Terkait Lainnya" : "Related Legal & Compliance Documents"}
+                  {isId
+                    ? "Dokumen Kepatuhan Terkait Lainnya"
+                    : "Related Legal & Compliance Documents"}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {relatedDocs.map((item) => {
@@ -887,7 +1297,10 @@ export default function LegalPageLayout({
             {/* Document Feedback Box */}
             <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-center space-y-3 print:hidden">
               <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                {common.feedbackTitle || (isId ? "Apakah dokumen ini cukup jelas bagi Anda?" : "Was this document clear and helpful?")}
+                {common.feedbackTitle ||
+                  (isId
+                    ? "Apakah dokumen ini cukup jelas bagi Anda?"
+                    : "Was this document clear and helpful?")}
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
                 {common.feedbackDesc ||
@@ -898,7 +1311,11 @@ export default function LegalPageLayout({
               {feedbackGiven ? (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 text-brand-700 text-xs font-bold">
                   <CheckCircle2 className="w-4 h-4 text-brand-600" />
-                  <span>{isId ? "Terima kasih atas umpan balik Anda!" : "Thank you for your feedback!"}</span>
+                  <span>
+                    {isId
+                      ? "Terima kasih atas umpan balik Anda!"
+                      : "Thank you for your feedback!"}
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-3 pt-1">
@@ -916,7 +1333,9 @@ export default function LegalPageLayout({
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
                   >
                     <ThumbsDown className="w-3.5 h-3.5" />
-                    <span>{isId ? "Perlu Diperjelas" : "Needs Clarification"}</span>
+                    <span>
+                      {isId ? "Perlu Diperjelas" : "Needs Clarification"}
+                    </span>
                   </button>
                 </div>
               )}
@@ -933,7 +1352,11 @@ export default function LegalPageLayout({
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-brand-600 text-white font-bold text-xs shadow-lg shadow-brand-600/30 hover:bg-brand-700 transition-all cursor-pointer"
         >
           <Menu className="w-4 h-4" />
-          <span>{isId ? `Daftar Isi (${filteredSections.length})` : `Contents (${filteredSections.length})`}</span>
+          <span>
+            {isId
+              ? `Daftar Isi (${filteredSections.length})`
+              : `Contents (${filteredSections.length})`}
+          </span>
         </button>
       </div>
 
@@ -985,28 +1408,45 @@ export default function LegalPageLayout({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-md bg-brand-600 flex items-center justify-center p-0.5">
-              <Image src="/images/logo-monefin-white.svg" alt="MoneFin" width={10} height={10} className="w-2.5 h-2.5" />
+              <Image
+                src="/images/logo-monefin-white.svg"
+                alt="MoneFin"
+                width={10}
+                height={10}
+                className="w-2.5 h-2.5"
+              />
             </div>
             <span>
-              &copy; {new Date().getFullYear()} MoneFin Financial Services. {isId ? "Hak cipta dilindungi undang-undang." : "All rights reserved."}
+              &copy; {new Date().getFullYear()} MoneFin.{" "}
+              {isId
+                ? "Hak cipta dilindungi undang-undang."
+                : "All rights reserved."}
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
             <Link href="/terms" className="hover:text-brand-600">
-              {isId ? "Syarat" : "Terms"}
+              {isId ? "Syarat & Ketentuan" : "Terms"}
             </Link>
             <span>•</span>
             <Link href="/privacy" className="hover:text-brand-600">
-              {isId ? "Privasi" : "Privacy"}
+              {isId ? "Kebijakan Privasi" : "Privacy"}
             </Link>
             <span>•</span>
             <Link href="/security" className="hover:text-brand-600">
-              {isId ? "Keamanan" : "Security"}
+              {isId ? "Standar Keamanan" : "Security"}
             </Link>
+            <span>•</span>
+            <a
+              href="/.well-known/security.txt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-brand-600 font-mono"
+            >
+              security.txt
+            </a>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

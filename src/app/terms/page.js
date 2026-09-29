@@ -2,16 +2,16 @@ import LegalPageLayout from "@/components/legal/LegalPageLayout";
 import { legalData } from "@/data/legalData";
 
 export const metadata = {
-  title: "Syarat & Ketentuan Penggunaan Layanan",
+  title: "Syarat & Ketentuan Penggunaan Layanan (v3.0.0)",
   description:
-    "Syarat dan ketentuan resmi penggunaan platform manajemen keuangan pribadi MoneFin, alokasi anggaran 50/30/20, AI Scan Struk BYOK, dan Split Bill.",
+    "Syarat dan Ketentuan resmi penggunaan platform manajemen keuangan pribadi MoneFin berlandaskan UU Perlindungan Konsumen No. 8/1999, UU ITE, dan UU PDP No. 27/2022.",
   alternates: {
     canonical: "https://www.monefin.web.id/terms",
   },
   openGraph: {
     title: "Syarat & Ketentuan Layanan | MoneFin Trust Center",
     description:
-      "Ketentuan penggunaan platform pencatatan keuangan pribadi, AI Scan Struk BYOK, dan Split Bill di MoneFin.",
+      "Ketentuan penggunaan platform pencatatan keuangan pribadi, AI Scan Struk BYOK, Split Bill, Safe Harbor peneliti keamanan, dan mekanisme banding akun.",
     url: "https://www.monefin.web.id/terms",
     type: "website",
   },
@@ -26,7 +26,7 @@ const termsJsonLd = {
       url: "https://www.monefin.web.id/terms",
       name: "Syarat & Ketentuan Penggunaan Layanan | MoneFin",
       description:
-        "Syarat dan ketentuan resmi penggunaan platform manajemen keuangan pribadi MoneFin.",
+        "Syarat dan ketentuan resmi penggunaan platform manajemen keuangan pribadi MoneFin (v3.0.0).",
       isPartOf: { "@id": "https://www.monefin.web.id/#website" },
       inLanguage: "id-ID",
     },
@@ -56,15 +56,15 @@ export default function TermsPage() {
       href: "/privacy",
       title: "Kebijakan Privasi",
       titleEn: "Privacy Policy",
-      desc: "Pelajari komitmen perlindungan data finansial Anda berlandaskan UU PDP No. 27/2022 dan prinsip Zero Data Brokering.",
-      descEn: "Learn how we safeguard your financial data in strict compliance with UU PDP No. 27/2022 and Zero Data Brokering.",
+      desc: "Pemberitahuan pemrosesan data pribadi berlandaskan UU PDP No. 27/2022, daftar sub-prosesor, masa retensi, dan hak Subjek Data.",
+      descEn: "Personal data processing notice aligned with UU PDP No. 27/2022, sub-processor registry, retention schedules, and Data Subject Rights.",
     },
     {
       href: "/security",
       title: "Standar Keamanan",
       titleEn: "Security Standards",
-      desc: "Eksplorasi arsitektur pertahanan berlapis, row-level IDOR shield, mitigasi race condition, dan HTTP security headers.",
-      descEn: "Explore our defense-in-depth architecture, row-level IDOR shield, race condition mitigations, and HTTP security headers.",
+      desc: "Dokumentasi kontrol keamanan berlapis: Bcrypt, SHA-256, enkripsi BYOK AES-256-CBC, HTTP security headers, dan pengungkapan kerentanan.",
+      descEn: "Defense-in-depth security documentation: Bcrypt, SHA-256, AES-256-CBC BYOK encryption, HTTP security headers, and vulnerability disclosure.",
     },
   ];
 
@@ -79,11 +79,10 @@ export default function TermsPage() {
         data={legalData}
         category="Syarat & Ketentuan"
         categoryEn="Terms of Service"
-        badge="Perjanjian Layanan Digital"
-        badgeEn="Digital Service Agreement"
+        badge="UU PK No. 8/1999 · UU ITE · UU PDP"
+        badgeEn="Consumer Protection · Electronic Systems · PDP Law"
         relatedDocs={relatedDocs}
       />
     </>
   );
 }
-

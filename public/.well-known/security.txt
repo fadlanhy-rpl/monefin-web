@@ -1,0 +1,16 @@
+# MoneFin Coordinated Vulnerability Disclosure Policy (RFC 9116 / ISO/IEC 29147)
+# Single Source of Truth: https://www.monefin.web.id/security#vulnerability-disclosure
+
+Contact: mailto:security@monefin.web.id
+Expires: 2027-09-29T23:59:59.000Z
+Preferred-Languages: id, en
+Canonical: https://www.monefin.web.id/.well-known/security.txt
+Policy: https://www.monefin.web.id/security#vulnerability-disclosure
+
+# SLA & Safe Harbor Summary:
+# - Initial acknowledgment within 3 business days.
+# - Good-faith security research conducted strictly within the scope and rules at
+#   https://www.monefin.web.id/security#vulnerability-disclosure is authorized
+#   under our Safe Harbor policy and exempted under Terms of Service Section 06.
+# - Strictly prohibited: accessing/modifying other users' data, DoS/DDoS/spam,
+#   and social engineering/phishing against MoneFin personnel or users.
