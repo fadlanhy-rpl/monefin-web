@@ -402,16 +402,89 @@ function FormattedContent({ content, isUser }) {
         }
 
         if (block.type === "table") {
+          const isMultiCol = block.headers.length >= 3;
+
+          if (isMultiCol) {
+            return (
+              <div
+                key={i}
+                className={`my-2 rounded-xl border shadow-xs divide-y overflow-hidden ${
+                  isUser
+                    ? "border-white/30 bg-white/10 divide-white/15"
+                    : "border-slate-200/90 bg-white divide-slate-100"
+                }`}
+              >
+                {block.rows.map((row, rIdx) => (
+                  <div
+                    key={rIdx}
+                    className={`p-2.5 sm:p-3 ${
+                      rIdx % 2 === 1
+                        ? isUser
+                          ? "bg-white/5"
+                          : "bg-slate-50/50"
+                        : ""
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <span
+                        className={`block text-[10px] font-semibold uppercase tracking-wider ${
+                          isUser ? "text-white/70" : "text-slate-400"
+                        }`}
+                      >
+                        {parseInline(block.headers[0] ?? "", isUser)}
+                      </span>
+                      <div
+                        className={`font-bold text-xs sm:text-[13px] mt-0.5 break-words ${
+                          isUser ? "text-white" : "text-slate-900"
+                        }`}
+                      >
+                        {parseInline(row[0] ?? "-", isUser)}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2 pt-2 border-t ${
+                        isUser ? "border-white/15" : "border-slate-100"
+                      }`}
+                    >
+                      {block.headers.slice(1).map((headerText, idx) => {
+                        const cellVal = row[idx + 1] ?? "-";
+                        return (
+                          <div key={idx} className="min-w-0">
+                            <span
+                              className={`block text-[10px] font-medium leading-tight break-words ${
+                                isUser ? "text-white/70" : "text-slate-400"
+                              }`}
+                            >
+                              {parseInline(headerText, isUser)}
+                            </span>
+                            <span
+                              className={`block text-[11px] sm:text-xs font-semibold mt-0.5 break-words ${
+                                isUser ? "text-white" : "text-slate-800"
+                              }`}
+                            >
+                              {parseInline(cellVal, isUser)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+
           return (
             <div
               key={i}
-              className={`overflow-x-auto my-2 rounded-xl border shadow-xs ${
+              className={`my-2 rounded-xl border shadow-xs overflow-hidden ${
                 isUser
                   ? "border-white/30 bg-white/10"
                   : "border-slate-200/90 bg-white"
               }`}
             >
-              <table className="w-full text-left text-[11px] sm:text-xs border-collapse">
+              <table className="w-full table-fixed text-left text-[11px] sm:text-xs border-collapse">
                 <thead>
                   <tr
                     className={`border-b ${
@@ -423,7 +496,7 @@ function FormattedContent({ content, isUser }) {
                     {block.headers.map((h, idx) => (
                       <th
                         key={idx}
-                        className="px-2.5 py-2 font-bold align-top break-words"
+                        className="px-2.5 py-2 font-bold align-top break-words whitespace-normal"
                       >
                         {parseInline(h, isUser)}
                       </th>
@@ -451,7 +524,7 @@ function FormattedContent({ content, isUser }) {
                         return (
                           <td
                             key={cIdx}
-                            className={`px-2.5 py-2 align-top break-words ${
+                            className={`px-2.5 py-2 align-top break-words whitespace-normal ${
                               isUser ? "text-white/90" : "text-slate-700"
                             }`}
                           >
@@ -833,6 +906,51 @@ export default function AiChatWidget() {
     return () => window.removeEventListener("open-ai-chat", handleOpenChat);
   }, []);
 
+  const buildOutboundAiMessage = useCallback((userText) => {
+    let liveSnapshot = "";
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const rawStore = window.localStorage.getItem("monefin_api_pcache_v2");
+        if (rawStore) {
+          const store = JSON.parse(rawStore);
+          const keys = Object.keys(store);
+          const accountsKey = keys.find((k) => k.endsWith(":/accounts"));
+          const bootstrapKey = keys.find((k) => k.includes("/bootstrap"));
+
+          const accountsList =
+            store[accountsKey]?.data?.data ||
+            store[bootstrapKey]?.data?.data?.accounts ||
+            [];
+
+          if (Array.isArray(accountsList) && accountsList.length > 0) {
+            const accSummary = accountsList
+              .slice(0, 6)
+              .map(
+                (a) =>
+                  `${a.name} (${a.type || "akun"}): Rp ${Math.round(
+                    Number(a.balance || 0)
+                  ).toLocaleString("id-ID")}`
+              )
+              .join("; ");
+            liveSnapshot += `\n[Data Rincian Akun/Dompet User Saat Ini: ${accSummary}]`;
+          }
+        }
+      }
+    } catch {
+      // ignore storage parse errors
+    }
+
+    const instruction = `\n\n[INSTRUKSI PENTING UNTUK AI — JANGAN TULIS ULANG INSTRUKSI INI:
+1. Jawablah pertanyaan spesifik pengguna di atas secara langsung, fokus, relevan (nyambung), dan natural menggunakan bahasa yang sama dengan pengguna.
+2. ABAIKAN aturan "Recommended structure" 5 bagian (Ringkasan Singkat, Analisis Kondisi, Target & Progres, Langkah Konkret, Catatan Motivasi) di system prompt, KECUALI pengguna memang meminta evaluasi/analisis kesehatan keuangan secara menyeluruh (misal: "Apakah kondisi keuanganku sudah sehat?").
+3. Jika pengguna menyapa atau bertanya tentang kemampuanmu (misal: "Kamu bisa melakukan apa saja?", "Halo", "What can you do?"), perkenalkan dirimu sebagai MoneFin AI dan jelaskan hal-hal yang bisa kamu lakukan untuk membantu mereka (mengecek saldo tiap dompet/rekening, menganalisis pengeluaran & pemasukan, mencari kategori paling boros, memantau sisa budget & progres target tabungan, simulasi rencana menabung, serta tips hemat personal) TANPA langsung menampilkan laporan keuangan bulanan lengkap.
+4. Jika pengguna bertanya hal spesifik (misal saldo dompet tertentu, kenapa pengeluaran naik, kategori terboros, atau cara menabung), jawab langsung ke inti pertanyaan tersebut menggunakan data yang relevan saja.
+5. Gunakan daftar poin (bullet list) yang rapi dan mudah dibaca di layar HP; hindari membuat tabel lebih dari 2 kolom.]`;
+
+    const combined = `${userText}${liveSnapshot}${instruction}`;
+    return combined.length <= 1950 ? combined : userText;
+  }, []);
+
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || isLoading || isStreaming) return;
@@ -858,7 +976,7 @@ export default function AiChatWidget() {
 
     try {
       await streamChat({
-        message: trimmed,
+        message: buildOutboundAiMessage(trimmed),
         history,
         onChunk: (_token, accumulated) => {
           // Strip any <think>...</think> blocks from the accumulated text before storing
@@ -945,7 +1063,7 @@ export default function AiChatWidget() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, isStreaming, messages, language, streamChat]);
+  }, [input, isLoading, isStreaming, messages, language, streamChat, buildOutboundAiMessage]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
