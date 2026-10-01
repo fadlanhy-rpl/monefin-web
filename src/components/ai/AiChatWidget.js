@@ -5,7 +5,18 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useAiStream } from "../../hooks/useAiStream";
-import { AlertTriangle, Settings, ExternalLink, Maximize2, Minimize2, RotateCcw, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Settings,
+  ExternalLink,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  X,
+  Sparkles,
+  Send,
+  ArrowUp
+} from "lucide-react";
 
 const QUICK_QUESTIONS = [
   "Kenapa pengeluaranku bulan ini naik?",
@@ -23,15 +34,15 @@ const QUICK_QUESTIONS_EN = [
 
 function TypingIndicator() {
   return (
-    <div className="flex items-end gap-2">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+    <div className="flex items-end gap-2 animate-in fade-in duration-200">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00685F] to-[#004D46] flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs border border-white/20">
         AI
       </div>
-      <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-        <div className="flex gap-1 items-center h-4">
-          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+      <div className="bg-white border border-slate-200/80 rounded-2xl rounded-bl-xs px-4 py-3 shadow-xs">
+        <div className="flex gap-1.5 items-center h-4">
+          <span className="w-1.5 h-1.5 bg-[#00685F] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+          <span className="w-1.5 h-1.5 bg-[#00685F] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+          <span className="w-1.5 h-1.5 bg-[#00685F] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
         </div>
       </div>
     </div>
@@ -679,18 +690,18 @@ function ChatBubble({ role, content }) {
     displayContent = withoutAnyThink;
   }
   return (
-    <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : ""} w-full`}>
+    <div className={`flex items-end gap-2 ${isUser ? "flex-row-reverse" : ""} w-full animate-in fade-in slide-in-from-bottom-1 duration-200`}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00685F] to-[#004D46] flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs border border-white/20">
           AI
         </div>
       )}
       {/* overflow-hidden + min-w-0 prevent bubble from ever overflowing the card edge */}
       <div
-        className={`rounded-2xl px-3.5 py-2.5 shadow-xs min-w-0 overflow-hidden ${
+        className={`rounded-2xl px-4 py-2.5 shadow-xs min-w-0 overflow-hidden ${
           isUser
-            ? "max-w-[82%] bg-gradient-to-br from-brand-600 to-brand-700 text-white rounded-br-sm font-medium"
-            : "max-w-[90%] bg-white border border-slate-100 text-slate-700 rounded-bl-sm"
+            ? "max-w-[84%] bg-gradient-to-br from-[#00685F] to-[#004D46] text-white rounded-br-xs font-medium shadow-md shadow-[#00685F]/15"
+            : "max-w-[92%] bg-white border border-slate-200/80 text-slate-800 rounded-bl-xs shadow-xs"
         }`}
       >
         <FormattedContent content={displayContent} isUser={isUser} />
@@ -1134,53 +1145,64 @@ export default function AiChatWidget() {
       {/* Floating Trigger Button */}
       <button
         onClick={() => setIsOpen((v) => !v)}
-        aria-label="AI Financial Advisor"
-        className={`fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${
+        aria-label={isOpen ? (language === "id" ? "Tutup MoneFin AI" : "Close MoneFin AI") : (language === "id" ? "Buka MoneFin AI" : "Open MoneFin AI")}
+        className={`fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 cursor-pointer group shadow-2xl ${
           isOpen
-            ? "bg-slate-700 rotate-45"
-            : "bg-gradient-to-br from-brand-500 to-brand-700 hover:shadow-brand-500/40 hover:shadow-xl"
+            ? "bg-slate-800 text-white shadow-slate-900/30 ring-2 ring-white/20 rotate-90"
+            : "bg-gradient-to-br from-[#00796B] via-[#00685F] to-[#004D46] text-white shadow-[0_10px_25px_-5px_rgba(0,104,95,0.5)] hover:shadow-[0_14px_30px_-5px_rgba(0,104,95,0.65)] ring-2 ring-white/30 rotate-0"
         }`}
       >
-        {isOpen ? (
-          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-        ) : (
-          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l4.93-1.37C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm-1 14H7v-2h4v2zm6 0h-4v-2h4v2zm0-4H7v-2h10v2z"/>
-          </svg>
-        )}
+        <div className="relative w-6 h-6 flex items-center justify-center">
+          {/* Close Icon (visible when open) */}
+          <X
+            className={`w-5 h-5 sm:w-6 sm:h-6 text-white absolute inset-0 m-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isOpen
+                ? "opacity-100 rotate-0 scale-100"
+                : "opacity-0 -rotate-90 scale-50"
+            }`}
+          />
+          {/* Sparkles Icon (visible when closed) */}
+          <Sparkles
+            className={`w-5 h-5 sm:w-6 sm:h-6 text-white absolute inset-0 m-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isOpen
+                ? "opacity-0 rotate-90 scale-50"
+                : "opacity-100 rotate-0 scale-100"
+            }`}
+          />
+        </div>
         {!isOpen && (
-          <span className="absolute inset-0 rounded-full bg-brand-500 animate-ping opacity-30" />
+          <span className="absolute -inset-1 rounded-full bg-[#00685F]/35 animate-ping -z-10 pointer-events-none" />
         )}
       </button>
 
-      {/* Mobile Backdrop Overlay */}
-      {isOpen && (
-        <div
-          onClick={() => setIsOpen(false)}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
-          aria-hidden="true"
-        />
-      )}
+      {/* Mobile Backdrop Overlay - Smooth fade in & fade out */}
+      <div
+        onClick={() => setIsOpen(false)}
+        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300 ease-out ${
+          isOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        aria-hidden="true"
+      />
 
       {/* Adjustable Chat Panel */}
       <div
         ref={panelRef}
-        className={`fixed z-50 bg-white shadow-2xl border border-slate-100 flex flex-col overflow-hidden origin-bottom-right ${
+        className={`fixed z-50 bg-white/98 backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3),0_10px_30px_-10px_rgba(0,104,95,0.25)] border border-slate-200/90 flex flex-col overflow-hidden origin-bottom sm:origin-bottom-right ${
           isDragging
-            ? "transition-none select-none ring-2 ring-brand-500/30"
-            : "transition-[width,height,bottom,right,left,border-radius,transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[width,height,transform,opacity]"
+            ? "transition-none select-none ring-2 ring-[#00685F]/30"
+            : "transition-[width,height,bottom,right,left,border-radius,transform,opacity] duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width,height,transform,opacity]"
         } ${
           isMobile
             ? isMaximized
               ? "inset-x-0 mx-auto rounded-none"
-              : "inset-x-0 mx-auto rounded-2xl"
+              : "inset-x-0 mx-auto rounded-3xl"
             : "bottom-24 right-6 rounded-3xl"
         } ${
           isOpen
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 scale-95 translate-y-4 pointer-events-none"
+            : "opacity-0 scale-[0.92] translate-y-6 pointer-events-none"
         }`}
         style={
           isMobile
@@ -1224,47 +1246,58 @@ export default function AiChatWidget() {
             {/* Top-Left Corner Drag Handle (resizes width & height) */}
             <div
               onPointerDown={(e) => handlePointerDown(e, "both")}
-              className="absolute top-0 left-0 w-7 h-7 cursor-nwse-resize z-20 flex items-start justify-start p-2 group touch-none"
+              className="absolute top-0 left-0 w-8 h-8 cursor-nwse-resize z-20 flex items-start justify-start p-2 group touch-none"
               title={language === "id" ? "Tarik untuk ubah ukuran (lebar & tinggi)" : "Drag to resize (width & height)"}
             >
-              <div className="w-2.5 h-2.5 border-t-2 border-l-2 border-white/55 group-hover:border-white group-hover:scale-110 rounded-tl-md transition-all duration-150" />
+              <div className="w-2.5 h-2.5 border-t-2 border-l-2 border-white/60 group-hover:border-white group-hover:scale-110 rounded-tl-md transition-all duration-150" />
             </div>
 
             {/* Bottom-Left Corner Drag Handle (resizes width) */}
             <div
               onPointerDown={(e) => handlePointerDown(e, "width")}
-              className="absolute bottom-0 left-0 w-6 h-6 cursor-ew-resize z-20 touch-none"
+              className="absolute bottom-0 left-0 w-6 h-6 cursor-ew-resize z-20 touch-none flex items-end justify-start p-1.5 group"
               title={language === "id" ? "Tarik untuk ubah lebar" : "Drag to resize width"}
-            />
+            >
+              <div className="w-2 h-2 border-b-2 border-l-2 border-slate-300 group-hover:border-[#00685F] rounded-bl-sm transition-colors" />
+            </div>
 
             {/* Left Edge Handle (resizes width) */}
             <div
               onPointerDown={(e) => handlePointerDown(e, "width")}
-              className="absolute top-7 bottom-6 left-0 w-2.5 cursor-ew-resize hover:bg-brand-500/20 active:bg-brand-500/35 z-20 touch-none transition-colors"
+              className="absolute top-7 bottom-6 left-0 w-2 cursor-ew-resize hover:bg-[#00685F]/20 active:bg-[#00685F]/35 z-20 touch-none transition-colors"
               title={language === "id" ? "Tarik untuk ubah lebar" : "Drag to resize width"}
             />
 
             {/* Top Edge Handle (resizes height) */}
             <div
               onPointerDown={(e) => handlePointerDown(e, "height")}
-              className="absolute top-0 left-7 right-28 h-2.5 cursor-ns-resize hover:bg-white/20 active:bg-white/30 z-20 touch-none transition-colors"
+              className="absolute top-0 left-7 right-32 h-2.5 cursor-ns-resize hover:bg-white/25 active:bg-white/35 z-20 touch-none transition-colors"
               title={language === "id" ? "Tarik untuk ubah tinggi" : "Drag to resize height"}
             />
           </>
         )}
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-4 sm:px-5 py-3 sm:py-3.5 pt-[max(0.75rem,env(safe-area-inset-top))] flex items-center justify-between shrink-0 select-none relative">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-5h2v2h-2zm0-8h2v6h-2z"/>
-              </svg>
+        <div className="bg-gradient-to-r from-[#00685F] via-[#005e56] to-[#004D46] px-4 sm:px-5 py-3 sm:py-3.5 pt-[max(0.75rem,env(safe-area-inset-top))] flex items-center justify-between shrink-0 select-none relative overflow-hidden">
+          {/* Ambient glass highlight */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-white/5 to-transparent pointer-events-none" />
+
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 relative z-10">
+            <div className="relative">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30 shadow-inner">
+                <Sparkles className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white" />
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#00685F] shadow-xs" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm font-bold text-white truncate">MoneFin AI</p>
-              <p className="text-[10px] text-white/70 flex items-center gap-1 truncate">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block shrink-0" />
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs sm:text-sm font-extrabold text-white truncate tracking-tight">MoneFin AI</p>
+                <span className="text-[9px] font-black uppercase tracking-wider bg-white/20 px-1.5 py-0.5 rounded-md text-white/90 shrink-0">
+                  SMART
+                </span>
+              </div>
+              <p className="text-[10px] text-white/80 flex items-center gap-1 truncate font-medium">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block shrink-0 animate-pulse" />
                 <span className="truncate">
                   {providerLabel
                     ? `${language === "id" ? "Aktif via" : "Active via"} ${providerLabel}`
@@ -1274,13 +1307,13 @@ export default function AiChatWidget() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative z-10">
             {/* Clear history */}
             {messages.length > 0 && (
               <button
                 type="button"
                 onClick={clearChat}
-                className="text-white/70 hover:text-white hover:bg-white/10 px-2 py-1 rounded-lg transition-colors text-[11px] sm:text-xs cursor-pointer"
+                className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 px-2.5 py-1 rounded-xl transition-all duration-150 text-[11px] font-bold cursor-pointer active:scale-95"
               >
                 {language === "id" ? "Hapus" : "Clear"}
               </button>
@@ -1292,7 +1325,7 @@ export default function AiChatWidget() {
                 type="button"
                 onClick={resetSize}
                 title={language === "id" ? "Kembalikan ke ukuran standar" : "Reset default size"}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-150 cursor-pointer active:scale-95"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -1307,7 +1340,7 @@ export default function AiChatWidget() {
                   ? (language === "id" ? "Kecilkan tampilan" : "Restore size")
                   : (language === "id" ? "Perbesar tampilan" : "Maximize panel")
               }
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-150 cursor-pointer active:scale-95"
               aria-label={isMaximized ? "Restore size" : "Maximize panel"}
             >
               {isMaximized ? (
@@ -1322,7 +1355,7 @@ export default function AiChatWidget() {
               type="button"
               onClick={() => setIsOpen(false)}
               title={language === "id" ? "Tutup chat" : "Close chat"}
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-white/80 hover:text-white bg-white/10 hover:bg-rose-500/80 hover:border-rose-400/50 border border-white/10 transition-all duration-150 cursor-pointer active:scale-95"
               aria-label="Close chat"
             >
               <X className="w-4 h-4" />
@@ -1332,33 +1365,47 @@ export default function AiChatWidget() {
 
         {/* Messages */}
         {/* min-w-0 is critical: prevents the flex child from growing beyond the card width */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 min-h-0 min-w-0">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/60 min-h-0 min-w-0 overscroll-contain">
           {/* Intro / Welcome */}
           {showIntro && (
-            <div className="space-y-4">
-              <div className="flex items-end gap-2.5">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs">
-                  AI
-                </div>
-                <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-xs text-xs sm:text-[13px] text-slate-700 leading-relaxed max-w-[94%]">
-                  {language === "id"
-                    ? "Halo! Saya MoneFin AI, advisor keuangan pribadi Anda. Saya memiliki akses ke data keuangan Anda dan siap membantu menganalisis kondisi finansial Anda secara komprehensif."
-                    : "Hello! I'm MoneFin AI, your personal finance advisor. I have access to your financial data and I'm ready to help analyze your financial condition comprehensively."}
+            <div className="space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 via-[#00685F]/5 to-teal-500/10 border border-[#00685F]/15 p-4 shadow-xs">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00685F] to-[#004D46] flex items-center justify-center text-white shrink-0 shadow-xs mt-0.5">
+                    <Sparkles className="w-4 h-4 text-emerald-200" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-[13px] font-bold text-slate-800">
+                      {language === "id" ? "Halo! Saya MoneFin AI 👋" : "Hello! I'm MoneFin AI 👋"}
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed font-medium">
+                      {language === "id"
+                        ? "Advisor keuangan cerdas Anda. Saya siap menganalisis pemasukan, pengeluaran, anggaran, dan memberikan rekomendasi finansial terbaik."
+                        : "Your smart personal finance advisor. I'm ready to analyze your income, expenses, budgets, and provide tailored financial insights."}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
-                {language === "id" ? "Pertanyaan cepat" : "Quick questions"}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {quickQs.map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(q)}
-                    className="text-[11px] bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full hover:border-brand-400 hover:text-brand-700 hover:bg-brand-50 transition-all text-left"
-                  >
-                    {q}
-                  </button>
-                ))}
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00685F]" />
+                  {language === "id" ? "Pertanyaan Cepat" : "Quick Prompts"}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {quickQs.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(q)}
+                      className="group p-2.5 text-left bg-white border border-slate-200/80 rounded-xl hover:border-[#00685F]/50 hover:bg-emerald-50/40 hover:shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-between gap-2"
+                    >
+                      <span className="text-[11px] font-semibold text-slate-700 group-hover:text-[#00685F] transition-colors line-clamp-2">
+                        {q}
+                      </span>
+                      <ArrowUp className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#00685F] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0 rotate-45" />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -1384,8 +1431,8 @@ export default function AiChatWidget() {
         )}
 
         {/* Input */}
-        <div className="p-3 bg-white border-t border-slate-100 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-500/10 transition-all">
+        <div className="p-3 sm:p-3.5 bg-white/95 backdrop-blur-md border-t border-slate-100 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="flex items-center gap-2 bg-slate-50/90 border border-slate-200/90 rounded-2xl px-3.5 py-2 focus-within:border-[#00685F] focus-within:ring-4 focus-within:ring-[#00685F]/10 focus-within:bg-white transition-all shadow-2xs">
             <input
               ref={inputRef}
               type="text"
@@ -1394,21 +1441,26 @@ export default function AiChatWidget() {
               onKeyDown={handleKeyDown}
               disabled={isLoading}
               placeholder={language === "id" ? "Tanyakan sesuatu tentang keuangan Anda..." : "Ask something about your finances..."}
-              className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none min-w-0"
+              className="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none min-w-0 font-medium py-1"
             />
             <button
+              type="button"
               onClick={() => sendMessage()}
               disabled={!input.trim() || isLoading}
-              className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center hover:bg-brand-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00685F] to-[#004D46] text-white flex items-center justify-center hover:shadow-md hover:shadow-[#00685F]/30 hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:scale-100 disabled:shadow-none cursor-pointer shrink-0"
+              title={language === "id" ? "Kirim pesan" : "Send message"}
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-              </svg>
+              {isLoading ? (
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-3.5 h-3.5" />
+              )}
             </button>
           </div>
           {providerLabel && (
-            <p className="text-[9px] text-slate-400 text-center mt-2">
-              Powered by {providerLabel}
+            <p className="text-[10px] text-slate-400 text-center mt-2 flex items-center justify-center gap-1 font-medium">
+              <Sparkles className="w-2.5 h-2.5 text-[#00685F]" />
+              <span>Powered by {providerLabel}</span>
             </p>
           )}
         </div>
