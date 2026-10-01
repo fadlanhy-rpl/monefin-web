@@ -88,7 +88,7 @@ export default function CustomSelect({
 
       {/* Dropdown Floating Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl p-1.5 shadow-2xl space-y-1 animate-in fade-in zoom-in-95 duration-150 max-h-60 overflow-y-auto">
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl p-2 shadow-2xl shadow-slate-900/15 space-y-1 animate-in fade-in zoom-in-95 duration-150 max-h-60 overflow-y-auto overscroll-contain">
           {searchable && (
             <div className="p-1.5 border-b border-slate-100">
               <div className="relative">

@@ -239,48 +239,73 @@ export default function GoalModal({
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block select-none">{t("goals.card_style") || "Gaya Tampilan Visual"}</label>
             <div 
               onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-800 hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
+              className={`w-full px-4 py-3 bg-slate-50/80 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer group select-none ${
+                isTypeDropdownOpen ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white shadow-xs" : "border-slate-200/80 hover:border-slate-300 hover:bg-slate-50"
+              }`}
             >
-              <div className="flex items-center gap-2.5">
-                {formType === "circular" ? (
-                  <>
-                    <PieChart className="w-4.5 h-4.5 text-[#00685F]" />
-                    <span>{t("goals.style_circular") || "Circular Card (Donut Chart Kanan)"}</span>
-                  </>
-                ) : (
-                  <>
-                    <BarChart2 className="w-4.5 h-4.5 text-[#00685F]" />
-                    <span>{t("goals.style_linear") || "Linear Card (Bar Progres Lebar)"}</span>
-                  </>
-                )}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#00685F] flex items-center justify-center shrink-0 border border-emerald-100">
+                  {formType === "circular" ? <PieChart className="w-4 h-4" /> : <BarChart2 className="w-4 h-4" />}
+                </div>
+                <span className="font-bold text-slate-900">
+                  {formType === "circular"
+                    ? (t("goals.style_circular") || "Circular Card (Donut Chart Kanan)")
+                    : (t("goals.style_linear") || "Linear Card (Bar Progres Lebar)")}
+                </span>
               </div>
-              <ChevronDown className={`w-4.5 h-4.5 text-slate-400 transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`} />
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                isTypeDropdownOpen ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-400 group-hover:text-slate-600"
+              }`}>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`} />
+              </div>
             </div>
 
             {isTypeDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsTypeDropdownOpen(false)}></div>
-                <div className="absolute z-20 w-full top-full mt-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-                  <div 
+                <div className="absolute z-30 w-full top-full mt-2 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 p-2 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                  <button 
+                    type="button"
                     onClick={() => { setFormType("linear"); setIsTypeDropdownOpen(false); }}
-                    className={`px-4 py-3 cursor-pointer flex items-center justify-between transition-colors ${formType === "linear" ? "bg-[#00685F]/5 text-[#00685F] font-bold" : "hover:bg-slate-50 text-slate-700 font-semibold"}`}
+                    className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer ${
+                      formType === "linear"
+                        ? "bg-[#00685F]/10 text-[#00685F] font-bold ring-1 ring-[#00685F]/20"
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                    }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <BarChart2 className="w-4 h-4 text-[#00685F]" />
-                      <span className="text-sm">{t("goals.style_linear") || "Linear Card (Bar Progres Lebar)"}</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${formType === "linear" ? "bg-emerald-100/50 border-emerald-200 text-[#00685F]" : "bg-slate-100 border-slate-200/60 text-slate-500"}`}>
+                        <BarChart2 className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-bold">{t("goals.style_linear") || "Linear Card (Bar Progres Lebar)"}</span>
                     </div>
-                    {formType === "linear" && <Check className="w-4 h-4 text-[#00685F]" />}
-                  </div>
-                  <div 
+                    {formType === "linear" && (
+                      <div className="w-5 h-5 rounded-full bg-[#00685F] text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                  <button 
+                    type="button"
                     onClick={() => { setFormType("circular"); setIsTypeDropdownOpen(false); }}
-                    className={`px-4 py-3 cursor-pointer flex items-center justify-between transition-colors ${formType === "circular" ? "bg-[#00685F]/5 text-[#00685F] font-bold" : "hover:bg-slate-50 text-slate-700 font-semibold"}`}
+                    className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer ${
+                      formType === "circular"
+                        ? "bg-[#00685F]/10 text-[#00685F] font-bold ring-1 ring-[#00685F]/20"
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                    }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <PieChart className="w-4 h-4 text-[#00685F]" />
-                      <span className="text-sm">{t("goals.style_circular") || "Circular Card (Donut Chart Kanan)"}</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${formType === "circular" ? "bg-emerald-100/50 border-emerald-200 text-[#00685F]" : "bg-slate-100 border-slate-200/60 text-slate-500"}`}>
+                        <PieChart className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-bold">{t("goals.style_circular") || "Circular Card (Donut Chart Kanan)"}</span>
                     </div>
-                    {formType === "circular" && <Check className="w-4 h-4 text-[#00685F]" />}
-                  </div>
+                    {formType === "circular" && (
+                      <div className="w-5 h-5 rounded-full bg-[#00685F] text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
                 </div>
               </>
             )}

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
+import { getCategoryIcon, getCategoryColorStyle } from "../../lib/categoryIcons";
 
 const subscribe = () => () => {};
 const getSnapshot = () => true;
@@ -291,50 +292,66 @@ export default function RecurringModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               
               {/* Account Dropdown */}
-              <div className="space-y-1.5 relative">
+              <div className={`space-y-1.5 relative ${openDropdown === "account" ? "z-40" : "z-20"}`}>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                   {t("recurring.field_account") || (isEn ? "Account" : "Rekening")} <span className="text-rose-500">*</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown("account")}
-                  className={`w-full px-3.5 py-3 bg-slate-50/70 border rounded-2xl flex items-center justify-between text-left text-sm font-semibold transition-all cursor-pointer ${
+                  className={`w-full px-3.5 py-3 bg-slate-50/80 border rounded-2xl flex items-center justify-between text-left text-sm font-bold transition-all cursor-pointer group ${
                     openDropdown === "account"
-                      ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white text-slate-900"
-                      : "border-slate-200/80 text-slate-800 hover:bg-slate-100/60"
+                      ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white shadow-xs text-slate-900"
+                      : "border-slate-200/80 text-slate-800 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="flex items-center gap-2 truncate">
-                    <Wallet className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#00685F] flex items-center justify-center shrink-0 border border-emerald-100">
+                      <Wallet className="w-3.5 h-3.5" />
+                    </div>
                     <span className="truncate">{selectedAccount?.name || (isEn ? "Select Account" : "Pilih Rekening")}</span>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${openDropdown === "account" ? "rotate-180 text-[#00685F]" : ""}`} />
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                    openDropdown === "account" ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-400 group-hover:text-slate-600"
+                  }`}>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${openDropdown === "account" ? "rotate-180" : ""}`} />
+                  </div>
                 </button>
                 {openDropdown === "account" && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-200/50 z-[70] p-1.5 space-y-1 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 z-[70] p-2 space-y-1 max-h-52 overflow-y-auto overscroll-contain animate-in fade-in zoom-in-95 duration-150">
                     {accounts.length > 0 ? (
-                      accounts.map((acc) => (
-                        <button
-                          key={acc.id}
-                          type="button"
-                          onClick={() => {
-                            setFormState({ ...formState, account_id: acc.id });
-                            setOpenDropdown(null);
-                          }}
-                          className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition ${
-                            String(formState.account_id) === String(acc.id)
-                              ? "bg-[#00685F]/10 text-[#00685F]"
-                              : "text-slate-700 hover:bg-slate-50"
-                          }`}
-                        >
-                          <span className="truncate">{acc.name}</span>
-                          {String(formState.account_id) === String(acc.id) && (
-                            <Check className="w-3.5 h-3.5 text-[#00685F] shrink-0" />
-                          )}
-                        </button>
-                      ))
+                      accounts.map((acc) => {
+                        const isSelected = String(formState.account_id) === String(acc.id);
+                        return (
+                          <button
+                            key={acc.id}
+                            type="button"
+                            onClick={() => {
+                              setFormState({ ...formState, account_id: acc.id });
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition group ${
+                              isSelected
+                                ? "bg-[#00685F]/10 text-[#00685F] font-bold ring-1 ring-[#00685F]/20"
+                                : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#00685F] flex items-center justify-center shrink-0 border border-emerald-100">
+                                <Wallet className="w-3.5 h-3.5" />
+                              </div>
+                              <span className="truncate">{acc.name}</span>
+                            </div>
+                            {isSelected && (
+                              <div className="w-4.5 h-4.5 rounded-full bg-[#00685F] text-white flex items-center justify-center shrink-0">
+                                <Check className="w-3 h-3 stroke-[3]" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })
                     ) : (
-                      <div className="p-3 text-xs text-slate-400 text-center">
+                      <div className="p-3 text-xs text-slate-400 text-center font-medium">
                         {isEn ? "No accounts found" : "Belum ada rekening"}
                       </div>
                     )}
@@ -343,50 +360,72 @@ export default function RecurringModal({
               </div>
 
               {/* Category Dropdown */}
-              <div className="space-y-1.5 relative">
+              <div className={`space-y-1.5 relative ${openDropdown === "category" ? "z-40" : "z-20"}`}>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                   {t("recurring.field_category") || (isEn ? "Category" : "Kategori")} <span className="text-rose-500">*</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown("category")}
-                  className={`w-full px-3.5 py-3 bg-slate-50/70 border rounded-2xl flex items-center justify-between text-left text-sm font-semibold transition-all cursor-pointer ${
+                  className={`w-full px-3.5 py-3 bg-slate-50/80 border rounded-2xl flex items-center justify-between text-left text-sm font-bold transition-all cursor-pointer group ${
                     openDropdown === "category"
-                      ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white text-slate-900"
-                      : "border-slate-200/80 text-slate-800 hover:bg-slate-100/60"
+                      ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white shadow-xs text-slate-900"
+                      : "border-slate-200/80 text-slate-800 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="flex items-center gap-2 truncate">
-                    <Tag className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                    {selectedCategory ? (
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${getCategoryColorStyle(selectedCategory.color)}`}>
+                        {getCategoryIcon(selectedCategory.icon, "w-3.5 h-3.5")}
+                      </div>
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                        <Tag className="w-3.5 h-3.5" />
+                      </div>
+                    )}
                     <span className="truncate">{selectedCategory?.name || (isEn ? "Select Category" : "Pilih Kategori")}</span>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${openDropdown === "category" ? "rotate-180 text-[#00685F]" : ""}`} />
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                    openDropdown === "category" ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-400 group-hover:text-slate-600"
+                  }`}>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${openDropdown === "category" ? "rotate-180" : ""}`} />
+                  </div>
                 </button>
                 {openDropdown === "category" && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-200/50 z-[70] p-1.5 space-y-1 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 z-[70] p-2 space-y-1 max-h-52 overflow-y-auto overscroll-contain animate-in fade-in zoom-in-95 duration-150">
                     {filteredCategories.length > 0 ? (
-                      filteredCategories.map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => {
-                            setFormState({ ...formState, category_id: cat.id });
-                            setOpenDropdown(null);
-                          }}
-                          className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition ${
-                            String(formState.category_id) === String(cat.id)
-                              ? "bg-[#00685F]/10 text-[#00685F]"
-                              : "text-slate-700 hover:bg-slate-50"
-                          }`}
-                        >
-                          <span className="truncate">{cat.name}</span>
-                          {String(formState.category_id) === String(cat.id) && (
-                            <Check className="w-3.5 h-3.5 text-[#00685F] shrink-0" />
-                          )}
-                        </button>
-                      ))
+                      filteredCategories.map((cat) => {
+                        const isSelected = String(formState.category_id) === String(cat.id);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setFormState({ ...formState, category_id: cat.id });
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition group ${
+                              isSelected
+                                ? "bg-[#00685F]/10 text-[#00685F] font-bold ring-1 ring-[#00685F]/20"
+                                : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${getCategoryColorStyle(cat.color)}`}>
+                                {getCategoryIcon(cat.icon, "w-3.5 h-3.5")}
+                              </div>
+                              <span className="truncate">{cat.name}</span>
+                            </div>
+                            {isSelected && (
+                              <div className="w-4.5 h-4.5 rounded-full bg-[#00685F] text-white flex items-center justify-center shrink-0">
+                                <Check className="w-3 h-3 stroke-[3]" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })
                     ) : (
-                      <div className="p-3 text-xs text-slate-400 text-center">
+                      <div className="p-3 text-xs text-slate-400 text-center font-medium">
                         {isEn ? "No categories available" : "Tidak ada kategori"}
                       </div>
                     )}

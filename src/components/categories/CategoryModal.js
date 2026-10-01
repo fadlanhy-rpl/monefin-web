@@ -141,35 +141,61 @@ export default function CategoryModal({
             {/* Category Type */}
             <div className="space-y-2 relative">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">{t("categories.type_label") || "Jenis Aliran"}</label>
-              <div 
+              <button 
+                type="button"
                 onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-semibold hover:border-[#00685F] transition cursor-pointer flex justify-between items-center select-none"
+                className={`w-full bg-slate-50/80 border rounded-2xl px-4 py-3 text-sm font-bold transition cursor-pointer flex justify-between items-center select-none group ${
+                  isTypeDropdownOpen
+                    ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white shadow-xs"
+                    : "border-slate-200/80 hover:border-slate-300 hover:bg-slate-50"
+                }`}
               >
-                <span className={formType ? "text-slate-900" : "text-slate-400"}>
+                <span className={formType ? "text-slate-900" : "text-slate-400 font-medium"}>
                   {formType === "expense" ? (t("categories.expense") || "Pengeluaran") : formType === "income" ? (t("categories.income") || "Pemasukan") : "Pilih Aliran"}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`} />
-              </div>
+                <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                  isTypeDropdownOpen ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-400 group-hover:text-slate-600"
+                }`}>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`} />
+                </div>
+              </button>
 
               {isTypeDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setIsTypeDropdownOpen(false)}></div>
-                  <div className="absolute z-20 w-full top-full mt-1 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                    <div 
+                  <div className="absolute z-30 w-full top-full mt-2 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 p-2 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                    <button 
+                      type="button"
                       onClick={() => { setFormType("expense"); setIsTypeDropdownOpen(false); }}
-                      className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors group"
+                      className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition group ${
+                        formType === "expense"
+                          ? "bg-[#00685F]/10 text-[#00685F] font-bold ring-1 ring-[#00685F]/20"
+                          : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
                     >
-                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">{t("categories.expense") || "Pengeluaran"}</span>
-                      {formType === "expense" && <Check className="w-4 h-4 text-[#00685F]" />}
-                    </div>
-                    <div className="border-t border-slate-50"></div>
-                    <div 
+                      <span>{t("categories.expense") || "Pengeluaran"}</span>
+                      {formType === "expense" && (
+                        <div className="w-4.5 h-4.5 rounded-full bg-[#00685F] text-white flex items-center justify-center shrink-0">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
+                    <button 
+                      type="button"
                       onClick={() => { setFormType("income"); setIsTypeDropdownOpen(false); }}
-                      className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors group"
+                      className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition group ${
+                        formType === "income"
+                          ? "bg-[#00685F]/10 text-[#00685F] font-bold ring-1 ring-[#00685F]/20"
+                          : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
                     >
-                      <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">{t("categories.income") || "Pemasukan"}</span>
-                      {formType === "income" && <Check className="w-4 h-4 text-[#00685F]" />}
-                    </div>
+                      <span>{t("categories.income") || "Pemasukan"}</span>
+                      {formType === "income" && (
+                        <div className="w-4.5 h-4.5 rounded-full bg-[#00685F] text-white flex items-center justify-center shrink-0">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
                   </div>
                 </>
               )}
