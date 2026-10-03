@@ -4,28 +4,10 @@ import {
   PieChart, 
   Sparkles, 
   Plus, 
-  Utensils, 
-  Car, 
-  ShoppingBag, 
-  Zap, 
-  Film, 
-  PiggyBank, 
-  Hash,
   ArrowRight
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
-
-function getCategoryIconSmall(iconType) {
-  switch (iconType) {
-    case "utensils": return <Utensils className="w-4 h-4" />;
-    case "car": return <Car className="w-4 h-4" />;
-    case "shopping-bag": return <ShoppingBag className="w-4 h-4" />;
-    case "zap": return <Zap className="w-4 h-4" />;
-    case "film": return <Film className="w-4 h-4" />;
-    case "piggy-bank": return <PiggyBank className="w-4 h-4" />;
-    default: return <Hash className="w-4 h-4" />;
-  }
-}
+import { getCategoryIcon } from "../../lib/categoryIcons";
 
 export default function BudgetsEmptyState({
   monthName = "",
@@ -70,7 +52,7 @@ export default function BudgetsEmptyState({
                 className="p-4 rounded-2xl border border-slate-200/80 hover:border-[#00685F] hover:bg-[#00685F]/5 transition text-left cursor-pointer group active:scale-98"
               >
                 <div className="w-9 h-9 rounded-xl bg-teal-50 text-[#00685F] flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
-                  {getCategoryIconSmall(cat.icon)}
+                  {getCategoryIcon(cat.icon, "w-4 h-4")}
                 </div>
                 <div className="font-bold text-slate-900 text-sm group-hover:text-[#00685F] transition-colors truncate">
                   {cat.name}

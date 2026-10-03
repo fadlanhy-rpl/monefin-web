@@ -1,24 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Banknote, Utensils, Car, ShoppingBag, TrendingUp, HelpCircle, Receipt, SearchX } from "lucide-react";
+import { Pencil, Trash2, Receipt, SearchX } from "lucide-react";
 import { formatDate } from "../../lib/utils";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useLanguage } from "../../context/LanguageContext";
+import { getCategoryIcon, getCategoryColorHex } from "../../lib/categoryIcons";
 import ReceiptDetailModal from "../receipts/ReceiptDetailModal";
 import TransactionsEmptyState from "./TransactionsEmptyState";
-
-const getCategoryIcon = (iconName, colorCode) => {
-  const style = colorCode ? { color: colorCode } : {};
-  switch (iconName) {
-    case 'utensils': return <Utensils className="w-3.5 h-3.5" style={style} />;
-    case 'car': return <Car className="w-3.5 h-3.5" style={style} />;
-    case 'shopping-bag': return <ShoppingBag className="w-3.5 h-3.5" style={style} />;
-    case 'trending-up': return <TrendingUp className="w-3.5 h-3.5" style={style} />;
-    case 'banknote': return <Banknote className="w-3.5 h-3.5" style={style} />;
-    default: return <HelpCircle className="w-3.5 h-3.5" style={style} />;
-  }
-};
 
 export default function TransactionsTable({
   transactions,
@@ -110,9 +99,16 @@ export default function TransactionsTable({
           const amountText = formatCurrency(finalAmount);
           const amountClass = isExpense ? "text-rose-600 font-black" : "text-emerald-600 font-black";
 
-          const categoryName = txn.category?.name || (t("transactions.unknown") || "Unknown");
-          const catIcon = txn.category?.icon;
-          const catColor = txn.category?.color || "#00685F";
+          const isGoalTxn = Boolean(txn.goal_id || txn.goal || txn.description?.toLowerCase().includes('tabungan'));
+          const categoryName = txn.category?.name 
+            ? txn.category.name 
+            : isGoalTxn 
+              ? (txn.goal?.name ? (language === "en" ? `Goal: ${txn.goal.name}` : `Tabungan: ${txn.goal.name}`) : (language === "en" ? "Savings Goal" : "Tabungan Impian"))
+              : (t("transactions.unknown") || "Unknown");
+
+          const catIcon = txn.category?.icon || (isGoalTxn ? "piggy-bank" : null);
+          const rawCatColor = txn.category?.color || (isGoalTxn ? "#00685F" : "#00685F");
+          const catColor = getCategoryColorHex(rawCatColor);
 
           return (
             <div 
@@ -126,7 +122,7 @@ export default function TransactionsTable({
                     className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
                     style={{ backgroundColor: catColor + '18', color: catColor }}
                   >
-                    {getCategoryIcon(catIcon, catColor)}
+                    {getCategoryIcon(catIcon, "w-4 h-4", { color: catColor })}
                   </div>
                   <div className="min-w-0">
                     <span 
@@ -211,9 +207,16 @@ export default function TransactionsTable({
                 const amountText = formatCurrency(finalAmount);
                 const amountClass = isExpense ? "text-red-600 font-extrabold" : "text-emerald-600 font-extrabold";
 
-                const categoryName = txn.category?.name || (t("transactions.unknown") || "Unknown");
-                const catIcon = txn.category?.icon;
-                const catColor = txn.category?.color || "#64748b";
+                const isGoalTxn = Boolean(txn.goal_id || txn.goal || txn.description?.toLowerCase().includes('tabungan'));
+                const categoryName = txn.category?.name 
+                  ? txn.category.name 
+                  : isGoalTxn 
+                    ? (txn.goal?.name ? (language === "en" ? `Goal: ${txn.goal.name}` : `Tabungan: ${txn.goal.name}`) : (language === "en" ? "Savings Goal" : "Tabungan Impian"))
+                    : (t("transactions.unknown") || "Unknown");
+
+                const catIcon = txn.category?.icon || (isGoalTxn ? "piggy-bank" : null);
+                const rawCatColor = txn.category?.color || (isGoalTxn ? "#00685F" : "#64748b");
+                const catColor = getCategoryColorHex(rawCatColor);
 
                 return (
                   <tr key={txn.id} className="txn-row border-b border-slate-100/60 hover:bg-[#f4faf9] transition-all duration-200 group">
@@ -223,7 +226,7 @@ export default function TransactionsTable({
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-300 hover:scale-105"
                         style={{ backgroundColor: catColor + '15', color: catColor }}
                       >
-                        {getCategoryIcon(catIcon, catColor)}
+                        {getCategoryIcon(catIcon, "w-3.5 h-3.5", { color: catColor })}
                         {categoryName}
                       </span>
                     </td>

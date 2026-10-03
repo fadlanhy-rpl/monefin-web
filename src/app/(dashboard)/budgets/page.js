@@ -7,25 +7,16 @@ import BudgetsGrid from "../../../components/budgets/BudgetsGrid";
 import BudgetsOverview from "../../../components/budgets/BudgetsOverview";
 import BudgetModal from "../../../components/budgets/BudgetModal";
 import ConfirmModal from "../../../components/ui/ConfirmModal";
-import { Utensils, Car, ShoppingBag, Zap, Film, PiggyBank, Info, Hash } from "lucide-react";
+import { Info } from "lucide-react";
 import { getBudgets, createBudget, updateBudget, deleteBudget } from "../../../services/budget.service";
 import { getCategories } from "../../../services/category.service";
 import { notifySuccess, notifyError } from "../../../lib/notify";
 import { useLanguage } from "../../../context/LanguageContext";
+import { getCategoryIcon } from "../../../lib/categoryIcons";
 import AiBudgetRecommendationsModal from "../../../components/ai/AiBudgetRecommendationsModal";
 
 // Helper to get category icon component
-function getCategoryIcon(iconType) {
-  switch (iconType) {
-    case "utensils": return <Utensils className="w-6 h-6" />;
-    case "car": return <Car className="w-6 h-6" />;
-    case "shopping-bag": return <ShoppingBag className="w-6 h-6" />;
-    case "zap": return <Zap className="w-6 h-6" />;
-    case "film": return <Film className="w-6 h-6" />;
-    case "piggy-bank": return <PiggyBank className="w-6 h-6" />;
-    default: return <Hash className="w-6 h-6" />;
-  }
-}
+const renderCategoryIcon = (iconType) => getCategoryIcon(iconType, "w-6 h-6");
 
 export default function BudgetsPage() {
   const { t, language } = useLanguage();
@@ -263,7 +254,7 @@ export default function BudgetsPage() {
             budgetsLength={budgets.length}
             totalPages={totalPages}
             setCurrentPage={setCurrentPage}
-            getCategoryIcon={getCategoryIcon}
+            getCategoryIcon={renderCategoryIcon}
             openEditModal={openEditModal}
             handleDelete={openDeleteModal}
             openAddModal={openAddModal}

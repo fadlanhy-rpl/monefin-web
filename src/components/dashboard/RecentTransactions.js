@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Utensils, Wallet, Car, ShoppingBag, Eye, Inbox } from "lucide-react";
+import { Eye, Inbox } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
+import { getCategoryIcon, getCategoryColorHex } from "../../lib/categoryIcons";
 
 export default function RecentTransactions({ transactions = [] }) {
   const { t, language } = useLanguage();
@@ -32,32 +33,25 @@ export default function RecentTransactions({ transactions = [] }) {
     const tag = txn.type;
     const amt = tag === 'expense' ? -txn.amount : txn.amount;
 
-    let IconComponent = ShoppingBag;
-    let iconColor = 'text-orange-600';
-    let bgClass = 'bg-orange-50';
+    const isGoalTxn = Boolean(txn.goal_id || txn.goal || txn.description?.toLowerCase().includes('tabungan'));
+    const categoryName = txn.category?.name 
+      ? txn.category.name 
+      : isGoalTxn 
+        ? (txn.goal?.name ? (language === "en" ? `Goal: ${txn.goal.name}` : `Tabungan: ${txn.goal.name}`) : (language === "en" ? "Savings Goal" : "Tabungan Impian"))
+        : (t("transactions.unknown") || 'Lain-lain');
 
-    if (tag === 'income') {
-      IconComponent = Wallet;
-      iconColor = 'text-brand-600';
-      bgClass = 'bg-brand-50';
-    } else if (txn.category?.name?.toLowerCase().includes('food') || txn.category?.name?.toLowerCase().includes('makanan')) {
-      IconComponent = Utensils;
-      iconColor = 'text-emerald-600';
-      bgClass = 'bg-emerald-50';
-    } else if (txn.category?.name?.toLowerCase().includes('transport')) {
-      IconComponent = Car;
-      iconColor = 'text-blue-600';
-      bgClass = 'bg-blue-50';
-    }
+    const catIcon = txn.category?.icon || (isGoalTxn ? "piggy-bank" : (tag === 'income' ? 'wallet' : 'shopping-bag'));
+    const rawCatColor = txn.category?.color || (isGoalTxn ? "#00685F" : (tag === 'income' ? '#00685F' : '#ea580c'));
+    const catColorHex = getCategoryColorHex(rawCatColor);
 
     return {
       id: txn.id,
       date: dateStr,
-      category: txn.category?.name || (t("transactions.unknown") || 'Lain-lain'),
+      category: categoryName,
       tag: tag,
       amount: amt,
-      icon: <IconComponent className={`w-4 h-4 ${iconColor}`} />,
-      iconBg: bgClass
+      icon: getCategoryIcon(catIcon, "w-4 h-4", { color: catColorHex }),
+      iconBgStyle: { backgroundColor: catColorHex + '18' }
     };
   });
 
@@ -126,7 +120,7 @@ export default function RecentTransactions({ transactions = [] }) {
                     <td className="py-3.5 sm:py-4 whitespace-nowrap text-slate-500 font-medium text-xs sm:text-sm">{t.date}</td>
                     <td className="py-3.5 sm:py-4">
                       <div className="flex items-center gap-2.5 sm:gap-3">
-                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${t.iconBg} flex items-center justify-center shrink-0`}>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0" style={t.iconBgStyle}>
                           {t.icon}
                         </div>
                         <span className="font-semibold text-slate-800 text-xs sm:text-sm truncate max-w-[150px] sm:max-w-none">{t.category}</span>

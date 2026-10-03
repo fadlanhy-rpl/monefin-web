@@ -19,109 +19,152 @@ import {
   MoreHorizontal,
   Zap,
   PiggyBank,
+  Target,
   Coffee,
   Plane,
   Tv,
   Hash,
+  HelpCircle,
 } from "lucide-react";
 
-export function getCategoryIcon(iconName, className = "w-4 h-4") {
+export function getCategoryIcon(iconName, className = "w-4 h-4", style = {}) {
   const norm = String(iconName || "").toLowerCase().trim();
+  let IconComponent = HelpCircle;
+
   switch (norm) {
     case "utensils":
     case "food":
     case "makanan":
     case "kuliner":
-      return <Utensils className={className} />;
+      IconComponent = Utensils;
+      break;
     case "car":
     case "transport":
     case "transportasi":
     case "bensin":
-      return <Car className={className} />;
+      IconComponent = Car;
+      break;
     case "shopping-bag":
     case "shopping":
     case "belanja":
-      return <ShoppingBag className={className} />;
+      IconComponent = ShoppingBag;
+      break;
     case "film":
     case "entertainment":
     case "hiburan":
     case "bioskop":
-      return <Film className={className} />;
+      IconComponent = Film;
+      break;
     case "medical":
     case "health":
     case "kesehatan":
     case "obat":
-      return <PlusSquare className={className} />;
+      IconComponent = PlusSquare;
+      break;
     case "heart-pulse":
     case "medis":
-      return <HeartPulse className={className} />;
+      IconComponent = HeartPulse;
+      break;
     case "home":
     case "housing":
     case "rumah":
     case "kost":
-      return <Home className={className} />;
+      IconComponent = Home;
+      break;
     case "graduation-cap":
+    case "graduation":
     case "education":
     case "pendidikan":
     case "kuliah":
-      return <GraduationCap className={className} />;
+      IconComponent = GraduationCap;
+      break;
     case "briefcase":
     case "work":
     case "pekerjaan":
     case "gaji":
     case "bisnis":
-      return <Briefcase className={className} />;
+      IconComponent = Briefcase;
+      break;
     case "dollar":
     case "financial":
     case "finansial":
-      return <DollarSign className={className} />;
+      IconComponent = DollarSign;
+      break;
     case "trending-up":
+    case "trending":
     case "investment":
     case "investasi":
-      return <TrendingUp className={className} />;
+      IconComponent = TrendingUp;
+      break;
     case "banknote":
     case "cash":
     case "uang":
-      return <Banknote className={className} />;
+      IconComponent = Banknote;
+      break;
     case "wallet":
     case "dompet":
-      return <Wallet className={className} />;
+      IconComponent = Wallet;
+      break;
     case "gift":
     case "hadiah":
-      return <Gift className={className} />;
+      IconComponent = Gift;
+      break;
     case "coins":
     case "koin":
-      return <Coins className={className} />;
+      IconComponent = Coins;
+      break;
     case "file-text":
     case "bills":
     case "tagihan":
-      return <FileText className={className} />;
+      IconComponent = FileText;
+      break;
     case "gamepad-2":
     case "gaming":
     case "game":
-      return <Gamepad2 className={className} />;
+      IconComponent = Gamepad2;
+      break;
+    case "more-horizontal":
+    case "more":
+    case "others":
+    case "lainnya":
+    case "lain-lain":
+      IconComponent = MoreHorizontal;
+      break;
     case "zap":
     case "utilities":
     case "listrik":
-      return <Zap className={className} />;
+      IconComponent = Zap;
+      break;
     case "piggy-bank":
     case "savings":
     case "tabungan":
-      return <PiggyBank className={className} />;
+      IconComponent = PiggyBank;
+      break;
+    case "target":
+    case "goal":
+    case "impian":
+      IconComponent = Target;
+      break;
     case "coffee":
     case "kopi":
     case "cafe":
-      return <Coffee className={className} />;
+      IconComponent = Coffee;
+      break;
     case "plane":
     case "travel":
     case "liburan":
-      return <Plane className={className} />;
+      IconComponent = Plane;
+      break;
     case "tv":
     case "streaming":
-      return <Tv className={className} />;
+      IconComponent = Tv;
+      break;
     default:
-      return <Hash className={className} />;
+      IconComponent = norm ? Hash : HelpCircle;
+      break;
   }
+
+  return <IconComponent className={className} style={style} />;
 }
 
 export function getCategoryColorStyle(colorName) {
@@ -143,5 +186,22 @@ export function getCategoryColorStyle(colorName) {
       return "bg-amber-50 text-amber-600 border-amber-100";
     default:
       return "bg-[#E6F0EF] text-[#00685F] border-[#c0ded9]";
+  }
+}
+
+export function getCategoryColorHex(colorName) {
+  const norm = String(colorName || "").toLowerCase().trim();
+  switch (norm) {
+    case "orange": return "#ea580c";
+    case "blue": return "#2563eb";
+    case "purple": return "#9333ea";
+    case "pink": return "#db2777";
+    case "emerald": return "#059669";
+    case "teal": return "#0d9488";
+    case "amber": return "#d97706";
+    case "primary": return "#00685F";
+    default:
+      if (colorName && colorName.startsWith("#")) return colorName;
+      return "#00685F";
   }
 }
