@@ -1,5 +1,6 @@
 import { 
-  CheckCircle2 
+  CheckCircle2,
+  GripHorizontal
 } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
@@ -7,7 +8,8 @@ import {
   DndContext,
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -34,12 +36,20 @@ export default function AccountsGrid({
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
+  const [activeDragId, setActiveDragId] = useState(null);
 
+  // Mouse sensor for desktop and Touch sensor for mobile/touchscreens
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 5,
-      }
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms press-and-hold to disambiguate drag from normal scroll
+        tolerance: 6, // 6px movement tolerance during press-and-hold
+      },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -62,18 +72,34 @@ export default function AccountsGrid({
     }, 3000);
   };
 
+  const handleDragStart = (event) => {
+    setActiveDragId(event.active.id);
+    if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator?.vibrate) {
+      try {
+        navigator.vibrate(40); // Subtle 40ms haptic tick on pickup
+      } catch (_) {}
+    }
+  };
+
   const handleDragEnd = (event) => {
+    setActiveDragId(null);
     const { active, over } = event;
 
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       const oldIndex = accounts.findIndex((acc) => acc.id === active.id);
       const newIndex = accounts.findIndex((acc) => acc.id === over.id);
       
-      const newAccounts = arrayMove(accounts, oldIndex, newIndex);
-      if (onReorder) {
-        onReorder(newAccounts);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newAccounts = arrayMove(accounts, oldIndex, newIndex);
+        if (onReorder) {
+          onReorder(newAccounts);
+        }
       }
     }
+  };
+
+  const handleDragCancel = () => {
+    setActiveDragId(null);
   };
 
   if (!accounts || accounts.length === 0) {
@@ -97,11 +123,19 @@ export default function AccountsGrid({
         </div>
       )}
 
+      {/* Mobile Touch Reorder Hint (Signifier for direct manipulation) */}
+      <div className="flex sm:hidden items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium mb-3 select-none">
+        <GripHorizontal className="w-3.5 h-3.5 text-slate-400" />
+        <span>{language === 'en' ? 'Tip: Press & hold grip handle to reorder cards' : 'Tip: Tekan & tahan ikon titik untuk menggeser kartu'}</span>
+      </div>
+
       {/* Grid container with DnD context */}
       <DndContext 
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 xl:gap-8">
           <SortableContext 

@@ -16,6 +16,32 @@ import {
   EyeOff
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../hooks/useCurrency";
+import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
+
+/**
+ * Ergonomic floating drag handle with touch-action: none for mobile gesture support
+ */
+function CardDragHandle({ attributes, listeners, isDarkTheme, language }) {
+  return (
+    <div 
+      {...attributes} 
+      {...listeners} 
+      role="button"
+      tabIndex={0}
+      aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
+      title={language === 'en' ? "Press and hold to reorder" : "Tekan dan tahan untuk menggeser urutan kartu"}
+      style={{ touchAction: 'none' }}
+      className={`absolute top-2.5 left-1/2 -translate-x-1/2 z-30 cursor-grab active:cursor-grabbing flex items-center justify-center px-3 py-1 rounded-full transition-all duration-200 select-none touch-none active:scale-95 min-h-[30px] sm:min-h-[26px] ${
+        isDarkTheme 
+          ? 'bg-black/35 hover:bg-black/55 active:bg-black/75 text-white/85 hover:text-white border border-white/20 backdrop-blur-md opacity-90 sm:opacity-0 sm:group-hover:opacity-100 shadow-xs' 
+          : 'bg-slate-100/95 hover:bg-slate-200 active:bg-slate-300 text-slate-500 hover:text-slate-700 border border-slate-200/90 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 shadow-xs'
+      }`}
+    >
+      <GripHorizontal className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+    </div>
+  );
+}
 
 /**
  * Modern floating options popover for cards
@@ -98,9 +124,6 @@ function CardOptionsMenu({
   );
 }
 
-import { useCurrency } from "../../hooks/useCurrency";
-import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
-
 export default function SortableAccountCard({
   acc,
   index,
@@ -142,17 +165,13 @@ export default function SortableAccountCard({
           className={`bg-gradient-to-br from-[#00685F] via-[#008A7E] to-[#004D46] p-4 sm:p-5 lg:p-6 xl:p-8 rounded-3xl xl:rounded-[2.5rem] text-white flex flex-col justify-between h-56 sm:h-64 lg:h-72 shadow-2xl shadow-[#00685F]/35 relative overflow-hidden transition-all duration-300 group ${isDragging ? 'scale-105 shadow-3xl ring-4 ring-[#00685F]/50' : 'hover:-translate-y-1.5 hover:shadow-3xl'}`}
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
-          {/* Drag Handle Top Bar */}
-          <div 
-            {...attributes} 
-            {...listeners} 
-            role="button"
-            tabIndex={0}
-            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
-            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          >
-            <GripHorizontal className="w-5 h-5 text-white/70" />
-          </div>
+          {/* Drag Handle */}
+          <CardDragHandle 
+            attributes={attributes} 
+            listeners={listeners} 
+            isDarkTheme={true} 
+            language={language} 
+          />
 
           <div className="relative z-10 flex justify-between items-start mt-1 sm:mt-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -236,17 +255,12 @@ export default function SortableAccountCard({
           className={`bg-gradient-to-br from-[#1E1E1E] via-[#2F2F2F] to-[#121212] p-4 sm:p-5 lg:p-6 xl:p-8 rounded-3xl xl:rounded-[2.5rem] text-white flex flex-col justify-between h-56 sm:h-64 lg:h-72 shadow-xl relative overflow-hidden transition-all duration-300 border border-white/5 group ${isDragging ? 'scale-105 shadow-2xl ring-4 ring-white/20' : 'hover:-translate-y-1.5 hover:shadow-2xl'}`}
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
-          {/* Drag Handle Top Bar */}
-          <div 
-            {...attributes} 
-            {...listeners} 
-            role="button"
-            tabIndex={0}
-            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
-            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          >
-            <GripHorizontal className="w-5 h-5 text-white/50" />
-          </div>
+          <CardDragHandle 
+            attributes={attributes} 
+            listeners={listeners} 
+            isDarkTheme={true} 
+            language={language} 
+          />
 
           <div className="relative z-10 flex justify-between items-start mt-1 sm:mt-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -333,17 +347,12 @@ export default function SortableAccountCard({
           className={`bg-white p-4 sm:p-5 lg:p-6 xl:p-8 rounded-3xl xl:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-52 sm:h-60 lg:h-64 transition-all duration-300 group relative overflow-hidden ${isDragging ? 'scale-105 shadow-2xl ring-4 ring-slate-200' : 'hover:shadow-lg'}`}
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
-          {/* Drag Handle Top Bar */}
-          <div 
-            {...attributes} 
-            {...listeners} 
-            role="button"
-            tabIndex={0}
-            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
-            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          >
-            <GripHorizontal className="w-5 h-5 text-slate-400" />
-          </div>
+          <CardDragHandle 
+            attributes={attributes} 
+            listeners={listeners} 
+            isDarkTheme={false} 
+            language={language} 
+          />
 
           <div className="flex justify-between items-start relative z-10 mt-1 sm:mt-2">
             <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
@@ -422,17 +431,12 @@ export default function SortableAccountCard({
           className={`bg-white p-4 sm:p-5 lg:p-6 xl:p-8 rounded-3xl xl:rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between h-52 sm:h-60 lg:h-64 transition-all duration-300 group relative overflow-hidden ${isDragging ? 'scale-105 shadow-2xl ring-4 ring-slate-200' : 'hover:shadow-lg'}`}
           style={{ animationDelay: `${(index + 1) * 80}ms` }}
         >
-          {/* Drag Handle Top Bar */}
-          <div 
-            {...attributes} 
-            {...listeners} 
-            role="button"
-            tabIndex={0}
-            aria-label={language === 'en' ? "Drag to reorder account card" : "Geser untuk mengatur urutan kartu rekening"}
-            className="absolute top-0 left-0 w-full h-8 cursor-grab active:cursor-grabbing flex justify-center items-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          >
-            <GripHorizontal className="w-5 h-5 text-slate-400" />
-          </div>
+          <CardDragHandle 
+            attributes={attributes} 
+            listeners={listeners} 
+            isDarkTheme={false} 
+            language={language} 
+          />
 
           <div className="flex justify-between items-start relative z-10 mt-1 sm:mt-2">
             <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
