@@ -8,8 +8,7 @@ import {
   ChevronRight, 
   Sparkles,
   X,
-  Check,
-  CalendarDays
+  Check
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -41,24 +40,11 @@ export default function RecurringDatePicker({
   const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [coords, setCoords] = useState(null);
-
   const triggerRef = useRef(null);
-  const popoverRef = useRef(null);
+  const modalCardRef = useRef(null);
 
   const MONTH_NAMES = isEn ? MONTH_NAMES_EN : MONTH_NAMES_ID;
   const DAY_NAMES = isEn ? DAY_NAMES_EN : DAY_NAMES_ID;
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(typeof window !== "undefined" && window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   // Parse YYYY-MM-DD
   const parseDateStr = (dateStr) => {
@@ -80,16 +66,7 @@ export default function RecurringDatePicker({
     }
   }, [value]);
 
-  // Compute position for desktop popover
-  const updateCoords = () => {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setCoords(rect);
-    }
-  };
-
   const handleOpen = () => {
-    updateCoords();
     if (value) {
       setViewDate(parseDateStr(value));
     }
@@ -100,18 +77,9 @@ export default function RecurringDatePicker({
     setIsOpen(false);
   };
 
-  // Click outside listener
+  // Close on Escape or click outside
   useEffect(() => {
     if (!isOpen) return;
-
-    function handleClickOutside(e) {
-      if (
-        triggerRef.current && !triggerRef.current.contains(e.target) &&
-        popoverRef.current && !popoverRef.current.contains(e.target)
-      ) {
-        setIsOpen(false);
-      }
-    }
 
     function handleKeyDown(e) {
       if (e.key === "Escape") {
@@ -119,22 +87,9 @@ export default function RecurringDatePicker({
       }
     }
 
-    function handleScrollOrResize() {
-      if (!isMobile) updateCoords();
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("scroll", handleScrollOrResize, true);
-    window.addEventListener("resize", handleScrollOrResize);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("scroll", handleScrollOrResize, true);
-      window.removeEventListener("resize", handleScrollOrResize);
-    };
-  }, [isOpen, isMobile]);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -176,7 +131,6 @@ export default function RecurringDatePicker({
     } else if (type === "next_month_first") {
       targetDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     } else if (type === "payday_25") {
-      // If today is past the 25th, choose next month's 25th
       if (today.getDate() > 25) {
         targetDate = new Date(today.getFullYear(), today.getMonth() + 1, 25);
       } else {
@@ -244,32 +198,6 @@ export default function RecurringDatePicker({
   const displayInfo = formatDisplayDate(value);
   const todayDate = new Date();
 
-  // Desktop Popover Style calculation
-  const getPopoverStyle = () => {
-    if (!coords || typeof window === "undefined" || isMobile) return {};
-    const width = 340;
-    const padding = 16;
-    let left = coords.left;
-    if (left + width > window.innerWidth - padding) {
-      left = Math.max(padding, coords.right - width);
-    }
-    if (left < padding) left = padding;
-
-    let top = coords.bottom + 8;
-    const estHeight = 390;
-    if (top + estHeight > window.innerHeight && coords.top - estHeight - 8 > 0) {
-      top = coords.top - estHeight - 8;
-    }
-
-    return {
-      position: "fixed",
-      top: `${top}px`,
-      left: `${left}px`,
-      width: `${width}px`,
-      zIndex: 999999,
-    };
-  };
-
   return (
     <>
       {/* Trigger Button Field */}
@@ -308,54 +236,58 @@ export default function RecurringDatePicker({
                     {isEn ? "Today" : "Hari Ini"}
                   </span>
                 )}
-                <span>{isEn ? "Click to change start date" : "Klik untuk atur tanggal"}</span>
+                <span>{isEn ? "Click to pick start date" : "Klik untuk pilih tanggal"}</span>
               </div>
             </div>
           </div>
 
-          <div className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 group-hover:bg-[#00685F]/10 group-hover:text-[#00685F] transition-colors">
-            {isEn ? "Change" : "Pilih"}
+          <div className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 group-hover:bg-[#00685F]/10 group-hover:text-[#00685F] transition-colors">
+            {isEn ? "Pick Date" : "Ubah"}
           </div>
         </button>
 
         <p className="text-[11px] text-slate-400">
           {isEn 
-            ? "The recurring automation schedule will start executing from this date." 
+            ? "The recurring schedule will start running automatically from this date." 
             : "Otomasi jadwal transaksi ini akan mulai berjalan aktif sejak tanggal ini."}
         </p>
       </div>
 
-      {/* Floating or Modal Portaled Calendar */}
+      {/* ========================================================================= */}
+      {/* CENTERED CALENDAR MODAL (100% UNCLIPPED, NEVER CUT OFF BY VIEWPORT EDGE)   */}
+      {/* ========================================================================= */}
       {mounted && isOpen && createPortal(
-        <div className={isMobile ? "fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-3 animate-in fade-in duration-200" : ""}>
-          {isMobile && (
-            <div className="fixed inset-0 -z-10" onClick={handleClose} />
-          )}
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">
+          {/* Backdrop Click Outside */}
+          <div className="fixed inset-0 -z-10" onClick={handleClose} aria-hidden="true" />
 
+          {/* Centered Calendar Card */}
           <div
-            ref={popoverRef}
-            style={isMobile ? {} : getPopoverStyle()}
-            className={`bg-white border border-slate-200/90 rounded-3xl shadow-2xl p-4 sm:p-5 select-none animate-in zoom-in-95 duration-150 ${
-              isMobile ? "w-full max-w-sm mx-auto shadow-slate-900/25" : ""
-            }`}
+            ref={modalCardRef}
+            className="bg-white border border-slate-200/90 rounded-[2rem] shadow-2xl p-4 sm:p-5 max-w-[340px] w-full select-none animate-in zoom-in-95 duration-150 relative max-h-[92vh] overflow-y-auto overscroll-contain shadow-slate-900/20"
           >
-            {/* Top Quick Presets Bar */}
-            <div className="mb-3.5 pb-3 border-b border-slate-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  {isEn ? "Quick Presets" : "Pilihan Cepat"}
-                </span>
-                {isMobile && (
-                  <button
-                    type="button"
-                    onClick={handleClose}
-                    className="w-7 h-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </button>
-                )}
+            {/* Header: Title & Close Button */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#00685F]/10 text-[#00685F] flex items-center justify-center">
+                  <CalendarIcon className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  {isEn ? "Select Start Date" : "Pilih Tanggal Mulai"}
+                </h4>
               </div>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-7 h-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+                title={isEn ? "Close" : "Tutup"}
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </div>
 
+            {/* Quick Presets Row */}
+            <div className="py-2.5 border-b border-slate-100">
               <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                 <button
                   type="button"
@@ -375,41 +307,41 @@ export default function RecurringDatePicker({
                   type="button"
                   onClick={() => handleQuickPreset("next_month_first")}
                   className="px-2 py-1.5 rounded-xl text-[11px] font-bold bg-slate-50 hover:bg-[#00685F]/10 hover:text-[#00685F] text-slate-700 border border-slate-200/70 transition cursor-pointer text-center truncate"
-                  title={isEn ? "Next Month 1st" : "Awal Bulan Depan"}
+                  title={isEn ? "Next Month (1st)" : "Awal Bulan Depan"}
                 >
-                  {isEn ? "Next Mth (1st)" : "Awal Bln Depan"}
+                  {isEn ? "Next Mth (1st)" : "Awal Bln"}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickPreset("payday_25")}
                   className="px-2 py-1.5 rounded-xl text-[11px] font-bold bg-slate-50 hover:bg-[#00685F]/10 hover:text-[#00685F] text-slate-700 border border-slate-200/70 transition cursor-pointer text-center"
                 >
-                  {isEn ? "Payday (25th)" : "Gajian (Tgl 25)"}
+                  {isEn ? "Payday (25)" : "Gajian (25)"}
                 </button>
               </div>
             </div>
 
-            {/* Month & Year Navigation Header */}
-            <div className="flex items-center justify-between mb-3 px-1">
+            {/* Month & Year Navigation */}
+            <div className="flex items-center justify-between pt-3 pb-2 px-1">
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
                 title={isEn ? "Previous Month" : "Bulan Sebelumnya"}
               >
                 <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
               </button>
 
               <div className="text-center">
-                <h4 className="text-sm font-black text-slate-900 tracking-tight">
+                <span className="text-sm font-black text-slate-900 tracking-tight">
                   {MONTH_NAMES[month]} {year}
-                </h4>
+                </span>
               </div>
 
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
                 title={isEn ? "Next Month" : "Bulan Berikutnya"}
               >
                 <ChevronRight className="w-4 h-4 stroke-[2.5]" />
@@ -437,7 +369,7 @@ export default function RecurringDatePicker({
                   return (
                     <div
                       key={idx}
-                      className="h-8.5 sm:h-9 flex items-center justify-center text-xs font-semibold text-slate-300 pointer-events-none select-none"
+                      className="h-8.5 flex items-center justify-center text-xs font-semibold text-slate-300 pointer-events-none select-none"
                     >
                       {cell.day}
                     </div>
@@ -460,7 +392,7 @@ export default function RecurringDatePicker({
                     key={idx}
                     type="button"
                     onClick={() => handleSelectDay(cell.day)}
-                    className={`h-8.5 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
+                    className={`h-8.5 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
                       isSelected
                         ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105"
                         : isToday
@@ -474,10 +406,10 @@ export default function RecurringDatePicker({
               })}
             </div>
 
-            {/* Footer: Selected Date Display & Close */}
+            {/* Footer with Selected Date Summary & Done Button */}
             <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold truncate">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00685F]" />
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 font-bold truncate">
+                <span className="w-2 h-2 rounded-full bg-[#00685F]" />
                 <span className="truncate">
                   {typeof displayInfo === "object" ? displayInfo.short : displayInfo}
                 </span>
@@ -486,7 +418,7 @@ export default function RecurringDatePicker({
               <button
                 type="button"
                 onClick={handleClose}
-                className="text-xs font-extrabold text-[#00685F] hover:underline px-2 py-1 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#00685F] text-white text-xs font-bold hover:bg-[#004D46] transition active:scale-95 cursor-pointer shadow-xs"
               >
                 {isEn ? "Done" : "Selesai"}
               </button>
