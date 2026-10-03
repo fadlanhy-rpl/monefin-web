@@ -275,13 +275,7 @@ export default function RecurringModal({
               <RefreshCcw className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00685F] animate-pulse" />
-                <span className="text-[#00685F] text-[10px] font-extrabold uppercase tracking-wider">
-                  {isEn ? "Financial Automation" : "Otomasi Transaksi Rutin"}
-                </span>
-              </div>
-              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug mt-0.5">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">
                 {modalMode === "add"
                   ? (t("recurring.modal_add_title") || (isEn ? "Add Recurring Transaction" : "Tambah Transaksi Rutin"))
                   : (t("recurring.modal_edit_title") || (isEn ? "Edit Recurring Transaction" : "Edit Transaksi Rutin"))}

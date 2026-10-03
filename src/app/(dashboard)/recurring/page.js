@@ -61,23 +61,10 @@ export default function RecurringPage() {
         {/* ================= HEADER SECTION ================= */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all duration-500 ease-out">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00685F]/10 text-[#00685F] text-[11px] font-extrabold tracking-wide border border-[#00685F]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00685F] animate-pulse" />
-                {isEn ? "Cash Flow Automation" : "Otomasi Arus Kas"}
-              </span>
-              
-              {settings.length > 0 && (
-                <span className="text-[11px] font-bold text-slate-400">
-                  {settings.length} {isEn ? "schedules registered" : "jadwal terdaftar"}
-                </span>
-              )}
-            </div>
-            
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1.5">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {t("recurring.title") || (isEn ? "Recurring Transactions" : "Transaksi Rutin")}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
               {t("recurring.subtitle") || (isEn ? "Automate scheduled income and expense tracking with smart triggers" : "Catat pemasukan dan pengeluaran secara otomatis sesuai jadwal berkala.")}
             </p>
           </div>
