@@ -16,12 +16,15 @@ import {
   CalendarDays,
   CalendarCheck,
   Search,
-  Calendar as CalendarIcon,
-  HelpCircle
+  Info,
+  Calendar,
+  Minus,
+  Plus
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 import { getCategoryIcon, getCategoryColorStyle } from "../../lib/categoryIcons";
+import RecurringDatePicker from "./RecurringDatePicker";
 
 const subscribe = () => () => {};
 const getSnapshot = () => true;
@@ -45,6 +48,7 @@ export default function RecurringModal({
   const [openDropdown, setOpenDropdown] = useState(null); // 'account' | 'category' | null
   const [accountSearch, setAccountSearch] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
+  const [showAllDays, setShowAllDays] = useState(true); // Toggle 31-day matrix
   
   const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const dropdownRef = useRef(null);
@@ -103,11 +107,6 @@ export default function RecurringModal({
 
   const handleSetQuickAmount = (val) => {
     setFormState({ ...formState, amount: String(val) });
-  };
-
-  const handleAddQuickAmount = (delta) => {
-    const current = Number(formState.amount) || 0;
-    setFormState({ ...formState, amount: String(current + delta) });
   };
 
   const filteredCategories = categories
@@ -173,35 +172,7 @@ export default function RecurringModal({
     },
   ];
 
-  // Helper to adjust effective_date for Monthly Day-of-Month
-  const handleSelectDayOfMonth = (dayNumber) => {
-    const curDate = formState.effective_date ? new Date(formState.effective_date) : new Date();
-    const year = curDate.getFullYear();
-    const month = curDate.getMonth();
-    // Days in this month
-    const maxDays = new Date(year, month + 1, 0).getDate();
-    const safeDay = Math.min(dayNumber, maxDays);
-    const dateObj = new Date(year, month, safeDay);
-    const yyyy = dateObj.getFullYear();
-    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const dd = String(dateObj.getDate()).padStart(2, "0");
-    setFormState({ ...formState, effective_date: `${yyyy}-${mm}-${dd}` });
-  };
-
-  // Helper to adjust effective_date for Weekly Day-of-Week
-  const handleSelectDayOfWeek = (targetDayIndex) => { // 0: Sunday, 1: Monday, ... 6: Saturday
-    const today = new Date();
-    const curDay = today.getDay();
-    let diff = targetDayIndex - curDay;
-    if (diff < 0) diff += 7; // next occurrence
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + diff);
-    const yyyy = targetDate.getFullYear();
-    const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
-    const dd = String(targetDate.getDate()).padStart(2, "0");
-    setFormState({ ...formState, effective_date: `${yyyy}-${mm}-${dd}` });
-  };
-
+  // ================= DAY & DATE HELPERS =================
   const getEffectiveDayNumber = () => {
     if (!formState.effective_date) return new Date().getDate();
     const parts = formState.effective_date.split("-");
@@ -219,9 +190,70 @@ export default function RecurringModal({
     return new Date().getDay();
   };
 
+  // Adjust effective_date for Monthly Day-of-Month (Free 1-31 picker)
+  const handleSelectDayOfMonth = (dayNumber) => {
+    const clampedDay = Math.max(1, Math.min(31, parseInt(dayNumber, 10) || 1));
+    const curDate = formState.effective_date ? new Date(formState.effective_date) : new Date();
+    const year = curDate.getFullYear();
+    const month = curDate.getMonth();
+    
+    // Days in current selected month
+    const maxDays = new Date(year, month + 1, 0).getDate();
+    const safeDay = Math.min(clampedDay, maxDays);
+    
+    const yyyy = String(year);
+    const mm = String(month + 1).padStart(2, "0");
+    const dd = String(safeDay).padStart(2, "0");
+    
+    setFormState({ ...formState, effective_date: `${yyyy}-${mm}-${dd}` });
+  };
+
+  // Stepper increment/decrement for day of month
+  const handleStepDayOfMonth = (delta) => {
+    const current = getEffectiveDayNumber();
+    let next = current + delta;
+    if (next < 1) next = 31;
+    if (next > 31) next = 1;
+    handleSelectDayOfMonth(next);
+  };
+
+  // Adjust effective_date for Weekly Day-of-Week
+  const handleSelectDayOfWeek = (targetDayIndex) => { // 0: Sunday, 1: Monday, ... 6: Saturday
+    const today = new Date();
+    const curDay = today.getDay();
+    let diff = targetDayIndex - curDay;
+    if (diff < 0) diff += 7; // next occurrence
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + diff);
+    const yyyy = targetDate.getFullYear();
+    const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(targetDate.getDate()).padStart(2, "0");
+    setFormState({ ...formState, effective_date: `${yyyy}-${mm}-${dd}` });
+  };
+
   const daysOfWeekLabels = isEn 
-    ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    : ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    ? [
+        { idx: 1, label: "Mon", full: "Monday" },
+        { idx: 2, label: "Tue", full: "Tuesday" },
+        { idx: 3, label: "Wed", full: "Wednesday" },
+        { idx: 4, label: "Thu", full: "Thursday" },
+        { idx: 5, label: "Fri", full: "Friday" },
+        { idx: 6, label: "Sat", full: "Saturday" },
+        { idx: 0, label: "Sun", full: "Sunday" },
+      ]
+    : [
+        { idx: 1, label: "Sen", full: "Senin" },
+        { idx: 2, label: "Sel", full: "Selasa" },
+        { idx: 3, label: "Rab", full: "Rabu" },
+        { idx: 4, label: "Kam", full: "Kamis" },
+        { idx: 5, label: "Jum", full: "Jumat" },
+        { idx: 6, label: "Sab", full: "Sabtu" },
+        { idx: 0, label: "Min", full: "Minggu" },
+      ];
+
+  const currentDayNum = getEffectiveDayNumber();
+  const currentWeekDayIdx = getEffectiveDayOfWeek();
+  const currentWeekDayObj = daysOfWeekLabels.find((d) => d.idx === currentWeekDayIdx) || daysOfWeekLabels[0];
 
   const toggleDropdown = (name) => {
     setOpenDropdown(openDropdown === name ? null : name);
@@ -390,7 +422,7 @@ export default function RecurringModal({
             </div>
 
             {/* 4. Frequency Selector Cards */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
                 {t("recurring.field_frequency") || (isEn ? "Frequency Interval" : "Frekuensi Jadwal")}
               </label>
@@ -425,33 +457,164 @@ export default function RecurringModal({
                 })}
               </div>
 
-              {/* Smart Day-of-Month / Day-of-Week Helper based on selected period */}
+              {/* ========================================================================= */}
+              {/* SMART FREE RECURRING DAY SELECTION (BEBAS TIDAK TERPAKU)                */}
+              {/* ========================================================================= */}
+
+              {/* 4A. Monthly: Complete 31-Day Interactive Grid + Stepper + Quick Presets */}
               {formState.period_type === "monthly" && (
-                <div className="p-3 bg-slate-50/90 rounded-2xl border border-slate-200/70 space-y-1.5">
+                <div className="p-4 bg-slate-50/90 rounded-3xl border border-slate-200/80 space-y-3 transition-all">
+                  
+                  {/* Top Bar: Stepper & Active Indicator */}
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                      <CalendarCheck className="w-3.5 h-3.5 text-[#00685F]" />
-                      <span>{isEn ? "Repeating on day of month:" : "Berulang setiap tanggal:"}</span>
-                    </span>
-                    <span className="text-xs font-black text-[#00685F] font-mono">
-                      {isEn ? `Day ${getEffectiveDayNumber()}` : `Tanggal ${getEffectiveDayNumber()}`}
-                    </span>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                        {isEn ? "Monthly Execution Day" : "Pilih Tanggal Berulang (1 - 31)"}
+                      </span>
+                      <div className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5 mt-0.5">
+                        <CalendarCheck className="w-4 h-4 text-[#00685F]" />
+                        <span>{isEn ? "Every month on day:" : "Berulang setiap tanggal:"}</span>
+                        <span className="px-2 py-0.5 rounded-lg bg-[#00685F] text-white font-mono font-black text-xs shadow-xs">
+                          {currentDayNum}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Numeric Stepper for Fast Manual Adjustment */}
+                    <div className="flex items-center gap-1 bg-white border border-slate-200/80 rounded-2xl p-1 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => handleStepDayOfMonth(-1)}
+                        className="w-7 h-7 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+                        title={isEn ? "Previous day" : "Kurang 1 hari"}
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={currentDayNum}
+                        onChange={(e) => handleSelectDayOfMonth(e.target.value)}
+                        className="w-8 text-center text-xs font-black font-mono text-slate-900 outline-none bg-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleStepDayOfMonth(1)}
+                        className="w-7 h-7 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+                        title={isEn ? "Next day" : "Tambah 1 hari"}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Popular Shortcuts Row */}
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                    {[1, 5, 10, 15, 20, 25, 28].map((dayNum) => {
-                      const isCur = getEffectiveDayNumber() === dayNum;
+                    {[
+                      { label: isEn ? "1st (Start of Month)" : "Awal Bulan (Tgl 1)", day: 1 },
+                      { label: isEn ? "15th (Mid Month)" : "Tengah Bulan (Tgl 15)", day: 15 },
+                      { label: isEn ? "25th (Payday)" : "Gajian (Tgl 25)", day: 25 },
+                      { label: isEn ? "End of Month (28th)" : "Akhir Bulan (Tgl 28)", day: 28 },
+                    ].map((p) => {
+                      const isSel = currentDayNum === p.day;
                       return (
                         <button
-                          key={dayNum}
+                          key={p.day}
                           type="button"
-                          onClick={() => handleSelectDayOfMonth(dayNum)}
-                          className={`px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
-                            isCur 
-                              ? "bg-[#00685F] text-white shadow-2xs" 
-                              : "bg-white hover:bg-slate-200/70 text-slate-700 border border-slate-200/80"
+                          onClick={() => handleSelectDayOfMonth(p.day)}
+                          className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
+                            isSel
+                              ? "bg-[#00685F]/15 text-[#00685F] border border-[#00685F]/30 font-black"
+                              : "bg-white hover:bg-slate-100 text-slate-600 border border-slate-200/70"
                           }`}
                         >
-                          Tgl {dayNum}
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Complete 31-Day Matrix Grid (Any date can be chosen!) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5 px-0.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        {isEn ? "Select Any Day (1 - 31):" : "Klik Angka Kalender (1 - 31 Bebas):"}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {isEn ? "31 days grid" : "Matriks 31 hari"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((dayNum) => {
+                        const isCur = currentDayNum === dayNum;
+                        return (
+                          <button
+                            key={dayNum}
+                            type="button"
+                            onClick={() => handleSelectDayOfMonth(dayNum)}
+                            className={`h-8 sm:h-9 rounded-xl sm:rounded-2xl text-xs font-black transition-all cursor-pointer flex items-center justify-center ${
+                              isCur
+                                ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105 z-10"
+                                : "bg-white hover:bg-[#00685F]/10 hover:text-[#00685F] text-slate-700 border border-slate-200/70 shadow-2xs hover:border-[#00685F]/30"
+                            }`}
+                          >
+                            {dayNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Informative Note for Month-End Edge Cases (29, 30, 31) */}
+                  {currentDayNum >= 29 && (
+                    <div className="text-[11px] text-amber-800 bg-amber-50/80 border border-amber-200/70 rounded-2xl p-2.5 flex items-start gap-2">
+                      <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">
+                        {isEn
+                          ? "For months with fewer days (such as February), automation will automatically record on the last valid day of that month."
+                          : "Untuk bulan yang memiliki hari lebih sedikit (seperti Februari), pencatatan otomatis akan dieksekusi pada hari terakhir bulan tersebut."}
+                      </span>
+                    </div>
+                  )}
+
+                </div>
+              )}
+
+              {/* 4B. Weekly: 7-Day Day-of-Week Selector */}
+              {formState.period_type === "weekly" && (
+                <div className="p-4 bg-slate-50/90 rounded-3xl border border-slate-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                        {isEn ? "Weekly Execution Day" : "Pilih Hari Berulang Setiap Minggu"}
+                      </span>
+                      <div className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5 mt-0.5">
+                        <CalendarDays className="w-4 h-4 text-[#00685F]" />
+                        <span>{isEn ? "Repeating every:" : "Berulang setiap hari:"}</span>
+                        <span className="px-2 py-0.5 rounded-lg bg-[#00685F] text-white font-bold text-xs shadow-xs">
+                          {currentWeekDayObj.full}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                    {daysOfWeekLabels.map((d) => {
+                      const isCur = currentWeekDayIdx === d.idx;
+                      return (
+                        <button
+                          key={d.idx}
+                          type="button"
+                          onClick={() => handleSelectDayOfWeek(d.idx)}
+                          className={`py-2 rounded-xl text-xs font-black transition-all cursor-pointer text-center ${
+                            isCur 
+                              ? "bg-[#00685F] text-white shadow-md shadow-[#00685F]/30 scale-105" 
+                              : "bg-white hover:bg-[#00685F]/10 hover:text-[#00685F] text-slate-700 border border-slate-200/80 shadow-2xs"
+                          }`}
+                        >
+                          <span className="block text-[11px] font-bold">{d.label}</span>
                         </button>
                       );
                     })}
@@ -459,38 +622,18 @@ export default function RecurringModal({
                 </div>
               )}
 
-              {formState.period_type === "weekly" && (
-                <div className="p-3 bg-slate-50/90 rounded-2xl border border-slate-200/70 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                      <CalendarDays className="w-3.5 h-3.5 text-[#00685F]" />
-                      <span>{isEn ? "Repeating on day of week:" : "Berulang setiap hari:"}</span>
-                    </span>
-                    <span className="text-xs font-black text-[#00685F]">
-                      {daysOfWeekLabels[getEffectiveDayOfWeek()]}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-7 gap-1">
-                    {[1, 2, 3, 4, 5, 6, 0].map((dIndex) => {
-                      const isCur = getEffectiveDayOfWeek() === dIndex;
-                      return (
-                        <button
-                          key={dIndex}
-                          type="button"
-                          onClick={() => handleSelectDayOfWeek(dIndex)}
-                          className={`py-1.5 rounded-xl text-[11px] font-bold transition cursor-pointer text-center ${
-                            isCur 
-                              ? "bg-[#00685F] text-white shadow-2xs" 
-                              : "bg-white hover:bg-slate-200/70 text-slate-700 border border-slate-200/80"
-                          }`}
-                        >
-                          {daysOfWeekLabels[dIndex]}
-                        </button>
-                      );
-                    })}
-                  </div>
+              {/* 4C. Daily: Friendly Badge */}
+              {formState.period_type === "daily" && (
+                <div className="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/70 flex items-center gap-2 text-xs font-bold text-slate-700">
+                  <Clock className="w-4 h-4 text-[#00685F] shrink-0" />
+                  <span>
+                    {isEn 
+                      ? "This schedule will execute once every single day without interruption." 
+                      : "Jadwal ini akan otomatis dicatat setiap 1 hari sekali tanpa jeda."}
+                  </span>
                 </div>
               )}
+
             </div>
 
             {/* 5. Account & Category Row */}
@@ -522,7 +665,6 @@ export default function RecurringModal({
 
                 {openDropdown === "account" && (
                   <div className="absolute left-0 right-0 top-full mt-2 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 z-[70] p-2 space-y-1 max-h-56 overflow-y-auto overscroll-contain animate-in fade-in zoom-in-95 duration-150">
-                    {/* Optional search if > 4 accounts */}
                     {accounts.length > 4 && (
                       <div className="relative mb-1">
                         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -606,7 +748,6 @@ export default function RecurringModal({
 
                 {openDropdown === "category" && (
                   <div className="absolute left-0 right-0 top-full mt-2 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 z-[70] p-2 space-y-1 max-h-56 overflow-y-auto overscroll-contain animate-in fade-in zoom-in-95 duration-150">
-                    {/* Search if categories > 4 */}
                     {categories.length > 4 && (
                       <div className="relative mb-1">
                         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -660,26 +801,18 @@ export default function RecurringModal({
 
             </div>
 
-            {/* 6. Effective Start Date */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
-                {t("recurring.field_effective_date") || (isEn ? "Effective Start Date" : "Tanggal Mulai Berlaku")}
-              </label>
-              
-              <div className="relative">
-                <input
-                  type="date"
-                  value={formState.effective_date || ""}
-                  onChange={(e) => setFormState({ ...formState, effective_date: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50/80 border border-slate-200/90 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] focus:bg-white transition-all text-sm font-bold text-slate-900 cursor-pointer"
-                />
-              </div>
-              <p className="text-[11px] text-slate-400">
-                {isEn ? "The date from which this recurring schedule begins automating." : "Tanggal saat jadwal transaksi ini pertama kali mulai dicatat secara berkala."}
-              </p>
-            </div>
+            {/* ========================================================================= */}
+            {/* 6. GORGEOUS CUSTOM MODERN CALENDAR FOR EFFECTIVE START DATE               */}
+            {/* ========================================================================= */}
+            <RecurringDatePicker
+              value={formState.effective_date}
+              onChange={(newDate) => {
+                setFormState({ ...formState, effective_date: newDate });
+              }}
+              label={t("recurring.field_effective_date") || (isEn ? "Effective Start Date" : "Tanggal Mulai Berlaku")}
+            />
 
-            {/* 7. Live Virtual Schedule Ticket (Preview) */}
+            {/* 7. Live Virtual Schedule Ticket (Simulation Preview) */}
             <div className="p-4 rounded-3xl bg-gradient-to-br from-[#00685F]/5 to-emerald-500/5 border border-[#00685F]/20 relative overflow-hidden">
               <div className="flex items-start gap-3 relative z-10">
                 <div className="w-8 h-8 rounded-xl bg-[#00685F]/10 text-[#00685F] flex items-center justify-center shrink-0 mt-0.5">
@@ -697,10 +830,10 @@ export default function RecurringModal({
                     {isEn ? "will be recorded " : "akan dicatat "}
                     <span className="font-bold text-[#00685F]">
                       {formState.period_type === "daily" 
-                        ? (isEn ? "every day" : "setiap hari") 
+                        ? (isEn ? "every single day" : "setiap 1 hari sekali") 
                         : formState.period_type === "weekly" 
-                        ? (isEn ? `every week (${daysOfWeekLabels[getEffectiveDayOfWeek()]})` : `setiap minggu (hari ${daysOfWeekLabels[getEffectiveDayOfWeek()]})`) 
-                        : (isEn ? `every month on day ${getEffectiveDayNumber()}` : `setiap bulan pada tanggal ${getEffectiveDayNumber()}`)}
+                        ? (isEn ? `every week on ${currentWeekDayObj.full}` : `setiap minggu pada hari ${currentWeekDayObj.full}`) 
+                        : (isEn ? `every month on day ${currentDayNum}` : `setiap bulan pada tanggal ${currentDayNum}`)}
                     </span>{" "}
                     {selectedAccount ? `${isEn ? "on" : "ke"} ${selectedAccount.name}` : ""}.
                   </p>
