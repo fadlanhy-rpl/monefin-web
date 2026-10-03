@@ -109,9 +109,9 @@ function AccountsPageContent() {
     setFormType(initialType);
     setFormTheme(
       initialType === "ewallet"
-        ? "wallet-primary"
+        ? "wallet-teal"
         : initialType === "cash"
-        ? "cash-primary"
+        ? "cash-emerald"
         : "bank-primary"
     );
     setIsModalOpen(true);
@@ -126,7 +126,10 @@ function AccountsPageContent() {
     setFormNumber(acc.account_number || "");
     setFormHolder(acc.account_holder || "");
     setFormType(acc.type);
-    setFormTheme(acc.color_theme || "bank-primary");
+    setFormTheme(
+      acc.color_theme || 
+      (acc.type === "ewallet" ? "wallet-teal" : acc.type === "cash" ? "cash-emerald" : "bank-primary")
+    );
     setIsModalOpen(true);
   };
 
