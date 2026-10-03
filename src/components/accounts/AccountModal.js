@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Sparkles, ChevronDown, Check, Landmark, Smartphone, Banknote } from "lucide-react";
+import { X, Sparkles, Check, Landmark, Smartphone, Banknote } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
-import { BANK_THEMES, EWALLET_THEMES, CASH_THEMES, QUICK_PRESETS } from "./accountThemes";
+import { BANK_THEMES, EWALLET_THEMES, CASH_THEMES, TEMPLATES_BY_TYPE } from "./accountThemes";
 
 /**
  * Interactive Live WYSIWYG Mini-Card Preview
@@ -12,7 +12,7 @@ function MiniCardPreview({
   formBalance,
   formNumber,
   formHolder,
-  formType,
+  activeType,
   formTheme,
   currencySymbol,
   language
@@ -22,14 +22,14 @@ function MiniCardPreview({
     : "0";
 
   // Bank Card Preview
-  if (formType === "bank") {
+  if (activeType === "bank") {
     const theme = BANK_THEMES[formTheme] || BANK_THEMES["bank-primary"];
     const ThemeIcon = theme.icon || Landmark;
     const isMastercard = theme.brand === "MASTERCARD";
     const isVisa = theme.brand === "VISA";
 
     return (
-      <div className={`${theme.bg} p-4 sm:p-5 rounded-2xl text-white flex flex-col justify-between h-44 shadow-lg ${theme.shadow} relative overflow-hidden transition-all duration-300 border ${theme.border || "border-white/10"}`}>
+      <div className={`${theme.bg} p-4 sm:p-5 rounded-2xl text-white flex flex-col justify-between h-40 sm:h-44 shadow-lg ${theme.shadow} relative overflow-hidden transition-all duration-300 border ${theme.border || "border-white/10"}`}>
         <div className="relative z-10 flex justify-between items-start">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/15 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/10 shrink-0">
@@ -87,12 +87,12 @@ function MiniCardPreview({
   }
 
   // E-Wallet Card Preview
-  if (formType === "ewallet") {
+  if (activeType === "ewallet") {
     const theme = EWALLET_THEMES[formTheme] || EWALLET_THEMES["wallet"];
     const isDark = theme.isDark;
 
     return (
-      <div className={`${theme.cardBg} p-4 sm:p-5 rounded-2xl border shadow-md flex flex-col justify-between h-44 relative overflow-hidden transition-all duration-300`}>
+      <div className={`${theme.cardBg} p-4 sm:p-5 rounded-2xl border shadow-md flex flex-col justify-between h-40 sm:h-44 relative overflow-hidden transition-all duration-300`}>
         <div className="flex justify-between items-start relative z-10">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className={`w-8 h-8 ${theme.iconBox} rounded-xl flex items-center justify-center shadow-inner shrink-0`}>
@@ -138,11 +138,11 @@ function MiniCardPreview({
   }
 
   // Cash Card Preview
-  if (formType === "cash") {
+  if (activeType === "cash") {
     const theme = CASH_THEMES[formTheme] || CASH_THEMES["cash"];
 
     return (
-      <div className={`${theme.cardBg} p-4 sm:p-5 rounded-2xl border shadow-md flex flex-col justify-between h-44 relative overflow-hidden transition-all duration-300`}>
+      <div className={`${theme.cardBg} p-4 sm:p-5 rounded-2xl border shadow-md flex flex-col justify-between h-40 sm:h-44 relative overflow-hidden transition-all duration-300`}>
         <div className="flex justify-between items-start relative z-10">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className={`w-8 h-8 ${theme.iconBox} rounded-xl flex items-center justify-center shadow-inner shrink-0`}>
@@ -202,21 +202,11 @@ export default function AccountModal({
 }) {
   const { t, language } = useLanguage();
   const { currencySymbol } = useCurrency();
-  const [isTypeOpen, setIsTypeOpen] = useState(false);
-  const typeRef = useRef(null);
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (typeRef.current && !typeRef.current.contains(event.target)) {
-        setIsTypeOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  if (!isOpen) return null;
+  // Robustly sanitize active account type (guards against event objects or invalid strings)
+  const activeType = (typeof formType === "string" && ["bank", "ewallet", "cash"].includes(formType)) 
+    ? formType 
+    : "bank";
 
   // Format thousand separator (guards against SQL decimal strings like "225000.00")
   const formatThousand = (val) => {
@@ -260,15 +250,16 @@ export default function AccountModal({
     } else if (newType === "cash") {
       setFormTheme("cash-emerald");
     }
-    setIsTypeOpen(false);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div className="bg-white rounded-3xl sm:rounded-[2rem] w-full max-w-lg shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between shrink-0">
-          <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+          <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#00685F]" />
             {modalMode === "add" ? (t("accounts.add_title") || "Tambah Akun Baru") : (t("accounts.edit_title") || "Edit Akun")}
           </h3>
@@ -283,11 +274,11 @@ export default function AccountModal({
 
         {/* Modal Body & Form */}
         <form onSubmit={handleFormSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
-          <div className="p-5 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
             
             {/* Live Interactive Card Preview */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+              <label className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">
                 {language === 'en' ? "Live Card Preview" : "Tampilan Kartu Nyata (Live Preview)"}
               </label>
               <MiniCardPreview 
@@ -295,150 +286,96 @@ export default function AccountModal({
                 formBalance={formBalance}
                 formNumber={formNumber}
                 formHolder={formHolder}
-                formType={formType}
+                activeType={activeType}
                 formTheme={formTheme}
                 currencySymbol={currencySymbol}
                 language={language}
               />
             </div>
 
-            {/* Quick Presets (Only on Add mode) */}
-            {modalMode === "add" && (
-              <div className="space-y-1.5 select-none">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  {language === 'en' ? "Quick Account Template" : "Template Akun Cepat"}
-                </label>
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {QUICK_PRESETS.map((p) => (
-                    <button
-                      key={p.name}
-                      type="button"
-                      onClick={() => applyPreset(p)}
-                      className="px-2.5 py-1 bg-slate-50 hover:bg-emerald-50 border border-slate-200/80 hover:border-[#00685F]/50 text-slate-700 hover:text-[#00685F] rounded-xl text-xs font-bold transition-all cursor-pointer hover:scale-105 active:scale-95"
-                    >
-                      + {p.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Account Name */}
+            {/* Segmented Account Type Selector (Fitts's Law & Ergonomics) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                {t("accounts.account_name") || "Nama Akun"}
-              </label>
-              <input
-                type="text"
-                required
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800"
-                placeholder={t("accounts.account_name_placeholder") || "Contoh: BANK BCA, E-Wallet, Cash"}
-              />
-            </div>
-
-            {/* Balance */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                {t("accounts.balance") || "Saldo (Balance)"}
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">{currencySymbol}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  required
-                  value={formatThousand(formBalance)}
-                  onChange={handleBalanceChange}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
-                  placeholder="0"
-                />
-              </div>
-            </div>
-
-            {/* Account Type Custom Dropdown */}
-            <div className={`space-y-1.5 relative ${isTypeOpen ? "z-40" : "z-20"}`} ref={typeRef}>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 {t("accounts.account_type") || "Tipe Akun"}
               </label>
-              <button
-                type="button"
-                onClick={() => setIsTypeOpen(!isTypeOpen)}
-                className={`w-full px-4 py-3 bg-slate-50/80 border rounded-2xl flex items-center justify-between text-left transition-all text-sm font-bold text-slate-800 cursor-pointer group ${
-                  isTypeOpen ? "border-[#00685F] ring-4 ring-[#00685F]/10 bg-white shadow-xs" : "border-slate-200/80 hover:border-slate-300 hover:bg-slate-50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#00685F] flex items-center justify-center shrink-0 border border-emerald-100">
-                    {formType === "bank" && <Landmark className="w-4 h-4" />}
-                    {formType === "ewallet" && <Smartphone className="w-4 h-4" />}
-                    {formType === "cash" && <Banknote className="w-4 h-4" />}
-                  </div>
-                  <span className="font-bold text-slate-900">
-                    {formType === "bank" && (t("accounts.type_bank") || "Akun Bank (Rekening)")}
-                    {formType === "ewallet" && (t("accounts.type_emoney") || "Dompet Digital (E-Wallet)")}
-                    {formType === "cash" && (t("accounts.type_cash") || "Uang Tunai (Cash)")}
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/60">
+                {[
+                  { id: "bank", label: language === 'en' ? "Bank" : "Bank", icon: Landmark },
+                  { id: "ewallet", label: language === 'en' ? "E-Wallet" : "E-Wallet", icon: Smartphone },
+                  { id: "cash", label: language === 'en' ? "Cash" : "Tunai", icon: Banknote },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isSelected = activeType === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleTypeSelect(item.id)}
+                      className={`py-2.5 px-2 sm:px-3 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-white text-[#00685F] shadow-sm ring-1 ring-black/5"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${isSelected ? "text-[#00685F]" : "text-slate-400"}`} />
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Curated Categorized Quick Presets (Only on Add mode) */}
+            {modalMode === "add" && TEMPLATES_BY_TYPE[activeType] && (
+              <div className="space-y-2 p-3 sm:p-3.5 bg-slate-50/90 rounded-2xl border border-slate-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#00685F]" />
+                    {language === 'en' ? "Quick Templates" : "Pilih Template Populer"}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-semibold">
+                    {activeType === "bank" ? "6 Pilihan Bank" : activeType === "ewallet" ? "4 E-Wallet" : "2 Dompet Tunai"}
                   </span>
                 </div>
-                <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                  isTypeOpen ? "bg-[#00685F]/10 text-[#00685F]" : "text-slate-400 group-hover:text-slate-600"
-                }`}>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isTypeOpen ? "rotate-180" : ""}`} />
-                </div>
-              </button>
-
-              {isTypeOpen && (
-                <div className="absolute left-0 right-0 top-full mt-2 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/15 z-[70] p-2 space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                  {[
-                    { id: "bank", label: t("accounts.type_bank") || "Akun Bank (Rekening)", icon: Landmark },
-                    { id: "ewallet", label: t("accounts.type_emoney") || "Dompet Digital (E-Wallet)", icon: Smartphone },
-                    { id: "cash", label: t("accounts.type_cash") || "Uang Tunai (Cash)", icon: Banknote }
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    const isSelected = formType === item.id;
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {TEMPLATES_BY_TYPE[activeType].map((tpl) => {
+                    const isSelected = formName === tpl.title;
                     return (
                       <button
-                        key={item.id}
+                        key={tpl.name}
                         type="button"
-                        onClick={() => handleTypeSelect(item.id)}
-                        className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-left transition-all group cursor-pointer ${
-                          isSelected ? "bg-[#00685F]/10 text-[#00685F] font-bold ring-1 ring-[#00685F]/20" : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                        onClick={() => applyPreset(tpl)}
+                        className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold transition-all cursor-pointer border active:scale-95 text-left ${
+                          isSelected
+                            ? "bg-emerald-50 border-[#00685F] text-[#00685F] shadow-xs"
+                            : "bg-white hover:bg-slate-50 border-slate-200/70 text-slate-700 hover:text-slate-900 shadow-2xs hover:shadow-xs"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${isSelected ? "bg-emerald-100/50 border-emerald-200 text-[#00685F]" : "bg-slate-100 border-slate-200/60 text-slate-500"}`}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <span className="text-sm font-bold">{item.label}</span>
-                        </div>
-                        {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-[#00685F] text-white flex items-center justify-center shrink-0">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
+                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${tpl.color}`}></span>
+                        <span className="truncate">{tpl.name}</span>
                       </button>
                     );
                   })}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Curated Color Swatches Palette */}
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2 pt-0.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                   {language === 'en' ? "Card Aesthetic / Theme" : "Tema & Estetika Kartu"}
                 </label>
-                <span className="text-[11px] font-semibold text-slate-400">
-                  {formType === "bank" && (BANK_THEMES[formTheme]?.[language === 'en' ? 'nameEn' : 'nameId'] || "Emerald Mint")}
-                  {formType === "ewallet" && (EWALLET_THEMES[formTheme]?.[language === 'en' ? 'nameEn' : 'nameId'] || "Fresh Mint")}
-                  {formType === "cash" && (CASH_THEMES[formTheme]?.[language === 'en' ? 'nameEn' : 'nameId'] || "Clean Ledger")}
+                <span className="text-[11px] font-bold text-[#00685F] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/80">
+                  {activeType === "bank" && (BANK_THEMES[formTheme]?.[language === 'en' ? 'nameEn' : 'nameId'] || "Emerald Mint")}
+                  {activeType === "ewallet" && (EWALLET_THEMES[formTheme]?.[language === 'en' ? 'nameEn' : 'nameId'] || "Fresh Mint")}
+                  {activeType === "cash" && (CASH_THEMES[formTheme]?.[language === 'en' ? 'nameEn' : 'nameId'] || "Clean Ledger")}
                 </span>
               </div>
 
               <div className="flex flex-wrap gap-2.5 pt-0.5">
-                {formType === "bank" && Object.values(BANK_THEMES).filter(t => t.id !== "bank-emerald").map((themeItem) => {
+                {activeType === "bank" && Object.values(BANK_THEMES).filter(t => t.id !== "bank-emerald").map((themeItem) => {
                   const isSelected = formTheme === themeItem.id || (themeItem.id === "bank-primary" && formTheme === "bank-emerald");
                   return (
                     <button
@@ -458,7 +395,7 @@ export default function AccountModal({
                   );
                 })}
 
-                {formType === "ewallet" && Object.values(EWALLET_THEMES).filter(t => t.id !== "wallet").map((themeItem) => {
+                {activeType === "ewallet" && Object.values(EWALLET_THEMES).filter(t => t.id !== "wallet").map((themeItem) => {
                   const isSelected = formTheme === themeItem.id || (themeItem.id === "wallet-teal" && formTheme === "wallet");
                   return (
                     <button
@@ -478,7 +415,7 @@ export default function AccountModal({
                   );
                 })}
 
-                {formType === "cash" && Object.values(CASH_THEMES).filter(t => t.id !== "cash").map((themeItem) => {
+                {activeType === "cash" && Object.values(CASH_THEMES).filter(t => t.id !== "cash").map((themeItem) => {
                   const isSelected = formTheme === themeItem.id || (themeItem.id === "cash-emerald" && formTheme === "cash");
                   return (
                     <button
@@ -500,12 +437,52 @@ export default function AccountModal({
               </div>
             </div>
 
+            {/* Account Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                {t("accounts.account_name") || "Nama Akun"}
+              </label>
+              <input
+                type="text"
+                required
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-bold text-slate-800"
+                placeholder={
+                  activeType === "bank" 
+                    ? "Contoh: Bank BCA, Mandiri, BRI" 
+                    : activeType === "ewallet"
+                    ? "Contoh: GoPay, OVO, DANA"
+                    : "Contoh: Dompet Utama, Kas Harian"
+                }
+              />
+            </div>
+
+            {/* Balance */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                {modalMode === "add" ? (t("accounts.initial_balance") || "Saldo Awal") : (t("accounts.balance") || "Saldo (Balance)")}
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-4 flex items-center font-black text-slate-400 text-sm">{currencySymbol}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  required
+                  value={formatThousand(formBalance)}
+                  onChange={handleBalanceChange}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-black text-slate-800"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
             {/* Optional Fields for Banks */}
-            {formType === "bank" && (
+            {activeType === "bank" && (
               <>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                    {language === 'en' ? "Account Number (Optional)" : "Nomor Rekening (Optional)"}
+                    {language === 'en' ? "Account Number (Optional)" : "Nomor Rekening (Opsional)"}
                   </label>
                   <input
                     type="text"
@@ -518,7 +495,7 @@ export default function AccountModal({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                    {language === 'en' ? "Account Holder (Optional)" : "Pemilik Rekening (Optional)"}
+                    {language === 'en' ? "Account Holder (Optional)" : "Pemilik Rekening (Opsional)"}
                   </label>
                   <input
                     type="text"
@@ -533,18 +510,18 @@ export default function AccountModal({
           </div>
 
           {/* Buttons Footer */}
-          <div className="p-5 sm:p-6 pt-4 border-t border-slate-100 flex gap-3 shrink-0 bg-white">
+          <div className="p-4 sm:p-6 pt-3 sm:pt-4 border-t border-slate-100 flex gap-3 shrink-0 bg-white">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
+              className="flex-1 py-3 sm:py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95 cursor-pointer"
             >
               {language === 'en' ? "Cancel" : "Batal"}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="flex-1 py-3 sm:py-3.5 bg-[#00685F] text-white rounded-2xl font-bold text-sm hover:bg-[#004D46] hover:shadow-lg transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-[#00685F]/20"
             >
               {isSubmitting ? (
                 <span className="animate-spin h-5 w-5 border-2 border-white border-b-transparent rounded-full"></span>

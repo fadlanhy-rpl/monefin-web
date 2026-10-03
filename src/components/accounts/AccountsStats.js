@@ -67,7 +67,7 @@ export default function AccountsStats({
       </div>
 
       {/* SMART SAVING TIP BOX — Dynamic (AI or Engine) */}
-      <SmartInsightCard page="accounts" onActionClick={openAddModal} />
+      <SmartInsightCard page="accounts" onActionClick={() => openAddModal("bank")} />
     </div>
   );
 }

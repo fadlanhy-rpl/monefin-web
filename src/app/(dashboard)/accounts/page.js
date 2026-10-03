@@ -100,17 +100,20 @@ function AccountsPageContent() {
 
   // Trigger add modal
   const openAddModal = (initialType = "bank") => {
+    const validInitialType = (typeof initialType === "string" && ["bank", "ewallet", "cash"].includes(initialType))
+      ? initialType
+      : "bank";
     setModalMode("add");
     setEditingAccount(null);
     setFormName("");
     setFormBalance("");
     setFormNumber("");
     setFormHolder("");
-    setFormType(initialType);
+    setFormType(validInitialType);
     setFormTheme(
-      initialType === "ewallet"
+      validInitialType === "ewallet"
         ? "wallet-teal"
-        : initialType === "cash"
+        : validInitialType === "cash"
         ? "cash-emerald"
         : "bank-primary"
     );

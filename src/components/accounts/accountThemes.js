@@ -226,19 +226,34 @@ export const CASH_THEMES = {
 };
 
 /**
+ * Categorized Templates by Account Type for Ergonomic UI Chunking
+ */
+export const TEMPLATES_BY_TYPE = {
+  bank: [
+    { name: "BCA", type: "bank", theme: "bank-primary", title: "Bank BCA", defaultHolder: "PEMILIK REKENING", color: "bg-[#00685F]" },
+    { name: "Mandiri", type: "bank", theme: "bank-dark", title: "Bank Mandiri", defaultHolder: "", color: "bg-[#1E1E1E]" },
+    { name: "BRI", type: "bank", theme: "bank-sapphire", title: "Bank BRI", defaultHolder: "", color: "bg-[#1E3A8A]" },
+    { name: "BNI", type: "bank", theme: "bank-sunset", title: "Bank BNI", defaultHolder: "", color: "bg-[#78350F]" },
+    { name: "Jago", type: "bank", theme: "bank-purple", title: "Bank Jago", defaultHolder: "", color: "bg-[#581C87]" },
+    { name: "CIMB", type: "bank", theme: "bank-ruby", title: "Bank CIMB Niaga", defaultHolder: "", color: "bg-[#881337]" },
+  ],
+  ewallet: [
+    { name: "GoPay", type: "ewallet", theme: "wallet-teal", title: "GoPay", defaultHolder: "", color: "bg-[#00685F]" },
+    { name: "OVO", type: "ewallet", theme: "wallet-purple", title: "OVO", defaultHolder: "", color: "bg-[#7C3AED]" },
+    { name: "DANA", type: "ewallet", theme: "wallet-blue", title: "DANA", defaultHolder: "", color: "bg-[#0284C7]" },
+    { name: "ShopeePay", type: "ewallet", theme: "wallet-orange", title: "ShopeePay", defaultHolder: "", color: "bg-[#EA580C]" },
+  ],
+  cash: [
+    { name: "Dompet Tunai", type: "cash", theme: "cash-emerald", title: "Dompet Tunai", defaultHolder: "", color: "bg-[#059669]" },
+    { name: "Brankas", type: "cash", theme: "cash-amber", title: "Brankas Tunai", defaultHolder: "", color: "bg-[#D97706]" },
+  ],
+};
+
+/**
  * Popular Indonesian Presets for Instant One-Click Fill
  */
 export const QUICK_PRESETS = [
-  { name: "BCA", type: "bank", theme: "bank-primary", title: "Bank BCA", defaultHolder: "PEMILIK REKENING" },
-  { name: "Mandiri", type: "bank", theme: "bank-dark", title: "Bank Mandiri", defaultHolder: "" },
-  { name: "BRI", type: "bank", theme: "bank-sapphire", title: "Bank BRI", defaultHolder: "" },
-  { name: "BNI", type: "bank", theme: "bank-sunset", title: "Bank BNI", defaultHolder: "" },
-  { name: "Jago", type: "bank", theme: "bank-purple", title: "Bank Jago", defaultHolder: "" },
-  { name: "CIMB", type: "bank", theme: "bank-ruby", title: "Bank CIMB Niaga", defaultHolder: "" },
-  { name: "GoPay", type: "ewallet", theme: "wallet-teal", title: "GoPay", defaultHolder: "" },
-  { name: "OVO", type: "ewallet", theme: "wallet-purple", title: "OVO", defaultHolder: "" },
-  { name: "DANA", type: "ewallet", theme: "wallet-blue", title: "DANA", defaultHolder: "" },
-  { name: "ShopeePay", type: "ewallet", theme: "wallet-orange", title: "ShopeePay", defaultHolder: "" },
-  { name: "Tunai", type: "cash", theme: "cash-emerald", title: "Dompet Tunai", defaultHolder: "" },
-  { name: "Brankas", type: "cash", theme: "cash-amber", title: "Brankas Tunai", defaultHolder: "" },
+  ...TEMPLATES_BY_TYPE.bank,
+  ...TEMPLATES_BY_TYPE.ewallet,
+  ...TEMPLATES_BY_TYPE.cash,
 ];

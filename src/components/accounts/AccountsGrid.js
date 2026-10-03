@@ -108,7 +108,7 @@ export default function AccountsGrid({
         isFiltered={isFiltered}
         searchQuery={searchQuery}
         onResetSearch={onResetSearch}
-        onAddAccount={openAddModal}
+        onAddAccount={(type) => openAddModal(typeof type === "string" ? type : "bank")}
       />
     );
   }
