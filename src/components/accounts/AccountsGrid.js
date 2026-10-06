@@ -61,7 +61,18 @@ export default function AccountsGrid({
   };
 
   const handleCopy = (id, text) => {
-    navigator.clipboard.writeText(text.replace("xxxx", "1234")); // Mock full copy
+    if (!text) return;
+    try {
+      if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(String(text)).catch(() => {
+          fallbackCopyText(String(text));
+        });
+      } else {
+        fallbackCopyText(String(text));
+      }
+    } catch {
+      fallbackCopyText(String(text));
+    }
     setCopiedId(id);
     setToastMessage(language === 'en' ? "Account number copied successfully!" : "Nomor rekening berhasil disalin!");
     setTimeout(() => {
@@ -70,6 +81,22 @@ export default function AccountsGrid({
     setTimeout(() => {
       setToastMessage("");
     }, 3000);
+  };
+
+  const fallbackCopyText = (val) => {
+    try {
+      const el = document.createElement("textarea");
+      el.value = val;
+      el.setAttribute("readonly", "");
+      el.style.position = "absolute";
+      el.style.left = "-9999px";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    } catch (err) {
+      console.error("Clipboard copy error:", err);
+    }
   };
 
   const handleDragStart = (event) => {

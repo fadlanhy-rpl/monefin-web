@@ -34,7 +34,7 @@ export async function getBootstrap(force = false) {
   }
   if (Array.isArray(bundle.accounts) && bundle.accounts.length > 0) {
     latestBootstrapBundle.accounts = bundle.accounts;
-    primeApiCache("/accounts", bundle.accounts, 120000);
+    primeApiCache("/accounts", bundle.accounts, 30000);
   }
   if (Array.isArray(bundle.categories) && bundle.categories.length > 0) {
     latestBootstrapBundle.categories = bundle.categories;

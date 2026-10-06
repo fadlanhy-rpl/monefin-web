@@ -60,17 +60,33 @@ function AccountsPageContent() {
   const [formType, setFormType] = useState("bank");
   const [formTheme, setFormTheme] = useState("bank-primary");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchAccounts = async (silent = false, force = false) => {
     try {
       if (!silent && accounts.length === 0) {
         setIsLoading(true);
       }
-      let response = await getAccounts(force);
-      if (!force && response?.fromCache && (!response?.data || response.data.length === 0)) {
-        response = await getAccounts(true);
+      if (silent && force) {
+        setIsRefreshing(true);
       }
-      setAccounts(response?.data || []);
+      const response = await getAccounts(force);
+      if (response?.data) {
+        setAccounts(response.data);
+      }
+      // SWR: If initial response came from cache, silently revalidate with server in background
+      // so changes made on mobile or other devices propagate immediately
+      if (!force && response?.fromCache) {
+        getAccounts(true)
+          .then((fresh) => {
+            if (fresh?.data) {
+              setAccounts(fresh.data);
+            }
+          })
+          .catch((err) => {
+            console.debug("Background accounts sync failed:", err);
+          });
+      }
     } catch (error) {
       if (error?.status !== 401) {
         console.error("Failed to fetch accounts:", error.message || error);
@@ -78,12 +94,28 @@ function AccountsPageContent() {
       }
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     setIsVisible(true);
     fetchAccounts();
+
+    // Multi-device sync: automatically revalidate when user focuses or returns to window
+    const handleRevalidate = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchAccounts(true, true);
+      }
+    };
+
+    window.addEventListener("focus", handleRevalidate);
+    document.addEventListener("visibilitychange", handleRevalidate);
+
+    return () => {
+      window.removeEventListener("focus", handleRevalidate);
+      document.removeEventListener("visibilitychange", handleRevalidate);
+    };
   }, []);
 
   // Calculation summaries
@@ -235,6 +267,8 @@ function AccountsPageContent() {
           isVisible={isVisible}
           totalBalance={totalBalance}
           openAddModal={openAddModal}
+          onRefresh={() => fetchAccounts(true, true)}
+          isRefreshing={isRefreshing}
         />
 
         {/* Active Search Banner */}

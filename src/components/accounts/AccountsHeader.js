@@ -1,4 +1,4 @@
-import { PlusCircle, Eye, EyeOff } from "lucide-react";
+import { PlusCircle, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
@@ -6,7 +6,9 @@ import { useBalancePrivacy } from "../../context/BalancePrivacyContext";
 export default function AccountsHeader({
   isVisible,
   totalBalance,
-  openAddModal
+  openAddModal,
+  onRefresh,
+  isRefreshing = false
 }) {
   const { t, language } = useLanguage();
   const { formatCurrency } = useCurrency();
@@ -27,15 +29,32 @@ export default function AccountsHeader({
         <div className="flex items-center gap-2 text-center lg:text-right">
           <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">{t("accounts.total_balance") || "Total Saldo Seluruh Akun"}</p>
 
-          <button
-            type="button"
-            onClick={toggleBalancePrivacy}
-            className="p-1 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-            title={isBalanceHidden ? (language === "en" ? "Show Balance" : "Tampilkan Saldo") : (language === "en" ? "Hide Balance" : "Sembunyikan Saldo")}
-            aria-label="Toggle Total Balance Privacy"
-          >
-            {isBalanceHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-          </button>
+          <div className="flex items-center gap-1">
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className={`p-1 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer ${
+                  isRefreshing ? "animate-spin text-[#00685F]" : ""
+                }`}
+                title={language === "en" ? "Sync & Refresh Accounts" : "Sinkronkan & Segarkan Akun"}
+                aria-label="Sync and refresh accounts"
+              >
+                <RefreshCw className="w-3 h-3" />
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={toggleBalancePrivacy}
+              className="p-1 text-slate-400 hover:text-[#00685F] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              title={isBalanceHidden ? (language === "en" ? "Show Balance" : "Tampilkan Saldo") : (language === "en" ? "Hide Balance" : "Sembunyikan Saldo")}
+              aria-label="Toggle Total Balance Privacy"
+            >
+              {isBalanceHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            </button>
+          </div>
         </div>
         
         <h3 className="text-xl sm:text-3xl lg:text-4xl font-black text-[#00685F] mt-1.5 text-center lg:text-right font-mono sm:font-sans truncate max-w-full">

@@ -136,8 +136,13 @@ export default function SortableAccountCard({
   copiedId
 }) {
   const { t, language } = useLanguage();
-  const { formatCurrency } = useCurrency();
-  const { isAccountHidden, toggleAccountPrivacy } = useBalancePrivacy();
+  const { 
+    isAccountHidden, 
+    toggleAccountPrivacy,
+    isAccountNumberHidden,
+    toggleAccountNumberPrivacy,
+    maskAccountNumber
+  } = useBalancePrivacy();
   const {
     attributes,
     listeners,
@@ -157,6 +162,7 @@ export default function SortableAccountCard({
 
   const isMenuOpen = activeMenuId === acc.id;
   const isHidden = isAccountHidden(acc.id);
+  const isAccNumHidden = isAccountNumberHidden(acc.id);
 
   const renderCardContent = () => {
     // 1. Bank Cards (Curated Multi-Theme)
@@ -186,17 +192,37 @@ export default function SortableAccountCard({
               </div>
               <div className="min-w-0">
                 <h4 className="font-extrabold text-xs sm:text-sm lg:text-base tracking-wide uppercase leading-tight truncate">{acc.name}</h4>
-                <div className="flex items-center gap-1 mt-0.5 select-none">
-                  <span className="text-[10px] sm:text-xs text-white/70 font-mono tracking-wider truncate">{acc.account_number || "•••• •••• ••••"}</span>
+                <div className="flex items-center gap-1.5 mt-0.5 select-none">
+                  <span className="text-[10px] sm:text-xs text-white/70 font-mono tracking-wider truncate">
+                    {isAccNumHidden ? maskAccountNumber(acc.account_number) : (acc.account_number || "•••• •••• ••••")}
+                  </span>
                   {acc.account_number && (
-                    <button 
-                      type="button"
-                      onClick={() => handleCopy(acc.id, acc.account_number)}
-                      className="p-1 hover:bg-white/15 rounded text-white/50 hover:text-white transition cursor-pointer relative z-30 shrink-0"
-                      title={language === 'en' ? "Copy Account Number" : "Salin Nomor Rekening"}
-                    >
-                      {copiedId === acc.id ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
-                    </button>
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleAccountNumberPrivacy(acc.id);
+                        }}
+                        className="p-1 hover:bg-white/15 rounded text-white/60 hover:text-white transition cursor-pointer relative z-30"
+                        title={isAccNumHidden ? (language === 'en' ? "Show Account Number" : "Tampilkan Nomor Rekening") : (language === 'en' ? "Hide Account Number" : "Tutupi Nomor Rekening")}
+                        aria-label="Toggle Account Number Privacy"
+                      >
+                        {isAccNumHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy(acc.id, acc.account_number);
+                        }}
+                        className="p-1 hover:bg-white/15 rounded text-white/60 hover:text-white transition cursor-pointer relative z-30"
+                        title={language === 'en' ? "Copy Account Number" : "Salin Nomor Rekening"}
+                        aria-label="Copy Account Number"
+                      >
+                        {copiedId === acc.id ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -289,9 +315,44 @@ export default function SortableAccountCard({
               </div>
               <div className="min-w-0">
                 <h4 className={`font-extrabold text-xs sm:text-sm lg:text-base ${isDark ? 'text-white' : 'text-slate-900'} tracking-tight leading-tight truncate`}>{acc.name}</h4>
-                <span className={`${theme.badge} text-[9px] sm:text-[10px] font-black px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full uppercase tracking-wider mt-0.5 inline-block select-none shrink-0`}>
-                  {acc.label || (language === 'en' ? "E-Wallet" : "Dompet Digital")}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`${theme.badge} text-[9px] sm:text-[10px] font-black px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full uppercase tracking-wider mt-0.5 inline-block select-none shrink-0`}>
+                    {acc.label || (language === 'en' ? "E-Wallet" : "Dompet Digital")}
+                  </span>
+                  {acc.account_number && (
+                    <div className="flex items-center gap-1 mt-0.5 select-none">
+                      <span className={`text-[10px] sm:text-xs ${isDark ? 'text-white/70' : 'text-slate-500'} font-mono tracking-wider truncate`}>
+                        {isAccNumHidden ? maskAccountNumber(acc.account_number) : acc.account_number}
+                      </span>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAccountNumberPrivacy(acc.id);
+                          }}
+                          className={`p-1 hover:bg-slate-100/20 rounded ${isDark ? 'text-white/60 hover:text-white' : 'text-slate-400 hover:text-slate-700'} transition cursor-pointer relative z-30`}
+                          title={isAccNumHidden ? (language === 'en' ? "Show Account Number" : "Tampilkan Nomor Rekening") : (language === 'en' ? "Hide Account Number" : "Tutupi Nomor Rekening")}
+                          aria-label="Toggle Account Number Privacy"
+                        >
+                          {isAccNumHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(acc.id, acc.account_number);
+                          }}
+                          className={`p-1 hover:bg-slate-100/20 rounded ${isDark ? 'text-white/60 hover:text-white' : 'text-slate-400 hover:text-slate-700'} transition cursor-pointer relative z-30`}
+                          title={language === 'en' ? "Copy Account Number" : "Salin Nomor Rekening"}
+                          aria-label="Copy Account Number"
+                        >
+                          {copiedId === acc.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             

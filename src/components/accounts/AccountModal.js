@@ -231,13 +231,8 @@ export default function AccountModal({
     setFormName(presetItem.title);
     setFormType(presetItem.type);
     setFormTheme(presetItem.theme);
-    if (presetItem.type === "bank") {
-      setFormNumber("xxxx " + Math.floor(1000 + Math.random() * 9000));
-      setFormHolder(presetItem.defaultHolder || "");
-    } else {
-      setFormNumber("");
-      setFormHolder("");
-    }
+    setFormNumber(presetItem.defaultNumber || "");
+    setFormHolder(presetItem.defaultHolder || "");
   };
 
   // Handle switching account type with appropriate theme default
@@ -477,19 +472,21 @@ export default function AccountModal({
               </div>
             </div>
 
-            {/* Optional Fields for Banks */}
-            {activeType === "bank" && (
+            {/* Optional Fields for Banks & E-Wallets */}
+            {(activeType === "bank" || activeType === "ewallet") && (
               <>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                    {language === 'en' ? "Account Number (Optional)" : "Nomor Rekening (Opsional)"}
+                    {activeType === "bank" 
+                      ? (language === 'en' ? "Account Number (Optional)" : "Nomor Rekening (Opsional)")
+                      : (language === 'en' ? "Phone / Account Number (Optional)" : "Nomor HP / Akun (Opsional)")}
                   </label>
                   <input
                     type="text"
                     value={formNumber}
                     onChange={(e) => setFormNumber(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-semibold text-slate-800"
-                    placeholder="xxxx 1234"
+                    placeholder={activeType === "bank" ? "Contoh: 507795569085" : "Contoh: 081234567890"}
                   />
                 </div>
 
@@ -502,7 +499,7 @@ export default function AccountModal({
                     value={formHolder}
                     onChange={(e) => setFormHolder(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl outline-none focus:ring-4 focus:ring-[#00685F]/10 focus:border-[#00685F] transition-all text-sm font-semibold text-slate-800"
-                    placeholder="AKHMAD MAARIZ"
+                    placeholder="Contoh: Muhammad Faqih"
                   />
                 </div>
               </>
