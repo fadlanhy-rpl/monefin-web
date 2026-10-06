@@ -136,6 +136,7 @@ export default function SortableAccountCard({
   copiedId
 }) {
   const { t, language } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const { 
     isAccountHidden, 
     toggleAccountPrivacy,
