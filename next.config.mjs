@@ -9,7 +9,7 @@ const nextConfig = {
   // Aktifkan gzip/brotli compression pada semua response
   compress: true,
 
-  // Hapus header X-Powered-By: Next.js dari response (minor security + byte saving)
+  // Hapus header X-Powered-By: Next.js dari response (security hardening)
   poweredByHeader: false,
 
   // Tree-shake lucide-react: hanya bundle ikon yang benar-benar di-import
@@ -19,6 +19,10 @@ const nextConfig = {
 
   images: {
     formats: ["image/avif", "image/webp"],
+    // Nonaktifkan eksekusi SVG pada Next Image optimizer untuk mencegah SVG XSS/RCE (CVE-2026-2464-fhr4-w9xw)
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Batasi remotePatterns secara eksplisit ke path aset gambar (mencegah SSRF & proxy abuse)
     remotePatterns: [
       {
         protocol: "http",
@@ -47,17 +51,32 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "monefin.web.id",
-        pathname: "/**",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "https",
+        hostname: "monefin.web.id",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",
         hostname: "*.monefin.web.id",
-        pathname: "/**",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.monefin.web.id",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",
         hostname: "sk0010uoic.skipper.my.id",
-        pathname: "/**",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "https",
+        hostname: "sk0010uoic.skipper.my.id",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",
@@ -67,7 +86,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "ui-avatars.com",
-        pathname: "/**",
+        pathname: "/api/**",
       },
     ],
   },
@@ -76,7 +95,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Global Security Headers untuk semua route di Vercel
+        // Global Security Headers untuk semua route
         source: "/(.*)",
         headers: [
           {
@@ -98,6 +117,14 @@ const nextConfig = {
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains; preload",
+          },
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
           },
         ],
       },
