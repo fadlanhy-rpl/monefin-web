@@ -7,6 +7,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import { getSessions, revokeSession, revokeOtherSessions } from "../../services/auth.service";
 import SessionRevokeModal from "./SessionRevokeModal";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 import toast from "react-hot-toast";
 
 function formatRelativeTime(date, lang = "en") {
@@ -64,6 +65,9 @@ export default function SecuritySection({
   // Revoke confirmation modal state
   const [revokeModalOpen, setRevokeModalOpen] = useState(false);
   const [sessionToRevoke, setSessionToRevoke] = useState(null);
+
+  // Forgot password confirmation modal state
+  const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -211,12 +215,13 @@ export default function SecuritySection({
                 <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider">
                   {t("settings.current_password")}
                 </label>
-                <Link
-                  href={`/forgot-password?email=${encodeURIComponent(user?.email || "")}`}
+                <button
+                  type="button"
+                  onClick={() => setForgotPasswordModalOpen(true)}
                   className="text-[11px] font-bold text-[#00685F] hover:text-[#004D46] hover:underline transition-colors cursor-pointer select-none"
                 >
                   {isEn ? "Forgot Password?" : "Lupa Password?"}
-                </Link>
+                </button>
               </div>
               <div className="relative">
                 <input 
@@ -470,7 +475,7 @@ export default function SecuritySection({
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Session Revoke Confirmation Modal */}
       <SessionRevokeModal
         isOpen={revokeModalOpen}
         onClose={() => {
@@ -483,6 +488,13 @@ export default function SecuritySection({
         session={sessionToRevoke}
         otherCount={otherSessionsCount}
         isLoading={!!revokingId || revokingAll}
+      />
+
+      {/* Forgot Password Confirmation Modal */}
+      <ForgotPasswordModal
+        isOpen={forgotPasswordModalOpen}
+        onClose={() => setForgotPasswordModalOpen(false)}
+        userEmail={user?.email || ""}
       />
 
     </div>
