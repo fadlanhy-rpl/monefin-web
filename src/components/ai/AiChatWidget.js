@@ -937,7 +937,7 @@ export default function AiChatWidget() {
   };
 
   // Derive from user preferences
-  const aiEnabled  = user?.preferences?.ai_enabled ?? false;
+  const aiEnabled = user?.preferences?.ai_enabled === true || user?.preferences?.ai_enabled === 1 || user?.preferences?.ai_enabled === "true" || user?.preferences?.ai_enabled === "1";
   const aiConfig   = user?.preferences?.ai_config ?? {};
   const providerLabel = aiConfig.model
     ? `${aiConfig.model}`

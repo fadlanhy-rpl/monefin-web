@@ -184,16 +184,21 @@ const DEFAULT_PROVIDERS = {
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
+const isAiActive = (prefs) => {
+  if (!prefs) return false;
+  return prefs.ai_enabled === true || prefs.ai_enabled === 1 || prefs.ai_enabled === "true" || prefs.ai_enabled === "1";
+};
+
 export default function AiSettingsSection({ onShowToast }) {
-  const { user, checkAuth }     = useAuth();
-  const { language }            = useLanguage();
+  const { user, setUser, checkAuth } = useAuth();
+  const { language }                 = useLanguage();
 
   // Data from API with robust fallback defaults
   const [providers, setProviders]     = useState(DEFAULT_PROVIDERS);
 
   // Form state
   const [prevUser, setPrevUser]       = useState(user);
-  const [aiEnabled, setAiEnabled]     = useState(user?.preferences?.ai_enabled ?? false);
+  const [aiEnabled, setAiEnabled]     = useState(isAiActive(user?.preferences));
   const [provider, setProvider]       = useState(user?.preferences?.ai_config?.provider ?? "");
   const [customName, setCustomName]   = useState(user?.preferences?.ai_config?.custom_name ?? "");
   const [model, setModel]             = useState(user?.preferences?.ai_config?.model ?? "");
@@ -207,7 +212,7 @@ export default function AiSettingsSection({ onShowToast }) {
     setPrevUser(user);
     if (user?.preferences) {
       const prefs = user.preferences;
-      setAiEnabled(prefs.ai_enabled ?? false);
+      setAiEnabled(isAiActive(prefs));
       const cfg = prefs.ai_config ?? {};
       setProvider(cfg.provider ?? "");
       setCustomName(cfg.custom_name ?? "");
@@ -343,10 +348,35 @@ export default function AiSettingsSection({ onShowToast }) {
       setShowApiKey(false);
       setSaving(false);
 
+      // Instantly update user in AuthContext state & localStorage so AiChatWidget & all UI update in real-time
+      if (user) {
+        const nextAiEnabled = data?.ai_enabled !== undefined 
+          ? (data.ai_enabled === true || data.ai_enabled === 1 || data.ai_enabled === "true" || data.ai_enabled === "1")
+          : Boolean(aiEnabled);
+
+        const updatedUser = {
+          ...user,
+          preferences: {
+            ...(user.preferences || {}),
+            ai_enabled: nextAiEnabled,
+            ai_config: {
+              ...(user.preferences?.ai_config || {}),
+              ...(data?.ai_config || {}),
+            },
+          },
+        };
+
+        setUser(updatedUser);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user_data", JSON.stringify(updatedUser));
+          window.dispatchEvent(new CustomEvent("monefin:ai-status-changed", { detail: { enabled: nextAiEnabled } }));
+        }
+      }
+
       onShowToast(language === "id" ? "Konfigurasi AI berhasil disimpan!" : "AI configuration saved successfully!");
 
-      // Refresh global user state asynchronously in background so AiChatWidget updates
-      checkAuth().catch(() => {});
+      // Refresh global user state in background with forceRefresh = true
+      checkAuth(true).catch(() => {});
     } catch (err) {
       onShowToast(err?.response?.data?.message ?? (language === "id" ? "Gagal menyimpan konfigurasi AI." : "Failed to save AI configuration."));
       setSaving(false);

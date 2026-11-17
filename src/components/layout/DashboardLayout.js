@@ -37,6 +37,14 @@ export default function DashboardLayout({ children }) {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
+      // Jika proses logout dengan rute tujuan khusus (mis. /forgot-password) sedang berjalan, jangan bajak ke /login
+      if (typeof window !== "undefined") {
+        const pendingRedirect = sessionStorage.getItem("monefin_logout_redirect");
+        if (pendingRedirect) {
+          return;
+        }
+      }
+
       // Jika cookie auth_token sebenarnya ada (mis. baru selesai Google OAuth callback),
       // jangan lempar ke /login atau tampilkan layar putih — jalankan checkAuth!
       const token = getAuthToken();
@@ -51,6 +59,9 @@ export default function DashboardLayout({ children }) {
       router.replace("/login");
     } else if (isAuthenticated) {
       recheckTriggeredRef.current = false;
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("monefin_logout_redirect");
+      }
     }
   }, [loading, isAuthenticated, router, checkAuth]);
 
@@ -168,7 +179,9 @@ export default function DashboardLayout({ children }) {
           />
 
           {/* Global AI Financial Advisor Widget */}
-          <AiChatWidget />
+          {(user?.preferences?.ai_enabled === true || user?.preferences?.ai_enabled === 1 || user?.preferences?.ai_enabled === "true" || user?.preferences?.ai_enabled === "1") && (
+            <AiChatWidget />
+          )}
         </div>
       )}
     </>

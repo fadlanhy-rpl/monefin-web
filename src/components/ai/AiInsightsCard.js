@@ -31,7 +31,7 @@ export default function AiInsightsCard() {
   const [displayScore, setDisplayScore] = useState(0);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const aiEnabled = user?.preferences?.ai_enabled ?? false;
+  const aiEnabled = user?.preferences?.ai_enabled === true || user?.preferences?.ai_enabled === 1 || user?.preferences?.ai_enabled === "true" || user?.preferences?.ai_enabled === "1";
 
   const fetchInsights = useCallback(async (isUserAction = false) => {
     if (isUserAction) {

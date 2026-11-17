@@ -16,13 +16,11 @@ const publicPaths = [
   "/security",
 ];
 
-// Rute khusus autentikasi (yang jika sudah login akan diahlihkan ke /dashboard)
+// Rute khusus autentikasi (yang jika sudah login akan dialihkan ke /dashboard)
 const authOnlyPaths = [
   "/login",
   "/register",
   "/verify-email",
-  "/forgot-password",
-  "/reset-password",
 ];
 
 // Regex untuk mendeteksi file statis secara ketat (mencegah bypass path traversal/extension)
