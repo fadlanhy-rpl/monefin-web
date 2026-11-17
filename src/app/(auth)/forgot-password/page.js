@@ -26,6 +26,12 @@ function ForgotPasswordContent() {
   );
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("monefin_logout_redirect");
+    }
+  }, []);
+
+  useEffect(() => {
     if (
       typeof navigator !== "undefined" &&
       navigator?.brave &&

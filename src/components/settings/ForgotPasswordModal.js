@@ -37,14 +37,17 @@ export default function ForgotPasswordModal({
 
   const handleConfirm = async () => {
     setIsLoading(true);
+    const emailParam = encodeURIComponent(userEmail || "");
+    const targetUrl = `/forgot-password?email=${emailParam}`;
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("monefin_logout_redirect", targetUrl);
+    }
     try {
-      const emailParam = encodeURIComponent(userEmail || "");
-      const targetUrl = `/forgot-password?email=${emailParam}`;
       await logout(targetUrl);
     } catch (err) {
       console.error("Logout for forgot password failed:", err);
       // Fallback in case of unexpected error
-      window.location.href = `/forgot-password?email=${encodeURIComponent(userEmail || "")}`;
+      window.location.href = targetUrl;
     }
   };
 

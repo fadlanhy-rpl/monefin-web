@@ -293,6 +293,9 @@ export function AuthProvider({ children }) {
   // -------------------------------------------------------
   const logout = async (redirectPath = "/") => {
     setLoading(true);
+    if (typeof window !== "undefined" && redirectPath) {
+      sessionStorage.setItem("monefin_logout_redirect", redirectPath);
+    }
     try {
       await apiLogout();
     } catch (err) {
@@ -321,7 +324,11 @@ export function AuthProvider({ children }) {
         }
       }
       if (redirectPath) {
-        router.push(redirectPath);
+        if (typeof window !== "undefined") {
+          window.location.href = redirectPath;
+        } else {
+          router.push(redirectPath);
+        }
       }
     }
   };
