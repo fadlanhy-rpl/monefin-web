@@ -291,7 +291,7 @@ export function AuthProvider({ children }) {
   // -------------------------------------------------------
   // Logout
   // -------------------------------------------------------
-  const logout = async () => {
+  const logout = async (redirectPath = "/") => {
     setLoading(true);
     try {
       await apiLogout();
@@ -320,7 +320,9 @@ export function AuthProvider({ children }) {
           // Ignore session storage errors
         }
       }
-      router.push("/");
+      if (redirectPath) {
+        router.push(redirectPath);
+      }
     }
   };
 
