@@ -179,7 +179,9 @@ export default function DashboardLayout({ children }) {
           />
 
           {/* Global AI Financial Advisor Widget */}
-          <AiChatWidget />
+          {(user?.preferences?.ai_enabled === true || user?.preferences?.ai_enabled === 1 || user?.preferences?.ai_enabled === "true" || user?.preferences?.ai_enabled === "1") && (
+            <AiChatWidget />
+          )}
         </div>
       )}
     </>

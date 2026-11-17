@@ -269,9 +269,10 @@ function autoInvalidateOnMutation(endpoint) {
     invalidateApiCache("dashboard");
   } else if (ep.includes("/gamification")) {
     invalidateApiCache("gamification");
-  } else if (ep.includes("/auth/profile") || ep.includes("/auth/password")) {
+  } else if (ep.includes("/auth/profile") || ep.includes("/auth/password") || ep.includes("/ai")) {
     invalidateApiCache("auth/me");
     invalidateApiCache("bootstrap");
+    invalidateApiCache("ai");
   } else if (ep.includes("/auth/logout")) {
     clearApiCache();
   }
