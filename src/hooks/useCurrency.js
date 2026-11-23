@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency as utilFormatCurrency } from "@/lib/utils";
-import { getLiveRates, SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { getLiveRates, SUPPORTED_CURRENCIES, FALLBACK_RATES } from "@/lib/currency";
 
 const CURRENCY_STORAGE_KEY = "monefin_currency";
 const CURRENCY_COOKIE_NAME = "MONEFIN_CURRENCY";
@@ -12,7 +12,7 @@ const DEFAULT_CURRENCY = "IDR";
 
 // Module-level state to keep all hook instances in sync without race conditions
 let optimisticUserCurrency = null;
-let sharedRatesCache = { IDR: 15500, USD: 1, EUR: 0.92, SGD: 1.35 };
+let sharedRatesCache = { ...FALLBACK_RATES };
 
 function getCookieCurrency() {
   if (typeof document === "undefined") return null;

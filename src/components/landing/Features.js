@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../hooks/useCurrency";
 import { CURRENCY_OPTIONS, CurrencySwitcherPill } from "../ui/CurrencySwitcher";
+import { FALLBACK_RATES } from "../../lib/currency";
 import {
   Wallet,
   Sparkles,
@@ -269,11 +270,11 @@ export const Features = () => {
   ];
 
   const getRateDisplay = (code) => {
-    const idrPerUsd = rates?.IDR || 15500;
+    const idrPerUsd = rates?.IDR || FALLBACK_RATES.IDR;
     if (code === "IDR") return isEn ? "Base Currency (1:1)" : "Mata Uang Dasar (1:1)";
     if (code === "USD") return `1 USD = Rp ${Math.round(idrPerUsd).toLocaleString("id-ID")}`;
-    if (code === "EUR") return `1 EUR = Rp ${Math.round(idrPerUsd / (rates?.EUR || 0.92)).toLocaleString("id-ID")}`;
-    if (code === "SGD") return `1 SGD = Rp ${Math.round(idrPerUsd / (rates?.SGD || 1.35)).toLocaleString("id-ID")}`;
+    if (code === "EUR") return `1 EUR = Rp ${Math.round(idrPerUsd / (rates?.EUR || FALLBACK_RATES.EUR)).toLocaleString("id-ID")}`;
+    if (code === "SGD") return `1 SGD = Rp ${Math.round(idrPerUsd / (rates?.SGD || FALLBACK_RATES.SGD)).toLocaleString("id-ID")}`;
     return "";
   };
 

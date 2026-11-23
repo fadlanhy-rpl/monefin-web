@@ -9,18 +9,18 @@ const EXCHANGE_RATE_API_FREE = "https://api.exchangerate-api.com/v4/latest/USD";
 const CACHE_KEY = "monefin_exchange_rates";
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+export const FALLBACK_RATES = { IDR: 18100, USD: 1, EUR: 0.92, SGD: 1.29 };
+
 /**
  * Config mata uang yang didukung.
  * fallback_from_usd: Fallback kurs jika SEMUA API gagal (1 USD = N unit)
  */
 export const SUPPORTED_CURRENCIES = {
-  IDR: { symbol: "Rp",  locale: "id-ID", decimals: 0, fallback_from_usd: 15500 },
-  USD: { symbol: "$",   locale: "en-US", decimals: 2, fallback_from_usd: 1     },
-  EUR: { symbol: "€",   locale: "de-DE", decimals: 2, fallback_from_usd: 0.92  },
-  SGD: { symbol: "S$",  locale: "en-SG", decimals: 2, fallback_from_usd: 1.35  },
+  IDR: { symbol: "Rp",  locale: "id-ID", decimals: 0, fallback_from_usd: FALLBACK_RATES.IDR },
+  USD: { symbol: "$",   locale: "en-US", decimals: 2, fallback_from_usd: FALLBACK_RATES.USD },
+  EUR: { symbol: "€",   locale: "de-DE", decimals: 2, fallback_from_usd: FALLBACK_RATES.EUR },
+  SGD: { symbol: "S$",  locale: "en-SG", decimals: 2, fallback_from_usd: FALLBACK_RATES.SGD },
 };
-
-const FALLBACK_RATES = { IDR: 15500, USD: 1, EUR: 0.92, SGD: 1.35 };
 
 /**
  * Coba fetch dari satu endpoint, kembalikan rates object atau null jika gagal.

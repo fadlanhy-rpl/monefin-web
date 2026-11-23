@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useLanguage } from "../../context/LanguageContext";
+import { FALLBACK_RATES } from "../../lib/currency";
 
 export const CURRENCY_OPTIONS = [
   { code: "IDR", symbol: "Rp", nameId: "Rupiah Indonesia", nameEn: "Indonesian Rupiah", flag: "🇮🇩" },
@@ -39,15 +40,15 @@ export function CurrencySwitcher() {
   const currentLang = LANG_OPTIONS.find((l) => l.code === language) || LANG_OPTIONS[0];
 
   const getRateHint = (code) => {
-    const idrPerUsd = rates?.IDR || 15500;
+    const idrPerUsd = rates?.IDR || FALLBACK_RATES.IDR;
     if (code === "IDR") return isEn ? "Base Currency (Rp)" : "Mata Uang Dasar (Rp)";
     if (code === "USD") return `1 USD ≈ Rp ${Math.round(idrPerUsd).toLocaleString("id-ID")}`;
     if (code === "EUR") {
-      const idrPerEur = idrPerUsd / (rates?.EUR || 0.92);
+      const idrPerEur = idrPerUsd / (rates?.EUR || FALLBACK_RATES.EUR);
       return `1 EUR ≈ Rp ${Math.round(idrPerEur).toLocaleString("id-ID")}`;
     }
     if (code === "SGD") {
-      const idrPerSgd = idrPerUsd / (rates?.SGD || 1.35);
+      const idrPerSgd = idrPerUsd / (rates?.SGD || FALLBACK_RATES.SGD);
       return `1 SGD ≈ Rp ${Math.round(idrPerSgd).toLocaleString("id-ID")}`;
     }
     return "";

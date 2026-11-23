@@ -1,12 +1,13 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { FALLBACK_RATES } from './currency';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 /** Format a decimal string or number as IDR, USD, EUR or SGD currency with conversion */
-export function formatCurrency(value: string | number, currency: string = 'IDR', exchangeRate: number = 15500): string {
+export function formatCurrency(value: string | number, currency: string = 'IDR', exchangeRate: number = FALLBACK_RATES.IDR): string {
   let num = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(num)) num = 0;
 
